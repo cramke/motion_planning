@@ -1,5 +1,5 @@
 [package]
-name = "prm2"
+name = "prm"
 version = "0.1.0"
 edition = "2021"
 authors = ["Carsten Ramke <carsten.ramke@gmail.com>"]
@@ -11,3 +11,4 @@ keywords = ["prm", "robotics", "path planning", "probabilistic algorithm"]
 
 [dependencies]
 petgraph = "0.6.2"
+rand = "0.8.5"
