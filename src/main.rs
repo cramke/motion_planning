@@ -1,5 +1,5 @@
 use rand::Rng;
-use petgraph::graph::Graph;
+use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 use petgraph::dot::{Dot, Config};
 
 /** Parameters
@@ -10,12 +10,13 @@ const NUMBER_OF_NODES_TO_ADD: usize = 5;
 
 #[derive(Clone)]
 struct PlanningSetup {
-    start: Node,
-    goal: Node,
+    start: Node2D,
+    goal: Node2D,
     boundaries: Boundaries,
     graph: Graph<[f64;2], f64>,
-    is_node_in_collision: fn(&Node) -> bool,
+    is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
+    get_edge_weight: fn() -> f64,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -27,16 +28,17 @@ struct Boundaries {
 }
 
 #[derive(Debug, Copy, Clone)]
-struct Node {
+struct Node2D {
     x: f64,
     y: f64,
+    idx: usize,
 }
 
 impl PlanningSetup {
 
     fn init(&mut self) {
-        let start: Node = Node { x: self.start.x, y: self.start.y};
-        let goal: Node = Node { x: self.goal.x, y: self.goal.y};
+        let mut start: Node2D = Node2D { x: self.start.x, y: self.start.y, idx: 0};
+        let mut goal: Node2D = Node2D { x: self.goal.x, y: self.goal.y, idx: 0};
 
         if !self.is_in_boundaries() {
             panic!("Start or goal not inside boundaries.");
@@ -50,15 +52,15 @@ impl PlanningSetup {
             panic!("Goal is in collision.");
         }
 
-        self.insert_node_in_graph(&start);
-        self.insert_node_in_graph(&goal);
+        self.insert_node_in_graph(&mut start);
+        self.insert_node_in_graph(&mut goal);
         println!("Setup is ready for planning")
 
     }
 
     fn run(&mut self) {
         loop {
-            let added_nodes: Vec<Node> = self.add_batch_of_random_nodes();
+            let added_nodes: Vec<Node2D> = self.add_batch_of_random_nodes();
             println!("{}", added_nodes.len());
             self.connect_added_nodes_to_graph(added_nodes);
 
@@ -74,22 +76,20 @@ impl PlanningSetup {
         }
     }
 
-    fn add_batch_of_random_nodes(&mut self) -> Vec<Node> {
-        let mut counter_added_nodes: usize = 0;
-        let mut list_of_added_nodes: Vec<Node> = Vec::new();
+    fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
+        let mut list_of_added_nodes: Vec<Node2D> = Vec::new();
     
-        while counter_added_nodes < NUMBER_OF_NODES_TO_ADD {
-            let node: Node = self.find_permissable_node();
-            self.insert_node_in_graph(&node);
+        while list_of_added_nodes.len() < NUMBER_OF_NODES_TO_ADD {
+            let mut node: Node2D = self.find_permissable_node();
+            self.insert_node_in_graph(&mut node);
             list_of_added_nodes.push(node);
-            counter_added_nodes += 1;
         }
         return list_of_added_nodes;
     }
 
-    fn find_permissable_node(&self) -> Node {
+    fn find_permissable_node(&self) -> Node2D {
         loop {
-            let node: Node = self.generate_random_configuration();
+            let node: Node2D = self.generate_random_configuration();
             if is_collision(&node) {
                 continue;
             }
@@ -101,17 +101,18 @@ impl PlanningSetup {
         }
     }
 
-    fn insert_node_in_graph(&mut self, node: &Node) {
-        self.graph.add_node([node.x, node.y]);
+    fn insert_node_in_graph(&mut self, node: &mut Node2D) {
+        let index: usize = self.graph.add_node([node.x, node.y]).index();
+        node.idx = index;
     }
 
     fn is_in_boundaries(&self) -> bool {
         return true;
     }
 
-    fn connect_added_nodes_to_graph(&self, added_nodes: Vec<Node>) {
+    fn connect_added_nodes_to_graph(&mut self, added_nodes: Vec<Node2D>) {
         for node in added_nodes {
-            let nearest_neighbors: Vec<Node> = self.get_n_nearest_neighbours(node);
+            let nearest_neighbors: NodeIndices = self.get_n_nearest_neighbours(node);
             for neighbor in nearest_neighbors {
                 if is_edge_in_collision() {
                     continue;
@@ -121,20 +122,27 @@ impl PlanningSetup {
                     continue;
                 }
     
-                self.insert_edge_in_graph();
+                self.insert_edge_in_graph(&node, neighbor);
             }
         }
     }
 
-    fn generate_random_configuration(&self) -> Node {
+    fn generate_random_configuration(&self) -> Node2D {
         let mut rng = rand::thread_rng();
         let x: f64 = rng.gen_range(self.boundaries.x_lower..self.boundaries.x_upper);
         let y: f64 = rng.gen_range(self.boundaries.y_lower..self.boundaries.y_upper);
-        let node: Node = Node { x: x, y: y };
+        let node: Node2D = Node2D { x: x, y: y, idx: 0};
         return node;
     }
 
-    fn insert_edge_in_graph(&self) {
+    fn insert_edge_in_graph(&mut self, begin: &Node2D, end: NodeIndex) {
+        let weight: f64 = get_edge_weight();
+        let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
+        if a == end { // do not insert edge from a node to itself
+            return;
+        }
+        self.graph.add_edge(a, end, weight);
+
     }
 
     fn is_problem_solved(&self) -> bool {
@@ -153,9 +161,9 @@ impl PlanningSetup {
         return false;
     }
     
-    fn get_n_nearest_neighbours(&self, node: Node) -> Vec<Node> {
-        let nearest_neighbors: Vec<Node> = Vec::new();
-        return nearest_neighbors;
+    fn get_n_nearest_neighbours(&self, node: Node2D) -> NodeIndices {
+        let node_iterator = self.graph.node_indices();
+        return node_iterator;
     }
 }
 
@@ -163,7 +171,7 @@ impl PlanningSetup {
  *  Setup and/or configure for the specific planning problem.
  */
 
-fn is_collision(node: &Node) -> bool {
+fn is_collision(node: &Node2D) -> bool {
     if node.x > 1.0 && node.x < 2.0 {
         return true;
     }
@@ -178,17 +186,24 @@ fn is_edge_in_collision() -> bool {
     return false;
 }
 
+fn get_edge_weight() -> f64 {
+    let mut rng = rand::thread_rng();
+    let cost: f64 = rng.gen_range(0f64..100f64);
+    return cost;
+}
+
 fn main() {
     println!("Hello, world!");
-    let start: Node = Node { x: 0f64, y: 0f64 };
-    let goal: Node = Node { x: 3f64, y: 3f64 };
+    let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
+    let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
     let mut setup: PlanningSetup = PlanningSetup {  start: start, 
                                                 goal: goal, 
                                                 boundaries: bounds,
                                                 graph: Graph::new(),
                                                 is_node_in_collision: is_collision,
-                                                is_edge_in_collision: is_edge_in_collision,};
+                                                is_edge_in_collision: is_edge_in_collision,
+                                                get_edge_weight: get_edge_weight,};
                                                 
     setup.init();
     setup.run();
@@ -198,7 +213,7 @@ fn main() {
 
 #[cfg(test)]
 mod test {
-    use crate::Node;
+    use crate::Node2D;
 
     #[test]
     fn test_dummy() {
@@ -208,7 +223,7 @@ mod test {
 
     #[test]
     fn test_node() {
-        let node: Node = Node {x: 0f64, y: 0f64};
+        let node: Node2D = Node2D {x: 0f64, y: 0f64, idx: 0};
         assert_eq!(node.x, 0f64);
         assert_eq!(node.y, 0f64);
     }
