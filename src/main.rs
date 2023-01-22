@@ -34,6 +34,13 @@ struct Node2D {
     idx: usize,
 }
 
+impl Node2D {
+    fn new(x: f64, y: f64) -> Self {
+        let idx = 0;
+        return Node2D { x: x, y: y, idx: idx }
+    }
+}
+
 impl PlanningSetup {
 
     fn init(&mut self) {
@@ -209,22 +216,4 @@ fn main() {
     setup.run();
    
     println!("{:?}", Dot::with_config(&setup.graph, &[Config::EdgeNoLabel]));
-}
-
-#[cfg(test)]
-mod test {
-    use crate::Node2D;
-
-    #[test]
-    fn test_dummy() {
-        let tree: f64 = 3f64;
-        assert_eq!(tree, 3.0);
-    }
-
-    #[test]
-    fn test_node() {
-        let node: Node2D = Node2D {x: 0f64, y: 0f64, idx: 0};
-        assert_eq!(node.x, 0f64);
-        assert_eq!(node.y, 0f64);
-    }
 }
