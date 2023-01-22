@@ -165,11 +165,9 @@ fn get_n_nearest_neighbours(node: Node) -> Vec<Node> {
 
 fn is_collision(node: &Node) -> bool {
     if node.x > 1.0 && node.x < 2.0 {
-        println!("Reject Node for x");
         return true;
     }
     if node.y > 1.0 && node.y < 2.0 {
-        println!("Reject Node for y");
         return true;
     }
 
