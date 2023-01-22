@@ -11,3 +11,12 @@ impl Boundaries {
         return Boundaries { x_lower: x_low, x_upper: x_up, y_lower: y_low, y_upper: y_up };
     }
 }
+
+mod tests {
+    use super::Boundaries;
+
+    #[test]
+    fn test_boundaries_dummy() {
+        assert_eq!(2f64, 0f64);
+    }
+}

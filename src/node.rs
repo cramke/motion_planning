@@ -11,3 +11,17 @@ impl Node2D {
         return Node2D { x: x, y: y, idx: idx }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Node2D;
+
+    #[test]
+    fn test_new_x() {
+        let node = Node2D::new(2f64, 3f64);
+        assert_eq!(2f64, node.x);
+        assert_eq!(3f64, node.y);
+        assert_eq!(0usize, node.idx);
+
+    }
+}
