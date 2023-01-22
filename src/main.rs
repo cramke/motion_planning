@@ -10,8 +10,8 @@ const NUMBER_OF_NODES_TO_ADD: usize = 5;
 
 #[derive(Clone)]
 struct PlanningSetup {
-    start: [f64; 2],
-    goal: [f64; 2],
+    start: Node,
+    goal: Node,
     boundaries: Boundaries,
     graph: Graph<[f64;2], f64>,
     is_node_in_collision: fn(&Node) -> bool,
@@ -26,6 +26,7 @@ struct Boundaries {
     y_upper: f64,
 }
 
+#[derive(Debug, Copy, Clone)]
 struct Node {
     x: f64,
     y: f64,
@@ -34,8 +35,8 @@ struct Node {
 impl PlanningSetup {
 
     fn init(&mut self) {
-        let start: Node = Node { x: self.start[0], y: self.start[1]};
-        let goal: Node = Node { x: self.goal[0], y: self.goal[1]};
+        let start: Node = Node { x: self.start.x, y: self.start.y};
+        let goal: Node = Node { x: self.goal.x, y: self.goal.y};
 
         if !self.is_in_boundaries() {
             panic!("Start or goal not inside boundaries.");
@@ -59,16 +60,16 @@ impl PlanningSetup {
         loop {
             let added_nodes: Vec<Node> = self.add_batch_of_random_nodes();
             println!("{}", added_nodes.len());
-            connect_added_nodes_to_graph(added_nodes);
+            self.connect_added_nodes_to_graph(added_nodes);
 
-            if _is_problem_solved() {
+            if self.is_problem_solved() {
                 println!("Solved");
             }
 
-            if _is_termination_criteria_met() {
+            if self.is_termination_criteria_met() {
                 println!("Termination Criteria met");
             }
-            
+
             break;
         }
     }
@@ -88,12 +89,12 @@ impl PlanningSetup {
 
     fn find_permissable_node(&self) -> Node {
         loop {
-            let node: Node = generate_random_configuration(&self.boundaries);
+            let node: Node = self.generate_random_configuration();
             if is_collision(&node) {
                 continue;
             }
     
-            if is_node_already_in_graph() {
+            if self.is_node_already_in_graph() {
                 continue;
             }
             return node;
@@ -108,57 +109,56 @@ impl PlanningSetup {
         return true;
     }
 
-
-}
-
-fn generate_random_configuration(boundaries: &Boundaries) -> Node {
-    let mut rng = rand::thread_rng();
-    let x: f64 = rng.gen_range(boundaries.x_lower..boundaries.x_upper);
-    let y: f64 = rng.gen_range(boundaries.y_lower..boundaries.y_upper);
-    let node: Node = Node { x: x, y: y };
-    return node;
-}
-
-fn connect_added_nodes_to_graph(added_nodes: Vec<Node>) {
-    for node in added_nodes {
-        let nearest_neighbors: Vec<Node> = get_n_nearest_neighbours(node);
-        for neighbor in nearest_neighbors {
-            if is_edge_in_collision() {
-                continue;
+    fn connect_added_nodes_to_graph(&self, added_nodes: Vec<Node>) {
+        for node in added_nodes {
+            let nearest_neighbors: Vec<Node> = self.get_n_nearest_neighbours(node);
+            for neighbor in nearest_neighbors {
+                if is_edge_in_collision() {
+                    continue;
+                }
+    
+                if self.is_edge_already_in_graph() {
+                    continue;
+                }
+    
+                self.insert_edge_in_graph();
             }
-
-            if is_edge_already_in_graph() {
-                continue;
-            }
-
-            insert_edge_in_graph();
         }
+    }
+
+    fn generate_random_configuration(&self) -> Node {
+        let mut rng = rand::thread_rng();
+        let x: f64 = rng.gen_range(self.boundaries.x_lower..self.boundaries.x_upper);
+        let y: f64 = rng.gen_range(self.boundaries.y_lower..self.boundaries.y_upper);
+        let node: Node = Node { x: x, y: y };
+        return node;
+    }
+
+    fn insert_edge_in_graph(&self) {
+    }
+
+    fn is_problem_solved(&self) -> bool {
+        return false;
+    }
+    
+    fn is_termination_criteria_met(&self) -> bool {
+        return true;
+    }
+    
+    fn is_edge_already_in_graph(&self) -> bool {
+        return false;
+    }
+    
+    fn is_node_already_in_graph(&self) -> bool {
+        return false;
+    }
+    
+    fn get_n_nearest_neighbours(&self, node: Node) -> Vec<Node> {
+        let nearest_neighbors: Vec<Node> = Vec::new();
+        return nearest_neighbors;
     }
 }
 
-fn _is_problem_solved() -> bool {
-    return false;
-}
-
-fn _is_termination_criteria_met() -> bool {
-    return true;
-}
-
-fn is_edge_already_in_graph() -> bool {
-    return false;
-}
-
-fn is_node_already_in_graph() -> bool {
-    return false;
-}
-
-fn insert_edge_in_graph() {
-}
-
-fn get_n_nearest_neighbours(node: Node) -> Vec<Node> {
-    let nearest_neighbors: Vec<Node> = Vec::new();
-    return nearest_neighbors;
-}
 /** -------------------------------------------------------------------
  *  Setup and/or configure for the specific planning problem.
  */
@@ -180,9 +180,11 @@ fn is_edge_in_collision() -> bool {
 
 fn main() {
     println!("Hello, world!");
+    let start: Node = Node { x: 0f64, y: 0f64 };
+    let goal: Node = Node { x: 3f64, y: 3f64 };
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
-    let mut setup: PlanningSetup = PlanningSetup {  start: [0f64, 0f64], 
-                                                goal: [3f64, 3f64], 
+    let mut setup: PlanningSetup = PlanningSetup {  start: start, 
+                                                goal: goal, 
                                                 boundaries: bounds,
                                                 graph: Graph::new(),
                                                 is_node_in_collision: is_collision,
