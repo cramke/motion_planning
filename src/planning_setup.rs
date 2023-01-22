@@ -1,9 +1,9 @@
     use rand::Rng;
     use petgraph::graph::{Graph, NodeIndex, NodeIndices};
     use petgraph::dot::{Dot, Config};
-    use crate::Node2D;
+    use crate::node::Node2D;
 
-    use crate::Boundaries;
+    use crate::boundaries::Boundaries;
 
     #[derive(Clone)]
     pub struct PlanningSetup {

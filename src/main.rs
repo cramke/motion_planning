@@ -1,11 +1,9 @@
 use rand::Rng;
 use petgraph::dot::{Dot, Config};
 
-pub mod planning_setup; // alternatively: use crate::planning_setup::PlanningSetup;
-pub mod node;
-use crate::node::Node2D;
-pub mod boundaries;
-use crate::boundaries::Boundaries;
+use prm::node::Node2D;
+use prm::boundaries::Boundaries;
+use prm::planning_setup::PlanningSetup;
 
 
 /** Parameters
@@ -43,7 +41,7 @@ fn main() {
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
-    let mut setup = planning_setup::PlanningSetup::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight,);                                       
+    let mut setup = PlanningSetup::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight,);                                       
     setup.init();
     setup.run();
    
