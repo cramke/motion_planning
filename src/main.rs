@@ -1,17 +1,22 @@
 use rand::Rng;
+use petgraph::graph::Graph;
+use petgraph::dot::{Dot, Config};
 
 /** Parameters
  *  Are global because are required during compilation
  */
 
-const NUMBER_OF_NODES_TO_ADD: usize = 15;
+const NUMBER_OF_NODES_TO_ADD: usize = 5;
 
+#[derive(Debug, Clone)]
 struct PlanningSetup {
     start: [f64; 2],
     goal: [f64; 2],
     boundaries: Boundaries,
+    graph: Graph<[f64;2], f64>,
 }
 
+#[derive(Debug, Copy, Clone)]
 struct Boundaries {
     x_lower: f64,
     x_upper: f64,
@@ -25,30 +30,47 @@ struct Node {
 }
 
 impl PlanningSetup {
-    fn run(&self) {
-        loop {
-            let added_nodes: Vec<Node> = self.add_batch_of_random_nodes();
-            println!("{}", added_nodes.len());
-            connect_added_nodes_to_graph(added_nodes);
-    
-            if _is_problem_solved() {
-                break;
-            }
-    
-            if _is_termination_criteria_met() {
-                break;
-            }
+
+    fn init(&mut self) {
+        let start: Node = Node { x: self.start[0], y: self.start[1]};
+        let goal: Node = Node { x: self.goal[0], y: self.goal[1]};
+
+        if !self.is_in_boundaries() {
+            panic!("Start or goal not inside boundaries.");
+        }
+
+        if is_collision() {
+            panic!("Start or goal is in collision.");
+        }
+
+        self.insert_node_in_graph(&start);
+        self.insert_node_in_graph(&goal);
+        println!("Setup is ready for planning")
+
+    }
+
+    fn run(&mut self) {
+        let added_nodes: Vec<Node> = self.add_batch_of_random_nodes();
+        println!("{}", added_nodes.len());
+        connect_added_nodes_to_graph(added_nodes);
+
+        if _is_problem_solved() {
+            println!("Solved");
+        }
+
+        if _is_termination_criteria_met() {
+            println!("Termination Criteria met");
         }
     }
 
-    fn add_batch_of_random_nodes(&self) -> Vec<Node> {
+    fn add_batch_of_random_nodes(&mut self) -> Vec<Node> {
         let mut counter_added_nodes: usize = 0;
         let mut list_of_added_nodes: Vec<Node> = Vec::new();
     
         while counter_added_nodes < NUMBER_OF_NODES_TO_ADD {
             let node: Node = self.find_permissable_node();
+            self.insert_node_in_graph(&node);
             list_of_added_nodes.push(node);
-            insert_node_in_graph();
             counter_added_nodes += 1;
         }
         return list_of_added_nodes;
@@ -66,6 +88,14 @@ impl PlanningSetup {
             }
             return node;
         }
+    }
+
+    fn insert_node_in_graph(&mut self, node: &Node) {
+        self.graph.add_node([node.x, node.y]);
+    }
+
+    fn is_in_boundaries(&self) -> bool {
+        return true;
     }
 
 
@@ -106,9 +136,6 @@ fn is_edge_between_nodes_is_collision() -> bool {
     return false;
 }
 
-fn insert_node_in_graph() {
-}
-
 fn _is_problem_solved() -> bool {
     return false;
 }
@@ -136,10 +163,14 @@ fn get_n_nearest_neighbours(node: Node) -> Vec<Node> {
 fn main() {
     println!("Hello, world!");
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
-    let setup: PlanningSetup = PlanningSetup {  start: [0f64, 0f64], 
+    let mut setup: PlanningSetup = PlanningSetup {  start: [0f64, 0f64], 
                                                 goal: [3f64, 3f64], 
-                                                boundaries: bounds };
+                                                boundaries: bounds,
+                                                graph: Graph::new() };
+    setup.init();
     setup.run();
+   
+    println!("{:?}", Dot::with_config(&setup.graph, &[Config::EdgeNoLabel]));
 }
 
 #[cfg(test)]
