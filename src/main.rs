@@ -14,7 +14,8 @@ struct PlanningSetup {
     goal: [f64; 2],
     boundaries: Boundaries,
     graph: Graph<[f64;2], f64>,
-    is_collision: fn(&Node) -> bool,
+    is_node_in_collision: fn(&Node) -> bool,
+    is_edge_in_collision: fn() -> bool,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -55,16 +56,20 @@ impl PlanningSetup {
     }
 
     fn run(&mut self) {
-        let added_nodes: Vec<Node> = self.add_batch_of_random_nodes();
-        println!("{}", added_nodes.len());
-        connect_added_nodes_to_graph(added_nodes);
+        loop {
+            let added_nodes: Vec<Node> = self.add_batch_of_random_nodes();
+            println!("{}", added_nodes.len());
+            connect_added_nodes_to_graph(added_nodes);
 
-        if _is_problem_solved() {
-            println!("Solved");
-        }
+            if _is_problem_solved() {
+                println!("Solved");
+            }
 
-        if _is_termination_criteria_met() {
-            println!("Termination Criteria met");
+            if _is_termination_criteria_met() {
+                println!("Termination Criteria met");
+            }
+            
+            break;
         }
     }
 
@@ -118,7 +123,7 @@ fn connect_added_nodes_to_graph(added_nodes: Vec<Node>) {
     for node in added_nodes {
         let nearest_neighbors: Vec<Node> = get_n_nearest_neighbours(node);
         for neighbor in nearest_neighbors {
-            if is_edge_between_nodes_is_collision() {
+            if is_edge_in_collision() {
                 continue;
             }
 
@@ -129,12 +134,6 @@ fn connect_added_nodes_to_graph(added_nodes: Vec<Node>) {
             insert_edge_in_graph();
         }
     }
-}
-
-
-
-fn is_edge_between_nodes_is_collision() -> bool {
-    return false;
 }
 
 fn _is_problem_solved() -> bool {
@@ -160,8 +159,9 @@ fn get_n_nearest_neighbours(node: Node) -> Vec<Node> {
     let nearest_neighbors: Vec<Node> = Vec::new();
     return nearest_neighbors;
 }
-
-// Setup and/or configure for the specific problem.
+/** -------------------------------------------------------------------
+ *  Setup and/or configure for the specific planning problem.
+ */
 
 fn is_collision(node: &Node) -> bool {
     if node.x > 1.0 && node.x < 2.0 {
@@ -174,6 +174,10 @@ fn is_collision(node: &Node) -> bool {
     return false;
 }
 
+fn is_edge_in_collision() -> bool {
+    return false;
+}
+
 fn main() {
     println!("Hello, world!");
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
@@ -181,7 +185,8 @@ fn main() {
                                                 goal: [3f64, 3f64], 
                                                 boundaries: bounds,
                                                 graph: Graph::new(),
-                                                is_collision };
+                                                is_node_in_collision: is_collision,
+                                                is_edge_in_collision: is_edge_in_collision,};
                                                 
     setup.init();
     setup.run();
