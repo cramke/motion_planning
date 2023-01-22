@@ -8,12 +8,13 @@ use petgraph::dot::{Dot, Config};
 
 const NUMBER_OF_NODES_TO_ADD: usize = 5;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct PlanningSetup {
     start: [f64; 2],
     goal: [f64; 2],
     boundaries: Boundaries,
     graph: Graph<[f64;2], f64>,
+    is_collision: fn(&Node) -> bool,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -39,8 +40,12 @@ impl PlanningSetup {
             panic!("Start or goal not inside boundaries.");
         }
 
-        if is_collision() {
-            panic!("Start or goal is in collision.");
+        if is_collision(&start) {
+            panic!("Start is in collision.");
+        }
+
+        if is_collision(&goal) {
+            panic!("Goal is in collision.");
         }
 
         self.insert_node_in_graph(&start);
@@ -79,7 +84,7 @@ impl PlanningSetup {
     fn find_permissable_node(&self) -> Node {
         loop {
             let node: Node = generate_random_configuration(&self.boundaries);
-            if is_collision() {
+            if is_collision(&node) {
                 continue;
             }
     
@@ -128,10 +133,6 @@ fn connect_added_nodes_to_graph(added_nodes: Vec<Node>) {
 
 
 
-fn is_collision() -> bool {
-    return false;
-}
-
 fn is_edge_between_nodes_is_collision() -> bool {
     return false;
 }
@@ -160,13 +161,30 @@ fn get_n_nearest_neighbours(node: Node) -> Vec<Node> {
     return nearest_neighbors;
 }
 
+// Setup and/or configure for the specific problem.
+
+fn is_collision(node: &Node) -> bool {
+    if node.x > 1.0 && node.x < 2.0 {
+        println!("Reject Node for x");
+        return true;
+    }
+    if node.y > 1.0 && node.y < 2.0 {
+        println!("Reject Node for y");
+        return true;
+    }
+
+    return false;
+}
+
 fn main() {
     println!("Hello, world!");
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
     let mut setup: PlanningSetup = PlanningSetup {  start: [0f64, 0f64], 
                                                 goal: [3f64, 3f64], 
                                                 boundaries: bounds,
-                                                graph: Graph::new() };
+                                                graph: Graph::new(),
+                                                is_collision };
+                                                
     setup.init();
     setup.run();
    
