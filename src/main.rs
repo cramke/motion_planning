@@ -1,4 +1,3 @@
-use rand::Rng;
 use petgraph::dot::{Dot, Config};
 
 use prm::node::Node2D;
@@ -30,9 +29,10 @@ fn is_edge_in_collision() -> bool {
     return false;
 }
 
-fn get_edge_weight() -> f64 {
-    let mut rng = rand::thread_rng();
-    let cost: f64 = rng.gen_range(0f64..100f64);
+fn get_edge_weight(begin: &Node2D, end: &Node2D) -> f64 {
+    let a = (begin.x - end.x).powi(2);
+    let b: f64 = (begin.y - end.y).powi(2);
+    let cost: f64 = (a+b).sqrt();
     return cost;
 }
 
@@ -41,9 +41,11 @@ fn main() {
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
-    let mut setup = PlanningSetup::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight,);                                       
+    let mut setup = PlanningSetup::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight);                                       
     setup.init();
     setup.run();
+    let nodes = setup.get_graph().node_count();
+    println!("Graph contains {}", nodes);
    
-    println!("{:?}", Dot::with_config(setup.get_graph(), &[Config::EdgeNoLabel]));
+    // println!("{:?}", Dot::with_config(setup.get_graph(), &[Config::EdgeNoLabel]));
 }
