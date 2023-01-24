@@ -17,6 +17,10 @@ mod tests {
 
     #[test]
     fn test_boundaries_dummy() {
-        assert_eq!(2f64, 0f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
+        assert_eq!(0f64, bounds.x_lower);
+        assert_eq!(1f64, bounds.x_upper);
+        assert_eq!(2f64, bounds.y_lower);
+        assert_eq!(3f64, bounds.y_upper);
     }
 }

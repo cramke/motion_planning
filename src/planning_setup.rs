@@ -133,8 +133,7 @@ impl PlanningSetup {
 
     fn insert_edge_in_graph(&mut self, begin: &Node2D, end: NodeIndex) {
         let node_coords = self.graph.node_weight(end).unwrap();
-        let mut end_node = Node2D::new(node_coords[0], node_coords[1]);
-        end_node.idx = end.index();
+        let mut end_node: Node2D = Node2D::new_index(node_coords[0], node_coords[1], end.index());
         let weight: f64 = (self.get_edge_weight)(begin, &end_node);
         let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
         if a == end { // do not insert edge from a node to itself
