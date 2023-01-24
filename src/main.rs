@@ -4,12 +4,6 @@ use prm::node::Node2D;
 use prm::boundaries::Boundaries;
 use prm::planning_setup::PlanningSetup;
 
-
-/** Parameters
- *  Are global because are required during compilation
- */
-const NUMBER_OF_NODES_TO_ADD: usize = 5;
-
 /** -------------------------------------------------------------------
  *  Setup and/or configure for the specific planning problem.
  */
@@ -44,8 +38,5 @@ fn main() {
     let mut setup = PlanningSetup::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight);                                       
     setup.init();
     setup.run();
-    let nodes = setup.get_graph().node_count();
-    println!("Graph contains {}", nodes);
-   
-    // println!("{:?}", Dot::with_config(setup.get_graph(), &[Config::EdgeNoLabel]));
+    setup.print_statistics();
 }

@@ -1,5 +1,6 @@
 use petgraph::Undirected;
 use petgraph::algo::{astar};
+use petgraph::dot::{Dot, Config};
 use rand::Rng;
 use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 
@@ -15,6 +16,7 @@ pub struct PlanningSetup {
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
     get_edge_weight: fn(&Node2D, &Node2D) -> f64,
+    solution: Option<(f64, Vec<NodeIndex>)>,
 }
 
 impl PlanningSetup {
@@ -27,7 +29,8 @@ impl PlanningSetup {
             graph: Graph::new_undirected(),
             is_node_in_collision: is_collision,
             is_edge_in_collision: is_edge_in_collision,
-            get_edge_weight: get_edge_weight,};
+            get_edge_weight: get_edge_weight,
+            solution: None, };
         return  setup;
     }
 
@@ -143,25 +146,16 @@ impl PlanningSetup {
 
     }
 
-    fn is_problem_solved(&self) -> bool {
+    fn is_problem_solved(&mut self) -> bool {
         let start: NodeIndex = NodeIndex::new(self.start.idx);
-        let ret = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
-        let path: Vec<NodeIndex>;
-        let cost: f64;
-        match ret {
+        self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
+        match &self.solution {
             None => return false,
             Some(a) => {
-                (cost, path) = a;
                 println!("found a solution.");
+                return true;
             }
         }
-        for node in &path {
-            println!("NodeIndex: {}", node.index());
-            let a = self.graph.node_weight(*node).unwrap();
-            println!("X: {} and Y: {}", a[0], a[1]);
-        }
-        println!("Solution cost -{}- with {} nodes", cost, path.len());
-        return true;
     }
     
     fn is_termination_criteria_met(&self) -> bool {
@@ -183,5 +177,27 @@ impl PlanningSetup {
 
     pub fn get_graph(&self) -> &Graph<[f64;2], f64, Undirected> {
         return &self.graph;
+    }
+
+    pub fn print_statistics(&self) {
+        let nodes: usize = self.graph.node_count();
+        println!("Graph contains {} nodes", nodes);
+
+        let edges: usize = self.graph.edge_count();
+        println!("Graph contains {} edges", edges);
+
+        let path: Vec<NodeIndex>;
+        let cost: f64;
+        match &self.solution {
+            None => println!("No solution was found"),
+            Some(a) => {
+                cost = a.0;
+                println!("Solution cost -{}- with {} nodes", cost, a.1.len());
+            }
+        }
+    }
+
+    pub fn print_graph(&self) {
+        println!("{:?}", Dot::with_config(self.get_graph(), &[Config::EdgeNoLabel]));
     }
 }
