@@ -34,6 +34,7 @@ impl PlanningSetup {
         return  setup;
     }
 
+    // run init before starting any planning task. 
     pub fn init(&mut self) {    
         if !self.is_in_boundaries() {
             panic!("Start or goal not inside boundaries.");
@@ -173,6 +174,15 @@ impl PlanningSetup {
     fn get_n_nearest_neighbours(&self, node: Node2D) -> NodeIndices {
         let node_iterator = self.graph.node_indices();
         return node_iterator;
+    }
+
+    pub fn get_solution_cost(&self) -> f64 {
+        match &self.solution {
+            None => return f64::MAX,
+            Some(a) => {
+                return a.0;
+            }
+        }
     }
 
     pub fn get_graph(&self) -> &Graph<[f64;2], f64, Undirected> {
