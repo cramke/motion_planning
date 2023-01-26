@@ -12,3 +12,5 @@ keywords = ["prm", "robotics", "path planning", "probabilistic algorithm"]
 [dependencies]
 petgraph = "0.6.2"
 rand = "0.8.5"
+wkt = "0.10.3"
+geo-types = "0.7.8"

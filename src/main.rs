@@ -1,8 +1,5 @@
-use petgraph::dot::{Dot, Config};
-
 use prm::node::Node2D;
 use prm::boundaries::Boundaries;
-use prm::prm::PRM;
 use prm::problem::ProblemDefinition;
 
 /** -------------------------------------------------------------------
@@ -32,7 +29,6 @@ fn get_edge_weight(begin: &Node2D, end: &Node2D) -> f64 {
 }
 
 fn main() {
-    println!("Hello, world!");
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
