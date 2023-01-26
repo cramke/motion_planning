@@ -2,7 +2,8 @@ use petgraph::dot::{Dot, Config};
 
 use prm::node::Node2D;
 use prm::boundaries::Boundaries;
-use prm::planning_setup::PlanningSetup;
+use prm::prm::PRM;
+use prm::problem::ProblemDefinition;
 
 /** -------------------------------------------------------------------
  *  Setup and/or configure for the specific planning problem.
@@ -35,8 +36,7 @@ fn main() {
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
-    let mut setup = PlanningSetup::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight);                                       
-    setup.init();
-    setup.run();
-    setup.print_statistics();
+    let mut pdef= ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight);                                       
+    pdef.solve();
+    pdef.print_statistics();
 }

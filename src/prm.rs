@@ -8,22 +8,22 @@ use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 
 #[derive(Clone)]
-pub struct PlanningSetup {
+pub struct PRM {
     start: Node2D,
     goal: Node2D,
     boundaries: Boundaries,
-    graph: Graph<[f64;2], f64, Undirected>,
+    pub graph: Graph<[f64;2], f64, Undirected>,
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
     get_edge_weight: fn(&Node2D, &Node2D) -> f64,
-    solution: Option<(f64, Vec<NodeIndex>)>,
+    pub solution: Option<(f64, Vec<NodeIndex>)>,
 }
 
-impl PlanningSetup {
+impl PRM {
 
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
         is_edge_in_collision: fn() -> bool, get_edge_weight: fn(&Node2D, &Node2D) -> f64) -> Self {
-        let mut setup: PlanningSetup = PlanningSetup {  start: start, 
+        let mut setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
             graph: Graph::new_undirected(),
@@ -176,38 +176,7 @@ impl PlanningSetup {
         return node_iterator;
     }
 
-    pub fn get_solution_cost(&self) -> f64 {
-        match &self.solution {
-            None => return f64::MAX,
-            Some(a) => {
-                return a.0;
-            }
-        }
-    }
-
     pub fn get_graph(&self) -> &Graph<[f64;2], f64, Undirected> {
         return &self.graph;
-    }
-
-    pub fn print_statistics(&self) {
-        let nodes: usize = self.graph.node_count();
-        println!("Graph contains {} nodes", nodes);
-
-        let edges: usize = self.graph.edge_count();
-        println!("Graph contains {} edges", edges);
-
-        let path: Vec<NodeIndex>;
-        let cost: f64;
-        match &self.solution {
-            None => println!("No solution was found"),
-            Some(a) => {
-                cost = a.0;
-                println!("Solution cost -{}- with {} nodes", cost, a.1.len());
-            }
-        }
-    }
-
-    pub fn print_graph(&self) {
-        println!("{:?}", Dot::with_config(self.get_graph(), &[Config::EdgeNoLabel]));
     }
 }
