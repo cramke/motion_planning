@@ -1,5 +1,6 @@
 use prm::node::Node2D;
 use prm::boundaries::Boundaries;
+use prm::optimizer::{self, Optimizer};
 use prm::problem::ProblemDefinition;
 
 /** -------------------------------------------------------------------
@@ -35,4 +36,7 @@ fn main() {
     let mut pdef= ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight);                                       
     pdef.solve();
     pdef.print_statistics();
+
+    let optimizer = optimizer::DefaultOptimizer;
+    optimizer.get_edge_weight(&start, &goal);
 }

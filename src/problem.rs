@@ -4,6 +4,7 @@ use petgraph::Undirected;
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
+use crate::optimizer::{self, DefaultOptimizer};
 use crate::prm::PRM;
 
 pub struct ProblemDefinition {
@@ -13,7 +14,8 @@ pub struct ProblemDefinition {
 impl ProblemDefinition {
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
     is_edge_in_collision: fn() -> bool, get_edge_weight: fn(&Node2D, &Node2D) -> f64) -> Self {
-        let mut setup = PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight); 
+        let optimizer: &'static DefaultOptimizer = &optimizer::DefaultOptimizer;
+        let mut setup = PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight, optimizer); 
         let mut pdef = ProblemDefinition {setup};
         return pdef;
     }

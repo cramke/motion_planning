@@ -6,6 +6,7 @@ use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
+use crate::optimizer::{Optimizer, self};
 
 #[derive(Clone)]
 pub struct PRM {
@@ -17,12 +18,13 @@ pub struct PRM {
     is_edge_in_collision: fn() -> bool,
     get_edge_weight: fn(&Node2D, &Node2D) -> f64,
     pub solution: Option<(f64, Vec<NodeIndex>)>,
+    optimizer: &'static dyn Optimizer,
 }
 
 impl PRM {
 
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-        is_edge_in_collision: fn() -> bool, get_edge_weight: fn(&Node2D, &Node2D) -> f64) -> Self {
+        is_edge_in_collision: fn() -> bool, get_edge_weight: fn(&Node2D, &Node2D) -> f64, optimizer: &'static dyn Optimizer) -> Self {
         let mut setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
@@ -30,7 +32,9 @@ impl PRM {
             is_node_in_collision: is_collision,
             is_edge_in_collision: is_edge_in_collision,
             get_edge_weight: get_edge_weight,
-            solution: None, };
+            solution: None,
+            optimizer,
+        };
         return  setup;
     }
 
@@ -138,7 +142,7 @@ impl PRM {
     fn insert_edge_in_graph(&mut self, begin: &Node2D, end: NodeIndex) {
         let node_coords = self.graph.node_weight(end).unwrap();
         let mut end_node: Node2D = Node2D::new_index(node_coords[0], node_coords[1], end.index());
-        let weight: f64 = (self.get_edge_weight)(begin, &end_node);
+        let weight: f64 = self.optimizer.get_edge_weight(begin, &end_node);
         let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
         if a == end { // do not insert edge from a node to itself
             return;
@@ -179,4 +183,5 @@ impl PRM {
     pub fn get_graph(&self) -> &Graph<[f64;2], f64, Undirected> {
         return &self.graph;
     }
+
 }
