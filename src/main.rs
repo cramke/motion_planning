@@ -1,6 +1,6 @@
 use prm::node::Node2D;
 use prm::boundaries::Boundaries;
-use prm::optimizer::{DefaultOptimizer, self, Optimizer};
+use prm::optimizer::{self, Optimizer};
 use prm::problem::ProblemDefinition;
 
 /** -------------------------------------------------------------------

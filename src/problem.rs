@@ -3,7 +3,7 @@ use petgraph::graph::{NodeIndex};
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
-use crate::optimizer::{self, Optimizer};
+use crate::optimizer::Optimizer;
 use crate::prm::PRM;
 
 pub struct ProblemDefinition {
