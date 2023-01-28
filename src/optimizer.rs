@@ -2,6 +2,7 @@ use crate::node::Node2D;
 
 pub trait Optimizer {
     fn get_edge_weight(&self, begin: &Node2D, end: &Node2D) -> f64;
+    fn init(&self) -> bool;
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -13,5 +14,9 @@ impl Optimizer for DefaultOptimizer {
         let cost: f64 = (a+b).sqrt();
         println!("Cost is: {}", &cost);
         return cost;
+    }
+
+    fn init(&self) -> bool {
+        return true;
     }
 }

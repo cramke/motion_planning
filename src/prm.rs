@@ -1,3 +1,5 @@
+use core::panic;
+
 use petgraph::Undirected;
 use petgraph::algo::{astar};
 use petgraph::dot::{Dot, Config};
@@ -57,6 +59,10 @@ impl PRM {
 
         let goal_index: usize = self.graph.add_node([self.goal.x, self.goal.y]).index();
         self.goal.idx = goal_index;
+
+        if !self.optimizer.init() {
+            panic!("Optimizer could not be initialized");
+        }
 
         println!("Setup is ready for planning")
 
