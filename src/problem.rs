@@ -1,5 +1,4 @@
 use petgraph::dot::{Dot, Config};
-use petgraph::graph::{NodeIndex};
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
@@ -30,14 +29,15 @@ impl ProblemDefinition {
         let edges: usize = self.setup.graph.edge_count();
         println!("Graph contains {} edges", edges);
 
-        let path: &Vec<NodeIndex>;
-        let cost: f64;
         match &self.setup.solution {
             None => println!("No solution was found"),
-            Some(a) => {
-                cost = a.0;
-                path = &a.1;
-                println!("Solution cost -{}- with {} nodes", cost, path.len());
+            Some(_a) => {
+                let path = self.get_solution_path();
+                println!("Solution cost -{}- with {} nodes", self.get_solution_cost(), path.len());
+                for el in path {
+                    print!("{:?}, ", el);
+                }
+                print!("\n");
             }
         }
     }
@@ -49,6 +49,10 @@ impl ProblemDefinition {
                 return a.0;
             }
         }
+    }
+
+    pub fn get_solution_path(&self) -> Vec<Node2D> {
+        return self.setup.solution_path.clone();
     }
 
     pub fn print_graph(&self) {

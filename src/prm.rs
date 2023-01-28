@@ -17,6 +17,8 @@ pub struct PRM {
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
     pub solution: Option<(f64, Vec<NodeIndex>)>,
+    pub solution_cost: f64,
+    pub solution_path: Vec<Node2D>,
     optimizer: Box<dyn Optimizer>,
 }
 
@@ -31,6 +33,8 @@ impl PRM {
             is_node_in_collision: is_collision,
             is_edge_in_collision: is_edge_in_collision,
             solution: None,
+            solution_cost: f64::MAX,
+            solution_path: Vec::new(),
             optimizer,
         };
         return  setup;
@@ -71,6 +75,7 @@ impl PRM {
             self.connect_added_nodes_to_graph(added_nodes);
 
             if self.is_problem_solved() {
+                self.process_solution();
                 println!("Solved");
             }
 
@@ -158,11 +163,23 @@ impl PRM {
         self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
         match &self.solution {
             None => return false,
-            Some(_a) => {
+            Some(a) => {
+                self.solution_cost = a.0;
+                for el in &a.1 {
+                    let idx = el.index();
+                    let weight = self.graph.node_weight(*el).unwrap();
+                    let x = weight[0];
+                    let y = weight[1];
+                    let node = Node2D {x, y, idx};
+                    self.solution_path.push(node);
+                }
                 println!("found a solution.");
                 return true;
             }
         }
+    }
+
+    fn process_solution(&mut self) {
     }
     
     fn is_termination_criteria_met(&self) -> bool {
