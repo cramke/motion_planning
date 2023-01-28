@@ -9,7 +9,6 @@ use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
 
-#[derive(Clone)]
 pub struct PRM {
     start: Node2D,
     goal: Node2D,
@@ -18,13 +17,13 @@ pub struct PRM {
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
     pub solution: Option<(f64, Vec<NodeIndex>)>,
-    optimizer: &'static dyn Optimizer,
+    optimizer: Box<dyn Optimizer>,
 }
 
 impl PRM {
 
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-        is_edge_in_collision: fn() -> bool, optimizer: &'static dyn Optimizer) -> Self {
+        is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>) -> Self {
         let setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
@@ -86,7 +85,7 @@ impl PRM {
     fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
         let mut list_of_added_nodes: Vec<Node2D> = Vec::new();
     
-        while list_of_added_nodes.len() < 200 {
+        while list_of_added_nodes.len() < 8 {
             let mut node: Node2D = self.find_permissable_node();
             self.insert_node_in_graph(&mut node);
             list_of_added_nodes.push(node);

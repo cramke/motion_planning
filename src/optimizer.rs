@@ -2,7 +2,7 @@ use crate::node::Node2D;
 
 pub trait Optimizer {
     fn get_edge_weight(&self, begin: &Node2D, end: &Node2D) -> f64;
-    fn init(&self) -> bool;
+    fn init(&mut self) -> bool;
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -17,7 +17,7 @@ impl Optimizer for DefaultOptimizer {
         return cost;
     }
 
-    fn init(&self) -> bool {
+    fn init(&mut self) -> bool {
         return true;
     }
 }
@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn test_default_init() {
-        let optimizer = DefaultOptimizer;
+        let mut optimizer = DefaultOptimizer;
         assert_eq!(true, optimizer.init());
     }
 
