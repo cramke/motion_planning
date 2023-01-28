@@ -45,7 +45,7 @@ impl Node2D {
 #[cfg(test)]
 mod tests {
     use super::Node2D;
-    use petgraph::graph::{NodeIndex, Node};
+    use petgraph::graph::{NodeIndex};
 
     #[test]
     fn test_new() {

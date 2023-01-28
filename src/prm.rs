@@ -2,13 +2,12 @@ use core::panic;
 
 use petgraph::Undirected;
 use petgraph::algo::{astar};
-use petgraph::dot::{Dot, Config};
 use rand::Rng;
 use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
-use crate::optimizer::{Optimizer, self};
+use crate::optimizer::{Optimizer};
 
 #[derive(Clone)]
 pub struct PRM {
@@ -18,7 +17,6 @@ pub struct PRM {
     pub graph: Graph<[f64;2], f64, Undirected>,
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
-    get_edge_weight: fn(&Node2D, &Node2D) -> f64,
     pub solution: Option<(f64, Vec<NodeIndex>)>,
     optimizer: &'static dyn Optimizer,
 }
@@ -26,14 +24,13 @@ pub struct PRM {
 impl PRM {
 
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-        is_edge_in_collision: fn() -> bool, get_edge_weight: fn(&Node2D, &Node2D) -> f64, optimizer: &'static dyn Optimizer) -> Self {
-        let mut setup: PRM = PRM {  start: start, 
+        is_edge_in_collision: fn() -> bool, optimizer: &'static dyn Optimizer) -> Self {
+        let setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
             graph: Graph::new_undirected(),
             is_node_in_collision: is_collision,
             is_edge_in_collision: is_edge_in_collision,
-            get_edge_weight: get_edge_weight,
             solution: None,
             optimizer,
         };
@@ -147,7 +144,7 @@ impl PRM {
 
     fn insert_edge_in_graph(&mut self, begin: &Node2D, end: NodeIndex) {
         let node_coords = self.graph.node_weight(end).unwrap();
-        let mut end_node: Node2D = Node2D::new_index(node_coords[0], node_coords[1], end.index());
+        let end_node: Node2D = Node2D::new_index(node_coords[0], node_coords[1], end.index());
         let weight: f64 = self.optimizer.get_edge_weight(begin, &end_node);
         let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
         if a == end { // do not insert edge from a node to itself
@@ -162,7 +159,7 @@ impl PRM {
         self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
         match &self.solution {
             None => return false,
-            Some(a) => {
+            Some(_a) => {
                 println!("found a solution.");
                 return true;
             }
@@ -181,7 +178,8 @@ impl PRM {
         return false;
     }
     
-    fn get_n_nearest_neighbours(&self, node: Node2D) -> NodeIndices {
+    fn get_n_nearest_neighbours(&self, _node: Node2D) -> NodeIndices {
+        // TODO: Returns all nodes. A smarter algorithm would select based on proximity. Important for large graphs
         let node_iterator = self.graph.node_indices();
         return node_iterator;
     }

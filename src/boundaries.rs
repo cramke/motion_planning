@@ -13,10 +13,11 @@ impl Boundaries {
 }
 
 mod tests {
-    use super::Boundaries;
 
     #[test]
     fn test_boundaries_dummy() {
+        use crate::boundaries::Boundaries;
+
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         assert_eq!(0f64, bounds.x_lower);
         assert_eq!(1f64, bounds.x_upper);

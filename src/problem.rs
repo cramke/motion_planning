@@ -1,10 +1,9 @@
 use petgraph::dot::{Dot, Config};
-use petgraph::graph::{Graph, NodeIndex, NodeIndices};
-use petgraph::Undirected;
+use petgraph::graph::{NodeIndex};
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
-use crate::optimizer::{self, DefaultOptimizer};
+use crate::optimizer::{self};
 use crate::prm::PRM;
 
 pub struct ProblemDefinition {
@@ -13,10 +12,9 @@ pub struct ProblemDefinition {
 
 impl ProblemDefinition {
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-    is_edge_in_collision: fn() -> bool, get_edge_weight: fn(&Node2D, &Node2D) -> f64) -> Self {
-        let optimizer: &'static DefaultOptimizer = &optimizer::DefaultOptimizer;
-        let mut setup = PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, get_edge_weight, optimizer); 
-        let mut pdef = ProblemDefinition {setup};
+    is_edge_in_collision: fn() -> bool, optimizer: &'static dyn optimizer::Optimizer) -> Self {
+        let setup = PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer); 
+        let pdef = ProblemDefinition {setup};
         return pdef;
     }
 
@@ -32,13 +30,14 @@ impl ProblemDefinition {
         let edges: usize = self.setup.graph.edge_count();
         println!("Graph contains {} edges", edges);
 
-        let path: Vec<NodeIndex>;
+        let path: &Vec<NodeIndex>;
         let cost: f64;
         match &self.setup.solution {
             None => println!("No solution was found"),
             Some(a) => {
                 cost = a.0;
-                println!("Solution cost -{}- with {} nodes", cost, a.1.len());
+                path = &a.1;
+                println!("Solution cost -{}- with {} nodes", cost, path.len());
             }
         }
     }
