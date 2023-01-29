@@ -16,10 +16,11 @@ pub struct PRM {
     pub graph: Graph<[f64;2], f64, Undirected>,
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
-    pub solution: Option<(f64, Vec<NodeIndex>)>,
+    solution: Option<(f64, Vec<NodeIndex>)>,
     pub solution_cost: f64,
     pub solution_path: Vec<Node2D>,
     optimizer: Box<dyn Optimizer>,
+    pub is_solved: bool,
 }
 
 impl PRM {
@@ -36,14 +37,19 @@ impl PRM {
             solution_cost: f64::MAX,
             solution_path: Vec::new(),
             optimizer,
+            is_solved: false,
         };
         return  setup;
     }
 
     // run init before starting any planning task. 
     pub fn init(&mut self) {    
-        if !self.is_in_boundaries() {
-            panic!("Start or goal not inside boundaries.");
+        if !self.boundaries.is_node_inside(&self.start) {
+            panic!("Start is not inside boundaries.");
+        }
+
+        if !self.boundaries.is_node_inside(&self.goal) {
+            panic!("Goal is not inside boundaries.");
         }
 
         if (self.is_node_in_collision)(&self.start) {
@@ -74,7 +80,7 @@ impl PRM {
             println!("{}", added_nodes.len());
             self.connect_added_nodes_to_graph(added_nodes);
 
-            if self.is_problem_solved() {
+            if self.check_solution() {
                 self.process_solution();
                 println!("Solved");
             }
@@ -117,10 +123,6 @@ impl PRM {
         node.idx = index;
     }
 
-    fn is_in_boundaries(&self) -> bool {
-        return true;
-    }
-
     fn connect_added_nodes_to_graph(&mut self, added_nodes: Vec<Node2D>) {
         for node in added_nodes {
             let nearest_neighbors: NodeIndices = self.get_n_nearest_neighbours(node);
@@ -158,28 +160,26 @@ impl PRM {
 
     }
 
-    fn is_problem_solved(&mut self) -> bool {
+    pub fn check_solution(&mut self) -> bool {
         let start: NodeIndex = NodeIndex::new(self.start.idx);
         self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
         match &self.solution {
             None => return false,
-            Some(a) => {
-                self.solution_cost = a.0;
-                for el in &a.1 {
-                    let idx = el.index();
-                    let weight = self.graph.node_weight(*el).unwrap();
-                    let x = weight[0];
-                    let y = weight[1];
-                    let node = Node2D {x, y, idx};
-                    self.solution_path.push(node);
-                }
-                println!("found a solution.");
-                return true;
-            }
+            Some(_) => return true, 
         }
     }
 
     fn process_solution(&mut self) {
+        let (cost, temp) = &self.solution.clone().unwrap();
+        self.solution_cost = *cost;
+        for el in temp {
+            let idx = el.index();
+            let weight = self.graph.node_weight(*el).unwrap();
+            let x = weight[0];
+            let y = weight[1];
+            let node = Node2D {x, y, idx};
+            self.solution_path.push(node);
+        }
     }
     
     fn is_termination_criteria_met(&self) -> bool {
@@ -202,6 +202,14 @@ impl PRM {
 
     pub fn get_graph(&self) -> &Graph<[f64;2], f64, Undirected> {
         return &self.graph;
+    }
+
+    pub fn get_solution_cost(&self) -> f64 {
+        return self.solution_cost;
+    }
+
+    pub fn get_solution_path(&self) -> Vec<Node2D> {
+        return self.solution_path.clone();
     }
 
 }

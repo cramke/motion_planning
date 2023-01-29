@@ -6,56 +6,50 @@ use crate::optimizer::Optimizer;
 use crate::prm::PRM;
 
 pub struct ProblemDefinition {
-    setup: PRM,
+    planner: PRM,
 }
 
 impl ProblemDefinition {
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
     is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>) -> Self {
         let setup = PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer); 
-        let pdef = ProblemDefinition {setup};
+        let pdef = ProblemDefinition {planner: setup};
         return pdef;
     }
 
     pub fn solve(&mut self) {
-        self.setup.init();
-        self.setup.run();
+        self.planner.init();
+        self.planner.run();
     }
 
     pub fn print_statistics(&self) {
-        let nodes: usize = self.setup.graph.node_count();
+        let nodes: usize = self.planner.graph.node_count();
         println!("Graph contains {} nodes", nodes);
 
-        let edges: usize = self.setup.graph.edge_count();
+        let edges: usize = self.planner.graph.edge_count();
         println!("Graph contains {} edges", edges);
 
-        match &self.setup.solution {
-            None => println!("No solution was found"),
-            Some(_a) => {
-                let path = self.get_solution_path();
-                println!("Solution cost -{}- with {} nodes", self.get_solution_cost(), path.len());
-                for el in path {
-                    print!("{:?}, ", el);
-                }
-                print!("\n");
+        if self.planner.is_solved {
+            let path = self.get_solution_path();
+            println!("Solution cost -{}- with {} nodes", self.get_solution_cost(), path.len());
+            for el in path {
+                print!("{:?}, ", el);
             }
+            print!("\n");
+        } else {
+            println!("No solution was found");
         }
     }
 
     pub fn get_solution_cost(&self) -> f64 {
-        match &self.setup.solution {
-            None => return f64::MAX,
-            Some(a) => {
-                return a.0;
-            }
-        }
+        return self.planner.get_solution_cost();
     }
 
     pub fn get_solution_path(&self) -> Vec<Node2D> {
-        return self.setup.solution_path.clone();
+        return self.planner.solution_path.clone();
     }
 
     pub fn print_graph(&self) {
-        println!("{:?}", Dot::with_config(self.setup.get_graph(), &[Config::EdgeNoLabel]));
+        println!("{:?}", Dot::with_config(self.planner.get_graph(), &[Config::EdgeNoLabel]));
     }
 }
