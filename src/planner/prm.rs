@@ -10,6 +10,7 @@ use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
 use crate::planner::planner::Planner;
+use crate::planner::graph_utils as pg;
 
 pub struct PRM {
     start: Node2D,
@@ -123,7 +124,7 @@ impl PRM {
     
         while list_of_added_nodes.len() < 8 {
             let mut node: Node2D = self.find_permissable_node();
-            self.insert_node_in_graph(&mut node);
+            pg::insert_node_in_graph(&mut self.graph, &mut node);
             list_of_added_nodes.push(node);
         }
         return list_of_added_nodes;
@@ -136,16 +137,11 @@ impl PRM {
                 continue;
             }
     
-            if self.is_node_already_in_graph() {
+            if pg::is_node_already_in_graph(&self.graph, &node) {
                 continue;
             }
             return node;
         }
-    }
-
-    fn insert_node_in_graph(&mut self, node: &mut Node2D) {
-        let index: usize = self.graph.add_node(*node).index();
-        node.idx = index;
     }
 
     fn connect_added_nodes_to_graph(&mut self, added_nodes: Vec<Node2D>) {
@@ -156,11 +152,13 @@ impl PRM {
                     continue;
                 }
     
-                if self.is_edge_already_in_graph() {
+                if pg::is_edge_already_in_graph(&self.graph, &node, neighbor) {
                     continue;
                 }
-    
-                self.insert_edge_in_graph(&node, neighbor);
+
+                let end_node2d = self.graph.node_weight(neighbor).unwrap();
+                let weight: f64 = self.optimizer.get_edge_weight(&node, end_node2d);
+                pg::insert_edge_in_graph(&mut self.graph, &node, neighbor, weight);
             }
         }
     }
@@ -171,17 +169,6 @@ impl PRM {
         let y: f64 = rng.gen_range(self.boundaries.y_lower..self.boundaries.y_upper);
         let node: Node2D = Node2D { x: x, y: y, idx: 0};
         return node;
-    }
-
-    fn insert_edge_in_graph(&mut self, begin: &Node2D, end: NodeIndex) {
-        let end_node2d = self.graph.node_weight(end).unwrap();
-        let weight: f64 = self.optimizer.get_edge_weight(begin, end_node2d);
-        let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
-        if a == end { // do not insert edge from a node to itself
-            return;
-        }
-        self.graph.add_edge(a, end, weight);
-
     }
 
     fn check_solution(&mut self) -> bool {
@@ -197,7 +184,6 @@ impl PRM {
         let (cost, temp) = &self.solution.clone().unwrap();
         self.solution_cost = *cost;
         for el in temp {
-            let idx = el.index();
             let weight = self.graph.node_weight(*el).unwrap();
             self.solution_path.push(*weight);
         }
@@ -205,14 +191,6 @@ impl PRM {
     
     fn is_termination_criteria_met(&self) -> bool {
         return true;
-    }
-    
-    fn is_edge_already_in_graph(&self) -> bool {
-        return false;
-    }
-    
-    fn is_node_already_in_graph(&self) -> bool {
-        return false;
     }
     
     fn get_n_nearest_neighbours(&self, _node: Node2D) -> NodeIndices {
