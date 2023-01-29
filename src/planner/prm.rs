@@ -24,6 +24,7 @@ pub struct PRM {
     pub solution_path: Vec<Node2D>,
     optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
+    MAX_BATCH_SIZE: usize,
 }
 
 impl Planner for PRM {
@@ -100,12 +101,16 @@ impl Planner for PRM {
         pg::write_graph_to_file(&self.graph, path);
     }
 
+    fn set_params(self: &mut PRM, param1: usize) {
+        self.MAX_BATCH_SIZE = param1;
+    }
+
 }
 
 impl PRM {
 
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-        is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>) -> Self {
+        is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>, param1: usize) -> Self {
         let setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
@@ -117,6 +122,7 @@ impl PRM {
             solution_path: Vec::new(),
             optimizer,
             is_solved: false,
+            MAX_BATCH_SIZE: param1,
         };
         return  setup;
     }
@@ -124,7 +130,7 @@ impl PRM {
     fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
         let mut list_of_added_nodes: Vec<Node2D> = Vec::new();
     
-        while list_of_added_nodes.len() < 8 {
+        while list_of_added_nodes.len() < self.MAX_BATCH_SIZE {
             let mut node: Node2D = self.find_permissable_node();
             pg::insert_node_in_graph(&mut self.graph, &mut node);
             list_of_added_nodes.push(node);

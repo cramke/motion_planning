@@ -1,7 +1,7 @@
 use prm::node::Node2D;
 use prm::boundaries::Boundaries;
 use prm::optimizer::{self, Optimizer};
-use prm::problem::ProblemDefinition;
+use prm::problem::{ProblemDefinition, Parameter};
 
 /** -------------------------------------------------------------------
  *  Setup and/or configure for the specific planning problem.
@@ -27,9 +27,10 @@ fn main() {
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(optimizer::DefaultOptimizer);
-    let mut pdef= ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
+    let params = Parameter::new(50usize);
+    let mut pdef= ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params);                                       
     pdef.solve();
-    let path: &str = "./examples/example1/example1.dot";
+    let path: &str = "./examples/example1/graph.dot";
     pdef.print_statistics(path);
     let path: &str = "./examples/example1/solution_path.txt";
     pdef.write_solution_path(path);

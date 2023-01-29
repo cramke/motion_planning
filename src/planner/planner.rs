@@ -7,4 +7,5 @@ pub trait Planner {
     fn get_solution_path(&self) -> Vec<Node2D>;
     fn is_solved(&self) -> bool;
     fn print_statistics(&self, path:&str);
+    fn set_params(&mut self, param1: usize);
 }

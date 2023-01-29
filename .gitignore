@@ -1,3 +1,5 @@
 /target
 .vscode/
+/examples/example1/*.dot
+/examples/example1/*.txt
 Cargo.lock

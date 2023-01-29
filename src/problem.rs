@@ -7,15 +7,28 @@ use crate::optimizer::Optimizer;
 use crate::planner::planner::Planner;
 use crate::planner::prm::PRM;
 
+pub struct Parameter {
+    MAX_SIZE: usize,
+}
+
+impl Parameter {
+    pub fn new(param1: usize) -> Self {
+        let params: Parameter = Parameter {MAX_SIZE: param1};
+        return params;
+    }
+}
+
 pub struct ProblemDefinition {
     planner: Box<dyn Planner>,
+    params: Parameter,
 }
 
 impl ProblemDefinition {
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-    is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer)); 
-        let pdef = ProblemDefinition {planner: planner};
+    is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>, params: Parameter) -> Self {
+        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params.MAX_SIZE));
+        let params: Parameter = params;
+        let pdef = ProblemDefinition {planner: planner, params: params};
         return pdef;
     }
 
