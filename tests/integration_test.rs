@@ -22,7 +22,7 @@ fn test_prm_default_scenario() {
 
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
-    let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
+    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
     pdef.solve();
@@ -48,11 +48,11 @@ fn test_prm_naiv_scenario() {
 
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
-    let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
+    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
     pdef.solve();
-    let cost = pdef.get_solution_cost();
+    let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
     assert!(cost < 4.5f64);
     
@@ -74,10 +74,10 @@ fn test_prm_unsolvable_scenario() {
 
     let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
-    let bounds: Boundaries = Boundaries { x_lower: 0f64, x_upper: 3f64, y_lower: 0f64, y_upper: 3f64 };
+    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64 );
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
     pdef.solve();
-    let cost = pdef.get_solution_cost();
+    let cost: f64 = pdef.get_solution_cost();
     assert_eq!(f64::MAX, cost);
 }

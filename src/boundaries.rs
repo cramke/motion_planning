@@ -1,16 +1,20 @@
+use rand::{Rng, rngs::ThreadRng};
+
 use crate::node::Node2D;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Boundaries {
     pub x_lower: f64,
     pub x_upper: f64,
     pub y_lower: f64,
     pub y_upper: f64,
+    rand: ThreadRng,
 }
 
 impl Boundaries {
     pub fn new(x_lower: f64, x_upper: f64, y_lower: f64, y_upper: f64) -> Self {
-        return Boundaries { x_lower, x_upper, y_lower, y_upper };
+        let mut rand: ThreadRng = rand::thread_rng();
+        return Boundaries { x_lower, x_upper, y_lower, y_upper, rand };
     }
 
     pub fn is_node_inside(&self, node: &Node2D) -> bool {
@@ -32,11 +36,16 @@ impl Boundaries {
 
         return true;
     }
+
+    pub fn generate_random_configuration(&mut self) -> Node2D {
+        let x: f64 = self.rand.gen_range(self.x_lower..self.x_upper);
+        let y: f64 = self.rand.gen_range(self.y_lower..self.y_upper);
+        let node: Node2D = Node2D { x: x, y: y, idx: 0};
+        return node;
+    }
 }
 
 mod tests {
-    use crate::node::Node2D;
-
 
     #[test]
     fn test_boundaries_dummy() {
@@ -52,6 +61,7 @@ mod tests {
     #[test]
     fn test_boundaries_inside_true() {
         use crate::boundaries::Boundaries;
+        use crate::node::Node2D;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Node2D = Node2D::new(0.5f64, 2.5f64);
@@ -61,6 +71,7 @@ mod tests {
     #[test]
     fn test_boundaries_inside_false_x() {
         use crate::boundaries::Boundaries;
+        use crate::node::Node2D;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Node2D = Node2D::new(2.5f64, 2.5f64);
@@ -70,6 +81,7 @@ mod tests {
     #[test]
     fn test_boundaries_inside_false_y() {
         use crate::boundaries::Boundaries;
+        use crate::node::Node2D;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Node2D = Node2D::new(0.5f64, 0f64);

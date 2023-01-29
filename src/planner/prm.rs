@@ -130,9 +130,9 @@ impl PRM {
         return list_of_added_nodes;
     }
 
-    fn find_permissable_node(&self) -> Node2D {
+    fn find_permissable_node(&mut self) -> Node2D {
         loop {
-            let node: Node2D = self.generate_random_configuration();
+            let node: Node2D = self.boundaries.generate_random_configuration();
             if (self.is_node_in_collision)(&node) {
                 continue;
             }
@@ -163,20 +163,15 @@ impl PRM {
         }
     }
 
-    fn generate_random_configuration(&self) -> Node2D {
-        let mut rng = rand::thread_rng();
-        let x: f64 = rng.gen_range(self.boundaries.x_lower..self.boundaries.x_upper);
-        let y: f64 = rng.gen_range(self.boundaries.y_lower..self.boundaries.y_upper);
-        let node: Node2D = Node2D { x: x, y: y, idx: 0};
-        return node;
-    }
-
     fn check_solution(&mut self) -> bool {
         let start: NodeIndex = NodeIndex::new(self.start.idx);
         self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
         match &self.solution {
             None => return false,
-            Some(_) => return true, 
+            Some(_) => {
+                self.is_solved = true;
+                return true;
+            }
         }
     }
 
