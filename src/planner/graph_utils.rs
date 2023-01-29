@@ -1,3 +1,7 @@
+use std::fs::File;
+use std::io::Write;
+
+use petgraph::dot::{Dot, Config};
 use petgraph::{Undirected};
 use petgraph::graph::{Graph, NodeIndex};
 
@@ -27,4 +31,14 @@ pub fn is_edge_already_in_graph(graph:&Graph<Node2D, f64, Undirected>, begin:&No
 pub fn is_node_already_in_graph(graph:&Graph<Node2D, f64, Undirected>, node:&Node2D) -> bool {
     // TODO: Not implemented. Cannot find nodes by their weight.
     return false;
+}
+
+pub fn write_graph_to_file(graph:&Graph<Node2D, f64, Undirected>) {
+    let mut f = File::create("./examples/example1/example1.dot").unwrap();
+    let output = format!("{}", Dot::with_config(&graph, &[]));
+    f.write_all(&output.as_bytes());
+}
+
+pub fn print_graph(graph:&Graph<Node2D, f64, Undirected>) {
+    println!("{:?}", Dot::with_config(graph, &[]));
 }

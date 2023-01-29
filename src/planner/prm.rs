@@ -96,6 +96,8 @@ impl Planner for PRM {
 
         let edges: usize = self.graph.edge_count();
         println!("Graph contains {} edges", edges);
+
+        pg::write_graph_to_file(&self.graph);
     }
 
 }
@@ -199,6 +201,6 @@ impl PRM {
     }
     
     pub fn print_graph(&self) {
-        println!("{:?}", Dot::with_config(self.get_graph(), &[Config::EdgeNoLabel]));
+        pg::print_graph(self.get_graph());
     }
 }

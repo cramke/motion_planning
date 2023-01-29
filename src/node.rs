@@ -1,3 +1,5 @@
+use std::fmt;
+
 use petgraph::graph::NodeIndex;
 use geo_types::{coord, Line, Point};
 use geo_types::*;
@@ -8,6 +10,13 @@ pub struct Node2D {
     pub x: f64,
     pub y: f64,
     pub idx: usize,
+}
+
+impl fmt::Display for Node2D {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // WKT: POINT(X Y)
+        write!(f, "POINT({} {})", self.x, self.y)
+    }
 }
 
 impl Node2D {
