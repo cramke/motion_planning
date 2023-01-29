@@ -21,8 +21,8 @@ impl ProblemDefinition {
         self.planner.run();
     }
 
-    pub fn print_statistics(&self) {
-        self.planner.print_statistics();
+    pub fn print_statistics(&self, path:&str) {
+        self.planner.print_statistics(path);
 
         if self.planner.is_solved() {
             let path = self.get_solution_path();

@@ -90,14 +90,14 @@ impl Planner for PRM {
         return self.is_solved;
     }
 
-    fn print_statistics(&self) {
+    fn print_statistics(&self, path:&str) {
         let nodes: usize = self.graph.node_count();
         println!("Graph contains {} nodes", nodes);
 
         let edges: usize = self.graph.edge_count();
         println!("Graph contains {} edges", edges);
 
-        pg::write_graph_to_file(&self.graph);
+        pg::write_graph_to_file(&self.graph, path);
     }
 
 }
@@ -200,7 +200,7 @@ impl PRM {
         return &self.graph;
     }
     
-    pub fn print_graph(&self) {
+    pub fn print_graph(&self, path:&str) {
         pg::print_graph(self.get_graph());
     }
 }

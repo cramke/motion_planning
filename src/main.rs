@@ -29,5 +29,6 @@ fn main() {
     let optimizer: Box<dyn Optimizer> = Box::new(optimizer::DefaultOptimizer);
     let mut pdef= ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
     pdef.solve();
-    pdef.print_statistics();
+    let path: &str = "./examples/example1/example1.dot";
+    pdef.print_statistics(path);
 }

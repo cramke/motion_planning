@@ -33,8 +33,8 @@ pub fn is_node_already_in_graph(graph:&Graph<Node2D, f64, Undirected>, node:&Nod
     return false;
 }
 
-pub fn write_graph_to_file(graph:&Graph<Node2D, f64, Undirected>) {
-    let mut f = File::create("./examples/example1/example1.dot").unwrap();
+pub fn write_graph_to_file(graph:&Graph<Node2D, f64, Undirected>, path:&str) {
+    let mut f = File::create(path).unwrap();
     let output = format!("{}", Dot::with_config(&graph, &[]));
     f.write_all(&output.as_bytes());
 }
