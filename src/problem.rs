@@ -1,3 +1,6 @@
+use std::fs::File;
+use std::io::Write;
+
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::Optimizer;
@@ -42,5 +45,14 @@ impl ProblemDefinition {
 
     pub fn get_solution_path(&self) -> Vec<Node2D> {
         return self.planner.get_solution_path().clone();
+    }
+
+    pub fn write_solution_path(&self, path:&str) {
+        let mut f = File::create(path).unwrap();
+        write!(f, "[");
+        for node in self.get_solution_path() {
+            write!(f, "{}, ",node);
+        }
+        write!(f, "]");
     }
 }

@@ -31,4 +31,6 @@ fn main() {
     pdef.solve();
     let path: &str = "./examples/example1/example1.dot";
     pdef.print_statistics(path);
+    let path: &str = "./examples/example1/solution_path.txt";
+    pdef.write_solution_path(path);
 }
