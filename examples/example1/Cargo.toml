@@ -1,0 +1,13 @@
+[package]
+name = "prm"
+version = "0.1.0"
+edition = "2021"
+authors = ["Carsten Ramke <carsten.ramke@gmail.com>"]
+description = "Example on how to use PRM."
+license = "Apache-2.0"
+keywords = ["prm", "robotics", "path planning", "probabilistic algorithm"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+prm = { git = "file:/home/samtal/prm", rev="185f130"}
