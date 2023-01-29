@@ -2,12 +2,14 @@ use core::panic;
 
 use petgraph::Undirected;
 use petgraph::algo::{astar};
+use petgraph::dot::{Dot, Config};
 use rand::Rng;
 use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
+use crate::planner::planner::Planner;
 
 pub struct PRM {
     start: Node2D,
@@ -23,27 +25,9 @@ pub struct PRM {
     pub is_solved: bool,
 }
 
-impl PRM {
-
-    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-        is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>) -> Self {
-        let setup: PRM = PRM {  start: start, 
-            goal: goal, 
-            boundaries: bounds,
-            graph: Graph::new_undirected(),
-            is_node_in_collision: is_collision,
-            is_edge_in_collision: is_edge_in_collision,
-            solution: None,
-            solution_cost: f64::MAX,
-            solution_path: Vec::new(),
-            optimizer,
-            is_solved: false,
-        };
-        return  setup;
-    }
-
+impl Planner for PRM {
     // run init before starting any planning task. 
-    pub fn init(&mut self) {    
+    fn init(&mut self) {    
         if !self.boundaries.is_node_inside(&self.start) {
             panic!("Start is not inside boundaries.");
         }
@@ -74,7 +58,7 @@ impl PRM {
 
     }
 
-    pub fn run(&mut self) {
+    fn run(&mut self) {
         loop {
             let added_nodes: Vec<Node2D> = self.add_batch_of_random_nodes();
             println!("{}", added_nodes.len());
@@ -91,6 +75,47 @@ impl PRM {
 
             break;
         }
+    }
+
+    fn get_solution_cost(&self) -> f64 {
+        return self.solution_cost;
+    }
+
+    fn get_solution_path(&self) -> Vec<Node2D> {
+        return self.solution_path.clone();
+    }
+
+    fn is_solved(&self) -> bool {
+        return self.is_solved;
+    }
+
+    fn print_statistics(&self) {
+        let nodes: usize = self.graph.node_count();
+        println!("Graph contains {} nodes", nodes);
+
+        let edges: usize = self.graph.edge_count();
+        println!("Graph contains {} edges", edges);
+    }
+
+}
+
+impl PRM {
+
+    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
+        is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>) -> Self {
+        let setup: PRM = PRM {  start: start, 
+            goal: goal, 
+            boundaries: bounds,
+            graph: Graph::new_undirected(),
+            is_node_in_collision: is_collision,
+            is_edge_in_collision: is_edge_in_collision,
+            solution: None,
+            solution_cost: f64::MAX,
+            solution_path: Vec::new(),
+            optimizer,
+            is_solved: false,
+        };
+        return  setup;
     }
 
     fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
@@ -159,7 +184,7 @@ impl PRM {
 
     }
 
-    pub fn check_solution(&mut self) -> bool {
+    fn check_solution(&mut self) -> bool {
         let start: NodeIndex = NodeIndex::new(self.start.idx);
         self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
         match &self.solution {
@@ -199,13 +224,8 @@ impl PRM {
     pub fn get_graph(&self) -> &Graph<Node2D, f64, Undirected> {
         return &self.graph;
     }
-
-    pub fn get_solution_cost(&self) -> f64 {
-        return self.solution_cost;
+    
+    pub fn print_graph(&self) {
+        println!("{:?}", Dot::with_config(self.get_graph(), &[Config::EdgeNoLabel]));
     }
-
-    pub fn get_solution_path(&self) -> Vec<Node2D> {
-        return self.solution_path.clone();
-    }
-
 }
