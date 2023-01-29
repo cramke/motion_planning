@@ -13,7 +13,7 @@ pub struct PRM {
     start: Node2D,
     goal: Node2D,
     boundaries: Boundaries,
-    pub graph: Graph<[f64;2], f64, Undirected>,
+    pub graph: Graph<Node2D, f64, Undirected>,
     is_node_in_collision: fn(&Node2D) -> bool,
     is_edge_in_collision: fn() -> bool,
     solution: Option<(f64, Vec<NodeIndex>)>,
@@ -60,10 +60,10 @@ impl PRM {
             panic!("Goal is in collision.");
         }
 
-        let start_index: usize = self.graph.add_node([self.start.x, self.start.y]).index();
+        let start_index: usize = self.graph.add_node(self.start).index();
         self.start.idx = start_index;
 
-        let goal_index: usize = self.graph.add_node([self.goal.x, self.goal.y]).index();
+        let goal_index: usize = self.graph.add_node(self.goal).index();
         self.goal.idx = goal_index;
 
         if !self.optimizer.init() {
@@ -119,7 +119,7 @@ impl PRM {
     }
 
     fn insert_node_in_graph(&mut self, node: &mut Node2D) {
-        let index: usize = self.graph.add_node([node.x, node.y]).index();
+        let index: usize = self.graph.add_node(*node).index();
         node.idx = index;
     }
 
@@ -149,9 +149,8 @@ impl PRM {
     }
 
     fn insert_edge_in_graph(&mut self, begin: &Node2D, end: NodeIndex) {
-        let node_coords = self.graph.node_weight(end).unwrap();
-        let end_node: Node2D = Node2D::new_index(node_coords[0], node_coords[1], end.index());
-        let weight: f64 = self.optimizer.get_edge_weight(begin, &end_node);
+        let end_node2d = self.graph.node_weight(end).unwrap();
+        let weight: f64 = self.optimizer.get_edge_weight(begin, end_node2d);
         let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
         if a == end { // do not insert edge from a node to itself
             return;
@@ -175,10 +174,7 @@ impl PRM {
         for el in temp {
             let idx = el.index();
             let weight = self.graph.node_weight(*el).unwrap();
-            let x = weight[0];
-            let y = weight[1];
-            let node = Node2D {x, y, idx};
-            self.solution_path.push(node);
+            self.solution_path.push(*weight);
         }
     }
     
@@ -200,7 +196,7 @@ impl PRM {
         return node_iterator;
     }
 
-    pub fn get_graph(&self) -> &Graph<[f64;2], f64, Undirected> {
+    pub fn get_graph(&self) -> &Graph<Node2D, f64, Undirected> {
         return &self.graph;
     }
 
