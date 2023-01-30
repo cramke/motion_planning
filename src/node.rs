@@ -5,11 +5,17 @@ use geo_types::{coord, Line, Point};
 use geo_types::*;
 use wkt::ToWkt;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy)]
 pub struct Node2D {
     pub x: f64,
     pub y: f64,
     pub idx: usize,
+}
+
+impl Clone for Node2D {
+    fn clone(&self) -> Self {
+        return Node2D{x:self.x, y:self.y, idx:self.idx};
+    }
 }
 
 impl fmt::Display for Node2D {

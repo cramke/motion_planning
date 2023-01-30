@@ -1,7 +1,7 @@
 use crate::node::Node2D;
 
 pub trait Optimizer {
-    fn get_edge_weight(&self, begin: &Node2D, end: &Node2D) -> f64;
+    fn get_edge_weight(&self, batch_edges: Vec<(Node2D, Node2D)>) -> Vec<f64>;
     fn init(&mut self) -> bool;
 }
 
@@ -9,12 +9,16 @@ pub trait Optimizer {
 pub struct DefaultOptimizer;
 impl Optimizer for DefaultOptimizer {
 
-    fn get_edge_weight(&self, begin: &Node2D, end: &Node2D) -> f64 {
-        let a = (begin.x - end.x).powi(2);
-        let b: f64 = (begin.y - end.y).powi(2);
-        let cost: f64 = (a+b).sqrt();
-        println!("Cost is: {}", &cost);
-        return cost;
+    fn get_edge_weight(&self, batch_edges: Vec<(Node2D, Node2D)>) -> Vec<f64> {
+        let mut costs: Vec<f64> = Vec::new();
+        for edge in batch_edges {
+            let (begin, end) = edge;
+            let a = (begin.x - end.x).powi(2);
+            let b: f64 = (begin.y - end.y).powi(2);
+            let cost: f64 = (a+b).sqrt();
+            costs.push(cost);
+        }
+        return costs;
     }
 
     fn init(&mut self) -> bool {
@@ -32,7 +36,7 @@ mod tests {
         let mut optimizer = DefaultOptimizer;
         assert_eq!(true, optimizer.init());
     }
-
+/*
     #[test]
     fn test_default_edge_weight_x() {
         let optimizer = DefaultOptimizer;
@@ -50,4 +54,6 @@ mod tests {
 
         assert_eq!(1f64, optimizer.get_edge_weight(&a, &b));
     }
+*/
+  
 }

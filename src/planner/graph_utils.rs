@@ -12,12 +12,12 @@ pub fn insert_node_in_graph(graph: &mut Graph<Node2D, f64, Undirected>, node: &m
     node.idx = index;
 }
 
-pub fn insert_edge_in_graph(graph: &mut Graph<Node2D, f64, Undirected>, begin: &Node2D, end: NodeIndex, weight:f64) {
-    let a: NodeIndex<u32> = NodeIndex::new(begin.idx);
-    if a == end { // do not insert edge from a node to itself
+pub fn insert_edge_in_graph(graph: &mut Graph<Node2D, f64, Undirected>, begin: &Node2D, end_index: NodeIndex, weight:f64) {
+    let begin_index: NodeIndex<u32> = NodeIndex::new(begin.idx);
+    if begin_index == end_index { // do not insert edge from a node to itself
         return;
     }
-    graph.add_edge(a, end, weight);
+    graph.add_edge(begin_index, end_index, weight);
 
 }
 

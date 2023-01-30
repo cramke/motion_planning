@@ -174,19 +174,30 @@ impl PRM {
 
     fn connect_added_nodes_to_graph(&mut self, added_nodes: Vec<Node2D>) {
         for node in added_nodes {
-            let nearest_neighbors: NodeIndices = self.get_n_nearest_neighbours(node);
-            for neighbor in nearest_neighbors {
-                if (self.is_edge_in_collision)() {
-                    continue;
-                }
-    
-                if pg::is_edge_already_in_graph(&self.graph, &node, neighbor) {
-                    continue;
-                }
+            let nearest_neighbors_type: NodeIndices = self.get_n_nearest_neighbours(node);
+            let mut query_edges: Vec<(Node2D, Node2D)> = Vec::new();
 
-                let end_node2d = self.graph.node_weight(neighbor).unwrap();
-                let weight: f64 = self.optimizer.get_edge_weight(&node, end_node2d);
-                pg::insert_edge_in_graph(&mut self.graph, &node, neighbor, weight);
+            let mut nearest_neighbors: Vec<NodeIndex> = Vec::new();
+            for neighbor in nearest_neighbors_type {
+                nearest_neighbors.push(neighbor);
+            }
+
+            // retain keeps element were function returns true, and removes elements where false
+            nearest_neighbors.retain(|x: &NodeIndex| !(self.is_edge_in_collision)());
+            nearest_neighbors.retain(|x: &NodeIndex| !(pg::is_edge_already_in_graph(&self.graph, &node, *x)));
+
+            for neighbor in nearest_neighbors {
+                let node_weight: &Node2D = self.graph.node_weight(neighbor).unwrap();
+                let end: Node2D = Node2D { x: node_weight.x, y: node_weight.y, idx: neighbor.index() };
+                query_edges.push((node, end));
+            }
+
+            let costs: Vec<f64> = self.optimizer.get_edge_weight(query_edges.clone());
+            for it in query_edges.iter().zip(costs.iter()) {
+                let edge: (Node2D, Node2D) = *it.0;
+                let weight: f64 = *it.1;
+                pg::insert_edge_in_graph(&mut self.graph, &edge.0, edge.1.get_index_type(), weight);
+
             }
         }
     }
