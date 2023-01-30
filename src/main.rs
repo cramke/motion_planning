@@ -1,10 +1,10 @@
-use prm::node::Node2D;
-use prm::boundaries::Boundaries;
-use prm::optimizer::{self, Optimizer};
-use prm::problem::{ProblemDefinition, Parameter};
+use mopla::node::Node2D;
+use mopla::boundaries::Boundaries;
+use mopla::optimizer::{self, Optimizer};
+use mopla::problem::{ProblemDefinition, Parameter};
 
 /** -------------------------------------------------------------------
- *  Setup and/or configure for the specific planning problem.
+ *  Usage Example
  */
 
 fn is_collision(node: &Node2D) -> bool {

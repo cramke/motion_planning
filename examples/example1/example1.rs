@@ -1,7 +1,7 @@
-use prm::node::Node2D;
-use prm::boundaries::Boundaries;
-use prm::optimizer::{self, Optimizer};
-use prm::problem::ProblemDefinition;
+use mopla::node::Node2D;
+use mopla::boundaries::Boundaries;
+use mopla::optimizer::{self, Optimizer};
+use mopla::problem::ProblemDefinition;
 
 /** -------------------------------------------------------------------
  *  Setup and/or configure for the specific planning problem.

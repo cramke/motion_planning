@@ -2,8 +2,6 @@ use core::panic;
 
 use petgraph::Undirected;
 use petgraph::algo::{astar};
-use petgraph::dot::{Dot, Config};
-use rand::Rng;
 use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 
 use crate::node::Node2D;
@@ -11,7 +9,20 @@ use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
 use crate::planner::planner::Planner;
 use crate::planner::graph_utils as pg;
+use crate::problem::Parameter;
 
+
+/// # Probabilisic Road Map PRM 
+/// It is an algorithm which is: 
+/// - probabilistically complete and 
+/// - probabilistically optimal algorithm
+/// - Multi-query capable It can be used to do multi-queries.
+/// 
+/// # Source / Credits
+/// Kavraki, L. E.; Svestka, P.; Latombe, J.-C.; Overmars, M. H. (1996), "Probabilistic roadmaps for path planning in high-dimensional configuration spaces", IEEE Transactions on Robotics and Automation, 12 (4): 566–580, doi:10.1109/70.508439
+/// 
+/// # Example
+/// 
 pub struct PRM {
     start: Node2D,
     goal: Node2D,
@@ -24,13 +35,13 @@ pub struct PRM {
     pub solution_path: Vec<Node2D>,
     optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
-    MAX_BATCH_SIZE: usize,
+    max_batch_size: usize,
 }
 
 impl Planner for PRM {
-    // run init before starting any planning task. 
-    fn init(&mut self) {    
-        if !self.boundaries.is_node_inside(&self.start) {
+    /// run init before starting any planning task. 
+    fn init(&mut self) {
+            if !self.boundaries.is_node_inside(&self.start) {
             panic!("Start is not inside boundaries.");
         }
 
@@ -60,6 +71,7 @@ impl Planner for PRM {
 
     }
 
+    /// Starts building the graph. 
     fn run(&mut self) {
         loop {
             let added_nodes: Vec<Node2D> = self.add_batch_of_random_nodes();
@@ -79,6 +91,7 @@ impl Planner for PRM {
         }
     }
 
+    /// Lower cost means it is a preferrable solution. If no solution was found, the returned cost will be f64::MAX.
     fn get_solution_cost(&self) -> f64 {
         return self.solution_cost;
     }
@@ -87,10 +100,12 @@ impl Planner for PRM {
         return self.solution_path.clone();
     }
 
+    /// Returns a bool saying if any solution between start and goal was found. 
     fn is_solved(&self) -> bool {
         return self.is_solved;
     }
 
+    /// Prints some basic statistics of the graph.
     fn print_statistics(&self, path:&str) {
         let nodes: usize = self.graph.node_count();
         println!("Graph contains {} nodes", nodes);
@@ -101,8 +116,13 @@ impl Planner for PRM {
         pg::write_graph_to_file(&self.graph, path);
     }
 
-    fn set_params(self: &mut PRM, param1: usize) {
-        self.MAX_BATCH_SIZE = param1;
+    /// Allows update of parameters after creation. 
+    /// 
+    /// # Arguments:
+    ///   * `params.max_batch_size` - Parameter struct: Determines the graph size when to stop the algorithm.
+    /// 
+    fn set_params(self: &mut PRM, params: &Parameter) {
+        self.max_batch_size = params.max_size;
     }
 
 }
@@ -122,7 +142,7 @@ impl PRM {
             solution_path: Vec::new(),
             optimizer,
             is_solved: false,
-            MAX_BATCH_SIZE: param1,
+            max_batch_size: param1,
         };
         return  setup;
     }
@@ -130,7 +150,7 @@ impl PRM {
     fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
         let mut list_of_added_nodes: Vec<Node2D> = Vec::new();
     
-        while list_of_added_nodes.len() < self.MAX_BATCH_SIZE {
+        while list_of_added_nodes.len() < self.max_batch_size {
             let mut node: Node2D = self.find_permissable_node();
             pg::insert_node_in_graph(&mut self.graph, &mut node);
             list_of_added_nodes.push(node);
@@ -206,7 +226,7 @@ impl PRM {
         return &self.graph;
     }
     
-    pub fn print_graph(&self, path:&str) {
+    pub fn print_graph(&self) {
         pg::print_graph(self.get_graph());
     }
 }

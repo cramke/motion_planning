@@ -8,12 +8,12 @@ use crate::planner::planner::Planner;
 use crate::planner::prm::PRM;
 
 pub struct Parameter {
-    MAX_SIZE: usize,
+    pub max_size: usize,
 }
 
 impl Parameter {
     pub fn new(param1: usize) -> Self {
-        let params: Parameter = Parameter {MAX_SIZE: param1};
+        let params: Parameter = Parameter {max_size: param1};
         return params;
     }
 }
@@ -26,13 +26,13 @@ pub struct ProblemDefinition {
 impl ProblemDefinition {
     pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
     is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>, params: Parameter) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params.MAX_SIZE));
-        let params: Parameter = params;
+        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params.max_size));
         let pdef = ProblemDefinition {planner: planner, params: params};
         return pdef;
     }
 
     pub fn solve(&mut self) {
+        self.planner.set_params(&self.params);
         self.planner.init();
         self.planner.run();
     }
@@ -62,10 +62,23 @@ impl ProblemDefinition {
 
     pub fn write_solution_path(&self, path:&str) {
         let mut f = File::create(path).unwrap();
-        write!(f, "[");
-        for node in self.get_solution_path() {
-            write!(f, "{}, ",node);
+        let res = write!(f, "]");
+        match res {
+            Err(_) => println!("Could not write the graph to file!"),
+            Ok(_) => println!("Write successfull."),
         }
-        write!(f, "]");
+
+        for node in self.get_solution_path() {
+            let res = write!(f, "{}, ",node);
+            match res {
+                Err(_) => println!("Could not write solution path to file!"),
+                Ok(_) => println!("write solution path successfully to file."),
+            }
+        }
+        let res = write!(f, "]");
+        match res {
+            Err(_) => println!("Could not write the graph to file!"),
+            Ok(_) => println!("Write successfull."),
+        }
     }
 }

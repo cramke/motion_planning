@@ -13,7 +13,7 @@ pub struct Boundaries {
 
 impl Boundaries {
     pub fn new(x_lower: f64, x_upper: f64, y_lower: f64, y_upper: f64) -> Self {
-        let mut rand: ThreadRng = rand::thread_rng();
+        let rand: ThreadRng = rand::thread_rng();
         return Boundaries { x_lower, x_upper, y_lower, y_upper, rand };
     }
 

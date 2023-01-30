@@ -1,9 +1,9 @@
-use prm::{self, problem::ProblemDefinition, optimizer::{DefaultOptimizer, Optimizer}};
+use mopla::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOptimizer, Optimizer}};
 
 #[test]
-fn test_prm_default_scenario() {
-    use prm;
-    use prm::{node::Node2D, boundaries::Boundaries};
+fn test_mopla_default_scenario() {
+    use mopla;
+    use mopla::{node::Node2D, boundaries::Boundaries};
 
     fn is_collision(node: &Node2D) -> bool {
         if node.x > 1.0 && node.x < 2.0 {
@@ -24,7 +24,8 @@ fn test_prm_default_scenario() {
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
-    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
+    let params = Parameter::new(18usize);
+    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params);                                       
     pdef.solve();
     let cost = pdef.get_solution_cost();
     assert!(cost > 4f64);
@@ -34,9 +35,9 @@ fn test_prm_default_scenario() {
 
 
 #[test]
-fn test_prm_naiv_scenario() {
-    use prm;
-    use prm::{node::Node2D, boundaries::Boundaries};
+fn test_mopla_naiv_scenario() {
+    use mopla;
+    use mopla::{node::Node2D, boundaries::Boundaries};
 
     fn is_collision(node: &Node2D) -> bool {
         return false;
@@ -50,7 +51,8 @@ fn test_prm_naiv_scenario() {
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
-    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
+    let params = Parameter::new(18usize);
+    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params);                                       
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
@@ -60,9 +62,9 @@ fn test_prm_naiv_scenario() {
 
 
 #[test]
-fn test_prm_unsolvable_scenario() {
-    use prm;
-    use prm::{node::Node2D, boundaries::Boundaries};
+fn test_mopla_unsolvable_scenario() {
+    use mopla;
+    use mopla::{node::Node2D, boundaries::Boundaries};
 
     fn is_collision(node: &Node2D) -> bool {
         return false;
@@ -76,7 +78,8 @@ fn test_prm_unsolvable_scenario() {
     let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64 );
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
-    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
+    let params = Parameter::new(18usize);
+    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params);                                       
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     assert_eq!(f64::MAX, cost);

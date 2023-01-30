@@ -1,11 +1,11 @@
 [package]
-name = "prm"
+name = "mopla"
 version = "0.1.0"
 edition = "2021"
 authors = ["Carsten Ramke <carsten.ramke@gmail.com>"]
-description = "Path finding using probabilistic roadmaps."
+description = "MO PLAnning library."
 license = "Apache-2.0"
-keywords = ["prm", "robotics", "path planning", "probabilistic algorithm"]
+keywords = ["prm", "robotics", "path planning", "probabilistic algorithm", "motion planning"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

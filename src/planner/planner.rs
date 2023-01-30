@@ -1,4 +1,4 @@
-use crate::node::Node2D;
+use crate::{node::Node2D, problem::Parameter};
 
 pub trait Planner {
     fn init(&mut self);
@@ -7,5 +7,5 @@ pub trait Planner {
     fn get_solution_path(&self) -> Vec<Node2D>;
     fn is_solved(&self) -> bool;
     fn print_statistics(&self, path:&str);
-    fn set_params(&mut self, param1: usize);
+    fn set_params(&mut self, params: &Parameter);
 }
