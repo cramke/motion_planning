@@ -5,6 +5,7 @@ use geo_types::{coord, Line, Point};
 use geo_types::*;
 use wkt::ToWkt;
 
+/// Node in 2D with an X-Coordinate, Y-Coordinate and an index. The index corresponds with the index inside the planner's graph. 
 #[derive(Debug, Copy)]
 pub struct Node2D {
     pub x: f64,

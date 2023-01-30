@@ -18,6 +18,7 @@ impl Parameter {
     }
 }
 
+/// The Problem Definition serves as a collector for various planners and problems. 
 pub struct ProblemDefinition {
     planner: Box<dyn Planner>,
     params: Parameter,

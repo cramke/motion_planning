@@ -2,6 +2,8 @@ use rand::{Rng, rngs::ThreadRng};
 
 use crate::node::Node2D;
 
+
+/// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.
 #[derive(Debug, Clone)]
 pub struct Boundaries {
     pub x_lower: f64,
