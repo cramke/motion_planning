@@ -183,7 +183,8 @@ impl PRM {
             }
 
             // retain keeps element were function returns true, and removes elements where false
-            nearest_neighbors.retain(|x: &NodeIndex| !(self.is_edge_in_collision)());
+            // TODO: Implement collision checker properly to fix unused_variables compiler warning. 
+            nearest_neighbors.retain(|_x: &NodeIndex| !(self.is_edge_in_collision)());
             nearest_neighbors.retain(|x: &NodeIndex| !(pg::is_edge_already_in_graph(&self.graph, &node, *x)));
 
             for neighbor in nearest_neighbors {
