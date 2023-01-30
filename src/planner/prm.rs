@@ -192,12 +192,9 @@ impl PRM {
                 query_edges.push((node, end));
             }
 
-            let costs: Vec<f64> = self.optimizer.get_edge_weight(query_edges.clone());
-            for it in query_edges.iter().zip(costs.iter()) {
-                let edge: (Node2D, Node2D) = *it.0;
-                let weight: f64 = *it.1;
-                pg::insert_edge_in_graph(&mut self.graph, &edge.0, edge.1.get_index_type(), weight);
-
+            let costs: Vec<(Node2D, Node2D, f64)> = self.optimizer.get_edge_weight(query_edges.clone());
+            for (begin, end, weight) in costs {
+                pg::insert_edge_in_graph(&mut self.graph, &begin, end.get_index_type(), weight);
             }
         }
     }
