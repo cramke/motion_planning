@@ -1,9 +1,9 @@
-use mopla::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOptimizer, Optimizer}};
+use mpf::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOptimizer, Optimizer}};
 
 #[test]
-fn test_mopla_default_scenario() {
-    use mopla;
-    use mopla::{node::Node2D, boundaries::Boundaries};
+fn test_mpf_default_scenario() {
+    use mpf;
+    use mpf::{node::Node2D, boundaries::Boundaries};
 
     fn is_collision(node: &Node2D) -> bool {
         if node.x > 1.0 && node.x < 2.0 {
@@ -35,9 +35,9 @@ fn test_mopla_default_scenario() {
 
 
 #[test]
-fn test_mopla_naiv_scenario() {
-    use mopla;
-    use mopla::{node::Node2D, boundaries::Boundaries};
+fn test_mpf_naiv_scenario() {
+    use mpf;
+    use mpf::{node::Node2D, boundaries::Boundaries};
 
     fn is_collision(node: &Node2D) -> bool {
         return false;
@@ -62,9 +62,9 @@ fn test_mopla_naiv_scenario() {
 
 
 #[test]
-fn test_mopla_unsolvable_scenario() {
-    use mopla;
-    use mopla::{node::Node2D, boundaries::Boundaries};
+fn test_mpf_unsolvable_scenario() {
+    use mpf;
+    use mpf::{node::Node2D, boundaries::Boundaries};
 
     fn is_collision(node: &Node2D) -> bool {
         return false;

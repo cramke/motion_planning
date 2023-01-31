@@ -1,7 +1,7 @@
-use mopla::node::Node2D;
-use mopla::boundaries::Boundaries;
-use mopla::optimizer::{self, Optimizer};
-use mopla::problem::ProblemDefinition;
+use mpf::node::Node2D;
+use mpf::boundaries::Boundaries;
+use mpf::optimizer::{self, Optimizer};
+use mpf::problem::ProblemDefinition;
 
 /** -------------------------------------------------------------------
  *  Setup and/or configure for the specific planning problem.

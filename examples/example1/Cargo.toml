@@ -1,5 +1,5 @@
 [package]
-name = "mopla"
+name = "mpf"
 version = "0.1.0"
 edition = "2021"
 authors = ["Carsten Ramke <carsten.ramke@gmail.com>"]
@@ -10,4 +10,4 @@ keywords = ["prm", "robotics", "path planning", "probabilistic algorithm"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-mopla = { git = "file:/home/samtal/mopla", rev="185f130"}
+mpf = { git = "file:/home/samtal/mpf", rev="185f130"}
