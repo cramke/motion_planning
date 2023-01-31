@@ -5,7 +5,7 @@ pub trait Optimizer {
     /// Returns a vector of triplets. Every consists of a start-node, end-node, and the calculated edge weight. Batch-wise weight calculation allows the Optimizer to use parallelism. 
     /// 
     /// ## Arguments
-    ///     A batch of edges on which he cost needs to be returned. A single edge is presented a pair of start-node and end-node. The batch is represented as a vector of pairs / edges.
+    /// A batch of edges on which he cost needs to be returned. A single edge is presented a pair of start-node and end-node. The batch is represented as a vector of pairs / edges.
     fn get_edge_weight(&self, batch_edges: Vec<(Node2D, Node2D)>) -> Vec<(Node2D, Node2D, f64)>;
 
     /// The init function allows the Optimizer to execute code before running. This function is called only once and before all the other functions are called. This allows setup function like reading a file or connecting to a Database. 
