@@ -4,6 +4,7 @@ use petgraph::Undirected;
 use petgraph::algo::{astar};
 use petgraph::graph::{Graph, NodeIndex, NodeIndices};
 
+use crate::collision_checker::CollisionChecker;
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
@@ -28,14 +29,13 @@ pub struct PRM {
     goal: Node2D,
     boundaries: Boundaries,
     pub graph: Graph<Node2D, f64, Undirected>,
-    is_node_in_collision: fn(&Node2D) -> bool,
-    is_edge_in_collision: fn() -> bool,
     solution: Option<(f64, Vec<NodeIndex>)>,
     pub solution_cost: f64,
     pub solution_path: Vec<Node2D>,
     optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
     max_batch_size: usize,
+    collision_checker: Box<dyn CollisionChecker>,
 }
 
 impl Planner for PRM {
@@ -49,12 +49,10 @@ impl Planner for PRM {
             panic!("Goal is not inside boundaries.");
         }
 
-        if (self.is_node_in_collision)(&self.start) {
-            panic!("Start is in collision.");
-        }
-
-        if (self.is_node_in_collision)(&self.goal) {
-            panic!("Goal is in collision.");
+        let initial = vec![self.start, self.goal];
+        let check: Vec<Node2D> = self.collision_checker.check_nodes(initial);
+        if check.len() != 2 {
+            println!("Starg and/or Goal configuration are in collision")
         }
 
         let start_index: usize = self.graph.add_node(self.start).index();
@@ -129,47 +127,41 @@ impl Planner for PRM {
 
 impl PRM {
 
-    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-        is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>, param1: usize) -> Self {
+    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, optimizer: Box<dyn Optimizer>, 
+        param1: usize, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
             graph: Graph::new_undirected(),
-            is_node_in_collision: is_collision,
-            is_edge_in_collision: is_edge_in_collision,
             solution: None,
             solution_cost: f64::MAX,
             solution_path: Vec::new(),
             optimizer,
             is_solved: false,
             max_batch_size: param1,
+            collision_checker: collision_checker,
         };
         return  setup;
     }
 
     fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
-        let mut list_of_added_nodes: Vec<Node2D> = Vec::new();
-    
-        while list_of_added_nodes.len() < self.max_batch_size {
-            let mut node: Node2D = self.find_permissable_node();
-            pg::insert_node_in_graph(&mut self.graph, &mut node);
-            list_of_added_nodes.push(node);
+        let mut new_nodes: Vec<Node2D> = self.generate_free_nodes();
+        for node in new_nodes.iter_mut() {
+            pg::insert_node_in_graph(&mut self.graph, node);
         }
-        return list_of_added_nodes;
+        return new_nodes;
     }
 
-    fn find_permissable_node(&mut self) -> Node2D {
-        loop {
+    fn generate_free_nodes(&mut self) -> Vec<Node2D> {
+        let mut candidate_nodes: Vec<Node2D> = Vec::new();
+        for _ in 0..10 {
             let node: Node2D = self.boundaries.generate_random_configuration();
-            if (self.is_node_in_collision)(&node) {
-                continue;
-            }
-    
-            if pg::is_node_already_in_graph(&self.graph, &node) {
-                continue;
-            }
-            return node;
+            candidate_nodes.push(node);
         }
+
+        let free_nodes = self.collision_checker.check_nodes(candidate_nodes);
+        // TODO How to check if nodes are already in graph? Petgraph searches by index and not by weight (aka Coordinates)
+        return free_nodes;
     }
 
     fn connect_added_nodes_to_graph(&mut self, added_nodes: Vec<Node2D>) {
@@ -184,8 +176,7 @@ impl PRM {
 
             // retain keeps element were function returns true, and removes elements where false
             // TODO: Implement collision checker properly to fix unused_variables compiler warning. 
-            nearest_neighbors.retain(|_x: &NodeIndex| !(self.is_edge_in_collision)());
-            nearest_neighbors.retain(|x: &NodeIndex| !(pg::is_edge_already_in_graph(&self.graph, &node, *x)));
+            nearest_neighbors.retain(|neighbor| self.collision_checker.check_edge(node, *neighbor));
 
             for neighbor in nearest_neighbors {
                 let node_weight: &Node2D = self.graph.node_weight(neighbor).unwrap();

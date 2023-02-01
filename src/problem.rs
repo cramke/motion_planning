@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
+use crate::collision_checker::CollisionChecker;
 use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::Optimizer;
@@ -21,14 +22,13 @@ impl Parameter {
 /// The Problem Definition serves as a collector for various planners and problems. 
 pub struct ProblemDefinition {
     planner: Box<dyn Planner>,
-    params: Parameter,
+    params: Parameter
 }
 
 impl ProblemDefinition {
-    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, is_collision: fn(&Node2D) -> bool, 
-    is_edge_in_collision: fn() -> bool, optimizer: Box<dyn Optimizer>, params: Parameter) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer, params.max_size));
-        let pdef = ProblemDefinition {planner: planner, params: params};
+    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params.max_size, collision_checker));
+        let pdef = ProblemDefinition {planner, params};
         return pdef;
     }
 
