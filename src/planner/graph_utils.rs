@@ -39,7 +39,7 @@ pub fn write_graph_to_file(graph:&Graph<Node2D, f64, Undirected>, path:&str) {
     let res = f.write_all(&output.as_bytes());
     match res {
         Err(_) => println!("Could not write the graph to file!"),
-        Ok(_) => println!("Write successfull."),
+        Ok(_) => println!("Write graph to file: {}", path),
     }
 }
 

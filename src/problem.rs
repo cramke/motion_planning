@@ -62,24 +62,31 @@ impl ProblemDefinition {
     }
 
     pub fn write_solution_path(&self, path:&str) {
-        let mut f = File::create(path).unwrap();
-        let res = write!(f, "]");
+        let mut f: File = File::create(path).unwrap();
+        let res = write!(f, "[");
         match res {
-            Err(_) => println!("Could not write the graph to file!"),
-            Ok(_) => println!("Write successfull."),
+            Err(_) => {
+                println!("Could not write the solution path to file!"); 
+                return; }
+            Ok(_) => res.unwrap(),
         }
 
         for node in self.get_solution_path() {
             let res = write!(f, "{}, ",node);
             match res {
-                Err(_) => println!("Could not write solution path to file!"),
-                Ok(_) => println!("write solution path successfully to file."),
+                Err(_) => {
+                    println!("Could not write the solution path to file!"); 
+                    return; }
+                Ok(_) => res.unwrap(),
             }
         }
         let res = write!(f, "]");
         match res {
-            Err(_) => println!("Could not write the graph to file!"),
-            Ok(_) => println!("Write successfull."),
+            Err(_) => {
+                println!("Could not write the solution path to file!"); 
+                return; }
+            Ok(_) => res.unwrap(),
         }
+        println!("Write solution path to file: {}", path);
     }
 }
