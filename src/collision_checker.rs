@@ -20,7 +20,7 @@ pub trait CollisionChecker {
 pub struct NaiveCollisionChecker {}
 
 impl NaiveCollisionChecker {
-    fn new() -> Box<dyn CollisionChecker> {
+    pub fn new() -> Box<dyn CollisionChecker> {
         return Box::new(NaiveCollisionChecker{});
     }
 }
