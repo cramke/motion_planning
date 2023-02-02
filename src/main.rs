@@ -10,7 +10,7 @@ fn main() {
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(optimizer::DefaultOptimizer);
     let params = Parameter::new(50usize);
-    let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+    let cc: Box<dyn CollisionChecker> = NaiveCollisionChecker::new();
     let mut pdef= ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let path: &str = "./examples/example1/graph.dot";
