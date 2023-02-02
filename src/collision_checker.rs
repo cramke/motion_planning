@@ -19,6 +19,12 @@ pub trait CollisionChecker {
 #[derive(Copy, Clone, Debug)]
 pub struct NaiveCollisionChecker {}
 
+impl NaiveCollisionChecker {
+    fn new() -> Box<dyn CollisionChecker> {
+        return Box::new(NaiveCollisionChecker{});
+    }
+}
+
 impl CollisionChecker for NaiveCollisionChecker {
     fn init(&self) -> bool {
         return true;
