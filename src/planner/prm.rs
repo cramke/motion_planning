@@ -80,7 +80,6 @@ impl Planner for PRM {
             self.connect_added_node_to_graph(added_node);
 
             if self.check_solution() {
-                self.process_solution();
                 println!("Solved");
             }
 
@@ -93,11 +92,18 @@ impl Planner for PRM {
 
     /// Lower cost means it is a preferrable solution. If no solution was found, the returned cost will be f64::MAX.
     fn get_solution_cost(&self) -> f64 {
-        return self.solution_cost;
+        let (cost, _) = &self.solution.clone().unwrap();
+        return *cost;
     }
 
-    fn get_solution_path(&self) -> Vec<Point> {
-        return self.solution_path.clone();
+    fn get_solution_path(& self) -> Vec<Point> {
+        let (_, temp) = &self.solution.clone().unwrap();
+        let mut path: Vec<Point> = Vec::new();
+        for el in temp {
+            let weight = self.graph.node_weight(*el).unwrap();
+            path.push(*weight);
+        }
+        return path;
     }
 
     /// Returns a bool saying if any solution between start and goal was found. 
@@ -211,15 +217,6 @@ impl PRM {
             Some(_) => self.is_solved = true
         }
         return self.is_solved;
-    }
-
-    fn process_solution(&mut self) {
-        let (cost, temp) = &self.solution.clone().unwrap();
-        self.solution_cost = *cost;
-        for el in temp {
-            let weight = self.graph.node_weight(*el).unwrap();
-            self.solution_path.push(*weight);
-        }
     }
     
     fn is_termination_criteria_met(&self) -> bool {
