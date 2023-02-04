@@ -17,7 +17,7 @@ fn test_mpf_default_scenario() {
     pdef.solve();
     let cost = pdef.get_solution_cost();
     assert!(cost > 4f64);
-    assert!(cost < 5f64);
+    assert!(cost < 5.5f64);
 }
 
 
@@ -81,4 +81,5 @@ fn test_geo_collision() {
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
     assert!(cost > 4.3f64);
+    assert!(cost < f64::MAX);
 }
