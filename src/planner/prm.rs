@@ -226,6 +226,11 @@ impl PRM {
         if self.graph.node_count() >= 10 {
             return true;
         }
+
+        if self.is_solved {
+            return true;
+        }
+        
         return false;
     }
 
