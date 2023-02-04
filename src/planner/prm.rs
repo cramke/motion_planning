@@ -37,7 +37,7 @@ pub struct PRM {
     pub solution_path: Vec<Point>,
     optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
-    max_batch_size: usize,
+    max_size: usize,
     collision_checker: Box<dyn CollisionChecker>,
     tree: RTree<[f64; 2]>,
     index_node_lookup: HashMap<String, NodeIndex> 
@@ -79,9 +79,7 @@ impl Planner for PRM {
             let added_node: Point = self.add_batch_of_random_nodes();
             self.connect_added_node_to_graph(added_node);
 
-            if self.check_solution() {
-                println!("Solved");
-            }
+            self.check_solution();
 
             if self.is_termination_criteria_met() {
                 println!("Termination Criteria met");
@@ -125,10 +123,10 @@ impl Planner for PRM {
     /// Allows update of parameters after creation. 
     /// 
     /// # Arguments:
-    ///   * `params.max_batch_size` - Parameter struct: Determines the graph size when to stop the algorithm.
+    ///   * `params.max_size` - Parameter struct: Determines the graph size when to stop the algorithm.
     /// 
     fn set_params(self: &mut PRM, params: &Parameter) {
-        self.max_batch_size = params.max_size;
+        self.max_size = params.max_size;
     }
 
 }
@@ -148,7 +146,7 @@ impl PRM {
             solution_path: Vec::new(),
             optimizer,
             is_solved: false,
-            max_batch_size: param1,
+            max_size: param1,
             collision_checker: collision_checker,
             tree: tree,
             index_node_lookup: index_node_lookup,
@@ -220,11 +218,7 @@ impl PRM {
     }
     
     fn is_termination_criteria_met(&self) -> bool {
-        if self.graph.node_count() >= 10 {
-            return true;
-        }
-
-        if self.is_solved {
+        if self.graph.node_count() >= self.max_size {
             return true;
         }
         
