@@ -3,13 +3,14 @@ use mpf::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOpti
 #[test]
 fn test_mpf_default_scenario() {
     use mpf;
-    use mpf::{node::Node2D, boundaries::Boundaries};
+    use mpf::{boundaries::Boundaries};
+    use geo_types::Point;
 
-    fn is_collision(node: &Node2D) -> bool {
-        if node.x > 1.0 && node.x < 2.0 {
+    fn is_collision(node: &Point) -> bool {
+        if node.x() > 1.0 && node.x() < 2.0 {
             return true;
         }
-        if node.y > 1.0 && node.y < 2.0 {
+        if node.y() > 1.0 && node.y() < 2.0 {
             return true;
         }
     
@@ -20,8 +21,8 @@ fn test_mpf_default_scenario() {
         return false;
     }
 
-    let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
-    let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
+    let start: Point = Point::new(0f64, 0f64);
+    let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let params = Parameter::new(18usize);
@@ -39,8 +40,9 @@ fn test_mpf_default_scenario() {
 fn test_mpf_naiv_scenario() {
     use mpf;
     use mpf::{node::Node2D, boundaries::Boundaries};
+    use geo_types::Point;
 
-    fn is_collision(node: &Node2D) -> bool {
+    fn is_collision(node: &Point) -> bool {
         return false;
     }
     
@@ -48,8 +50,8 @@ fn test_mpf_naiv_scenario() {
         return false;
     }
 
-    let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
-    let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
+    let start: Point = Point::new(0f64, 0f64);
+    let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let params = Parameter::new(18usize);

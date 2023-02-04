@@ -1,8 +1,8 @@
 use std::fs::File;
 use std::io::Write;
+use geo_types::Point;
 
 use crate::collision_checker::CollisionChecker;
-use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::Optimizer;
 use crate::planner::planner::Planner;
@@ -26,7 +26,7 @@ pub struct ProblemDefinition {
 }
 
 impl ProblemDefinition {
-    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+    pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params.max_size, collision_checker));
         let pdef = ProblemDefinition {planner, params};
         return pdef;
@@ -57,7 +57,7 @@ impl ProblemDefinition {
         return self.planner.get_solution_cost();
     }
 
-    pub fn get_solution_path(&self) -> Vec<Node2D> {
+    pub fn get_solution_path(&self) -> Vec<Point> {
         return self.planner.get_solution_path().clone();
     }
 
@@ -72,7 +72,7 @@ impl ProblemDefinition {
         }
 
         for node in self.get_solution_path() {
-            let res = write!(f, "{}, ",node);
+            let res = write!(f, "{:?}, ", node);
             match res {
                 Err(_) => {
                     println!("Could not write the solution path to file!"); 

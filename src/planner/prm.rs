@@ -1,11 +1,14 @@
 use core::panic;
+use std::collections::HashMap;
 
 use petgraph::Undirected;
 use petgraph::algo::{astar};
-use petgraph::graph::{Graph, NodeIndex, NodeIndices};
+use petgraph::graph::{Graph, NodeIndex};
+use geo_types::Point;
+use rstar::RTree;
+use wkt::ToWkt;
 
 use crate::collision_checker::CollisionChecker;
-use crate::node::Node2D;
 use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
 use crate::planner::planner::Planner;
@@ -25,23 +28,25 @@ use crate::problem::Parameter;
 /// # Example
 /// 
 pub struct PRM {
-    start: Node2D,
-    goal: Node2D,
+    start: Point,
+    goal: Point,
     boundaries: Boundaries,
-    pub graph: Graph<Node2D, f64, Undirected>,
+    pub graph: Graph<Point, f64, Undirected>,
     solution: Option<(f64, Vec<NodeIndex>)>,
     pub solution_cost: f64,
-    pub solution_path: Vec<Node2D>,
+    pub solution_path: Vec<Point>,
     optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
     max_batch_size: usize,
     collision_checker: Box<dyn CollisionChecker>,
+    tree: RTree<[f64; 2]>,
+    index_node_lookup: HashMap<String, NodeIndex> 
 }
 
 impl Planner for PRM {
     /// run init before starting any planning task. 
     fn init(&mut self) {
-            if !self.boundaries.is_node_inside(&self.start) {
+        if !self.boundaries.is_node_inside(&self.start) {
             panic!("Start is not inside boundaries.");
         }
 
@@ -49,17 +54,16 @@ impl Planner for PRM {
             panic!("Goal is not inside boundaries.");
         }
 
-        let initial = vec![self.start, self.goal];
-        let check: Vec<Node2D> = self.collision_checker.check_nodes(initial);
-        if check.len() != 2 {
-            println!("Starg and/or Goal configuration are in collision")
+        if self.collision_checker.is_node_colliding(&self.start) {
+            panic!("Start is in collision");
         }
 
-        let start_index: usize = self.graph.add_node(self.start).index();
-        self.start.idx = start_index;
+        if self.collision_checker.is_node_colliding(&self.goal) {
+            panic!("Goal is in collision");
+        }
 
-        let goal_index: usize = self.graph.add_node(self.goal).index();
-        self.goal.idx = goal_index;
+        self.add_node(self.start);
+        self.add_node(self.goal);
 
         if !self.optimizer.init() {
             panic!("Optimizer could not be initialized");
@@ -72,9 +76,8 @@ impl Planner for PRM {
     /// Starts building the graph. 
     fn run(&mut self) {
         loop {
-            let added_nodes: Vec<Node2D> = self.add_batch_of_random_nodes();
-            println!("{}", added_nodes.len());
-            self.connect_added_nodes_to_graph(added_nodes);
+            let added_node: Point = self.add_batch_of_random_nodes();
+            self.connect_added_node_to_graph(added_node);
 
             if self.check_solution() {
                 self.process_solution();
@@ -83,9 +86,8 @@ impl Planner for PRM {
 
             if self.is_termination_criteria_met() {
                 println!("Termination Criteria met");
+                break;
             }
-
-            break;
         }
     }
 
@@ -94,7 +96,7 @@ impl Planner for PRM {
         return self.solution_cost;
     }
 
-    fn get_solution_path(&self) -> Vec<Node2D> {
+    fn get_solution_path(&self) -> Vec<Point> {
         return self.solution_path.clone();
     }
 
@@ -127,8 +129,10 @@ impl Planner for PRM {
 
 impl PRM {
 
-    pub fn new(start: Node2D, goal: Node2D, bounds: Boundaries, optimizer: Box<dyn Optimizer>, 
+    pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, 
         param1: usize, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        let tree = RTree::new();
+        let index_node_lookup: HashMap<String, NodeIndex> = HashMap::new();
         let setup: PRM = PRM {  start: start, 
             goal: goal, 
             boundaries: bounds,
@@ -140,67 +144,73 @@ impl PRM {
             is_solved: false,
             max_batch_size: param1,
             collision_checker: collision_checker,
+            tree: tree,
+            index_node_lookup: index_node_lookup,
         };
         return  setup;
     }
 
-    fn add_batch_of_random_nodes(&mut self) -> Vec<Node2D> {
-        let mut new_nodes: Vec<Node2D> = self.generate_free_nodes();
-        for node in new_nodes.iter_mut() {
-            pg::insert_node_in_graph(&mut self.graph, node);
-        }
-        return new_nodes;
+    fn add_node(&mut self, node: Point) {
+        let index = self.graph.add_node(node);
+        self.index_node_lookup.insert(node.to_wkt().to_string(), index);
+        self.tree.insert([node.x(), node.y()]);
     }
 
-    fn generate_free_nodes(&mut self) -> Vec<Node2D> {
-        let mut candidate_nodes: Vec<Node2D> = Vec::new();
-        for _ in 0..10 {
-            let node: Node2D = self.boundaries.generate_random_configuration();
-            candidate_nodes.push(node);
-        }
+    fn add_batch_of_random_nodes(&mut self) -> Point {
+        let new_node: Point = self.generate_free_node();
+        self.add_node(new_node);
+        return new_node;
+    }
 
-        let free_nodes = self.collision_checker.check_nodes(candidate_nodes);
+    fn generate_free_node(&mut self) -> Point {
+        let candidate: Point = self.boundaries.generate_random_configuration();
+        if self.collision_checker.is_node_colliding(&candidate) {
+            return self.generate_free_node();
+        } else {
+            return candidate;
+        }
         // TODO How to check if nodes are already in graph? Petgraph searches by index and not by weight (aka Coordinates)
-        return free_nodes;
     }
 
-    fn connect_added_nodes_to_graph(&mut self, added_nodes: Vec<Node2D>) {
-        for node in added_nodes {
-            let nearest_neighbors_type: NodeIndices = self.get_n_nearest_neighbours(node);
-            let mut query_edges: Vec<(Node2D, Node2D)> = Vec::new();
+    fn connect_added_node_to_graph(&mut self, node: Point) {
+        let mut iterator = self.tree.nearest_neighbor_iter(&[node.x(), node.y()]);
+        for _ in 0..3 {
+            let neighbor = iterator.next();
+            let neighbor_point: Point = match neighbor {
+                Some(a) => Point::new(a[0], a[1]),
+                None => continue,
+            };
 
-            let mut nearest_neighbors: Vec<NodeIndex> = Vec::new();
-            for neighbor in nearest_neighbors_type {
-                nearest_neighbors.push(neighbor);
+            if node == neighbor_point {
+                continue;
             }
 
-            // retain keeps element were function returns true, and removes elements where false
-            // TODO: Implement collision checker properly to fix unused_variables compiler warning. 
-            nearest_neighbors.retain(|neighbor| self.collision_checker.check_edge(node, *neighbor));
-
-            for neighbor in nearest_neighbors {
-                let node_weight: &Node2D = self.graph.node_weight(neighbor).unwrap();
-                let end: Node2D = Node2D { x: node_weight.x, y: node_weight.y, idx: neighbor.index() };
-                query_edges.push((node, end));
+            if self.collision_checker.is_edge_colliding(&node, &neighbor_point) {
+                continue;
             }
 
-            let costs: Vec<(Node2D, Node2D, f64)> = self.optimizer.get_edge_weight(query_edges.clone());
-            for (begin, end, weight) in costs {
-                pg::insert_edge_in_graph(&mut self.graph, &begin, end.get_index_type(), weight);
-            }
+            let weight = self.optimizer.get_edge_weight(node, neighbor_point).2;
+            let a = self.index_node_lookup.get(&node.to_wkt().to_string()).unwrap();
+            let b = self.index_node_lookup.get(&neighbor_point.to_wkt().to_string()).unwrap();
+            self.graph.add_edge(*a, *b, weight);
         }
     }
 
     fn check_solution(&mut self) -> bool {
-        let start: NodeIndex = NodeIndex::new(self.start.idx);
-        self.solution = astar(&self.graph, start, |finish| finish == NodeIndex::new(self.goal.idx), |e| *e.weight(), |_| 0f64);
-        match &self.solution {
-            None => return false,
-            Some(_) => {
-                self.is_solved = true;
-                return true;
-            }
+        let start = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
+        let goal = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
+        self.solution = astar(
+            &self.graph, 
+            start, 
+            |finish| finish == goal, 
+            |e| *e.weight(), 
+            |_| 0f64);
+
+        match self.solution {
+            None => self.is_solved = false,
+            Some(_) => self.is_solved = true
         }
+        return self.is_solved;
     }
 
     fn process_solution(&mut self) {
@@ -213,16 +223,13 @@ impl PRM {
     }
     
     fn is_termination_criteria_met(&self) -> bool {
-        return true;
-    }
-    
-    fn get_n_nearest_neighbours(&self, _node: Node2D) -> NodeIndices {
-        // TODO: Returns all nodes. A smarter algorithm would select based on proximity. Important for large graphs
-        let node_iterator = self.graph.node_indices();
-        return node_iterator;
+        if self.graph.node_count() >= 10 {
+            return true;
+        }
+        return false;
     }
 
-    pub fn get_graph(&self) -> &Graph<Node2D, f64, Undirected> {
+    pub fn get_graph(&self) -> &Graph<Point, f64, Undirected> {
         return &self.graph;
     }
     

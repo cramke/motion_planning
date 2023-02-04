@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Write;
+use geo_types::Point;
 
 use petgraph::dot::{Dot};
 use petgraph::{Undirected};
@@ -33,9 +34,9 @@ pub fn is_node_already_in_graph(_graph:&Graph<Node2D, f64, Undirected>, _node:&N
     return false;
 }
 
-pub fn write_graph_to_file(graph:&Graph<Node2D, f64, Undirected>, path:&str) {
+pub fn write_graph_to_file(graph:&Graph<Point, f64, Undirected>, path:&str) {
     let mut f = File::create(path).unwrap();
-    let output = format!("{}", Dot::with_config(&graph, &[]));
+    let output = format!("{:?}", Dot::with_config(&graph, &[]));
     let res = f.write_all(&output.as_bytes());
     match res {
         Err(_) => println!("Could not write the graph to file!"),
@@ -43,6 +44,6 @@ pub fn write_graph_to_file(graph:&Graph<Node2D, f64, Undirected>, path:&str) {
     }
 }
 
-pub fn print_graph(graph:&Graph<Node2D, f64, Undirected>) {
+pub fn print_graph(graph:&Graph<Point, f64, Undirected>) {
     println!("{:?}", Dot::with_config(graph, &[]));
 }

@@ -1,7 +1,5 @@
 use rand::{Rng, rngs::ThreadRng};
-
-use crate::node::Node2D;
-
+use geo_types::Point;
 
 /// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.
 #[derive(Debug, Clone)]
@@ -13,36 +11,37 @@ pub struct Boundaries {
     rand: ThreadRng,
 }
 
+// TODO Use polygon and inside or similar
 impl Boundaries {
     pub fn new(x_lower: f64, x_upper: f64, y_lower: f64, y_upper: f64) -> Self {
         let rand: ThreadRng = rand::thread_rng();
         return Boundaries { x_lower, x_upper, y_lower, y_upper, rand };
     }
 
-    pub fn is_node_inside(&self, node: &Node2D) -> bool {
-        if node.x < self.x_lower {
+    pub fn is_node_inside(&self, node: &Point) -> bool {
+        if node.x() < self.x_lower {
             return false;
         }
 
-        if node.x > self.x_upper {
+        if node.x() > self.x_upper {
             return false;
         }
 
-        if node.y < self.y_lower {
+        if node.y() < self.y_lower {
             return false;
         }
 
-        if node.y > self.y_upper {
+        if node.y() > self.y_upper {
             return false;
         }
 
         return true;
     }
 
-    pub fn generate_random_configuration(&mut self) -> Node2D {
+    pub fn generate_random_configuration(&mut self) -> Point {
         let x: f64 = self.rand.gen_range(self.x_lower..self.x_upper);
         let y: f64 = self.rand.gen_range(self.y_lower..self.y_upper);
-        let node: Node2D = Node2D { x: x, y: y, idx: 0};
+        let node: Point = Point::new(x, y);
         return node;
     }
 }
@@ -63,30 +62,30 @@ mod tests {
     #[test]
     fn test_boundaries_inside_true() {
         use crate::boundaries::Boundaries;
-        use crate::node::Node2D;
+        use geo_types::Point;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Node2D = Node2D::new(0.5f64, 2.5f64);
+        let node: Point = Point::new(0.5f64, 2.5f64);
         assert!(bounds.is_node_inside(&node));
     }
 
     #[test]
     fn test_boundaries_inside_false_x() {
         use crate::boundaries::Boundaries;
-        use crate::node::Node2D;
+        use geo_types::Point;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Node2D = Node2D::new(2.5f64, 2.5f64);
+        let node: Point = Point::new(2.5f64, 2.5f64);
         assert!(!bounds.is_node_inside(&node));
     }
 
     #[test]
     fn test_boundaries_inside_false_y() {
         use crate::boundaries::Boundaries;
-        use crate::node::Node2D;
+        use geo_types::Point;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Node2D = Node2D::new(0.5f64, 0f64);
+        let node: Point = Point::new(0.5f64, 0f64);
         assert!(!bounds.is_node_inside(&node));
     }
 

@@ -1,5 +1,4 @@
-use petgraph::graph::NodeIndex;
-use crate::node::Node2D;
+use geo_types::Point;
 
 /// CollisionChecker to implement custom Collision checkers.
 pub trait CollisionChecker {
@@ -8,12 +7,12 @@ pub trait CollisionChecker {
 
     /// Returns a Vector of pairs collision_free edges. Colliding edges are not returned. 
     /// - Node2D: Node that was checked
-    fn check_nodes(&self, nodes: Vec<Node2D>) -> Vec<Node2D>;
+    fn is_node_colliding(&self, node: &Point) -> bool;
 
     /// Returns a Vector of collision free nodes. Colliding nodes are not returned. 
     /// - Node2D: Start-Node of edge that was checked.
     /// - Node2D: End-Node of edge that was checked.
-    fn check_edge(&self, node: Node2D, end: NodeIndex) -> bool;
+    fn is_edge_colliding(&self, node: &Point, end: &Point) -> bool;
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -30,17 +29,11 @@ impl CollisionChecker for NaiveCollisionChecker {
         return true;
     }
     
-    fn check_edge(&self, _node: Node2D, _end: NodeIndex) -> bool {
-        return true;
+    fn is_edge_colliding(&self, _node: &Point, _end: &Point) -> bool {
+        return false;
 }
 
-    fn check_nodes(&self, nodes: Vec<Node2D>) -> Vec<Node2D> {
-        let mut result: Vec<Node2D> = Vec::new();
-        for node in nodes {
-            if true {
-                result.push(node);
-            }
-        }
-        return result;
+    fn is_node_colliding(&self, _node: &Point) -> bool {
+        return false;
     }
 }

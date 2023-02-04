@@ -1,12 +1,13 @@
 use mpf::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-use mpf::node::Node2D;
 use mpf::boundaries::Boundaries;
 use mpf::optimizer::{self, Optimizer};
 use mpf::problem::{ProblemDefinition, Parameter};
 
+use geo_types::Point;
+
 fn main() {
-    let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
-    let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
+    let start: Point = Point::new(0f64, 0f64);
+    let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(optimizer::DefaultOptimizer);
     let params = Parameter::new(50usize);

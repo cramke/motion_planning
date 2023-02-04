@@ -1,4 +1,5 @@
-use crate::{node::Node2D, problem::Parameter};
+use crate::problem::Parameter;
+use geo_types::Point;
 
 
 /// Custom planners can use these traits to implement other algorithm for planning. 
@@ -10,7 +11,7 @@ pub trait Planner {
     fn init(&mut self);
     fn run(&mut self);
     fn get_solution_cost(&self) -> f64;
-    fn get_solution_path(&self) -> Vec<Node2D>;
+    fn get_solution_path(&self) -> Vec<Point>;
     fn is_solved(&self) -> bool;
     fn print_statistics(&self, path:&str);
     fn set_params(&mut self, params: &Parameter);
