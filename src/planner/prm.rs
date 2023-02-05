@@ -11,7 +11,7 @@ use wkt::ToWkt;
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
 use crate::optimizer::{Optimizer};
-use crate::planner::planner::Planner;
+use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
 
