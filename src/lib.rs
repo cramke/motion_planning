@@ -9,7 +9,6 @@ The main idea is to easily usable with various problems in different domains. It
 
 */
 
-pub mod node;
 pub mod boundaries;
 pub mod problem;
 pub mod optimizer;

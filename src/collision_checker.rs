@@ -5,13 +5,14 @@ pub trait CollisionChecker {
     /// Is run only once and before any checks are done. Can be used to read a file or database. 
     fn init(&self) -> bool;
 
-    /// Returns a Vector of pairs collision_free edges. Colliding edges are not returned. 
-    /// - Node2D: Node that was checked
+    /// Returns:
+    /// - true: there is an collision
+    /// - false: there is no collision
     fn is_node_colliding(&self, node: &Point) -> bool;
 
-    /// Returns a Vector of collision free nodes. Colliding nodes are not returned. 
-    /// - Node2D: Start-Node of edge that was checked.
-    /// - Node2D: End-Node of edge that was checked.
+    /// Returns:
+    /// - true: there is an collision
+    /// - false: there is no collision
     fn is_edge_colliding(&self, node: &Point, end: &Point) -> bool;
 }
 

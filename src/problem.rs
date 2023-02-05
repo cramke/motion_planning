@@ -62,17 +62,23 @@ impl ProblemDefinition {
     }
 
     pub fn write_solution_path(&self, path:&str) {
-        let mut f: File = File::create(path).unwrap();
-        let res = write!(f, "[");
-        match res {
+        let mut file = match File::create(path) {
+            Ok(file) => file,
             Err(_) => {
-                println!("Could not write the solution path to file!"); 
+                println!("Could not open file {path}");
+                return;
+            }
+        };
+
+        match write!(file, "[") {
+            Err(_) => {
+                println!("Could not write the solution path to file! -> {path:?}"); 
                 return; }
-            Ok(_) => res.unwrap(),
-        }
+            Ok(_) => {},
+        };
 
         for node in self.get_solution_path() {
-            let res = write!(f, "{node:?}, ");
+            let res = write!(file, "{node:?}, ");
             match res {
                 Err(_) => {
                     println!("Could not write the solution path to file!"); 
@@ -80,7 +86,7 @@ impl ProblemDefinition {
                 Ok(_) => res.unwrap(),
             }
         }
-        let res = write!(f, "]");
+        let res = write!(file, "]");
         match res {
             Err(_) => {
                 println!("Could not write the solution path to file!"); 
