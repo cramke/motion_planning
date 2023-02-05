@@ -7,10 +7,7 @@ use petgraph::{Undirected};
 use petgraph::graph::{Graph, NodeIndex};
 
 pub fn is_edge_already_in_graph(graph:&Graph<NodeIndex, f64, Undirected>, begin:NodeIndex, end:NodeIndex) -> bool {
-    return match graph.find_edge(begin, end) {
-        None => false,
-        Some(_) => true,
-    }
+    graph.find_edge(begin, end).is_some()
 }
 
 pub fn write_graph_to_file(graph:&Graph<Point, f64, Undirected>, path:&str) {

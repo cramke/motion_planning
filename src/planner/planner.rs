@@ -1,7 +1,6 @@
 use crate::problem::Parameter;
 use geo_types::Point;
 
-
 /// Custom planners can use these traits to implement other algorithm for planning. 
 /// 
 /// # Available Planners:

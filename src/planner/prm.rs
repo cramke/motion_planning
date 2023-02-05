@@ -108,7 +108,7 @@ impl Planner for PRM {
 
     /// Returns a bool saying if any solution between start and goal was found. 
     fn is_solved(&self) -> bool {
-        return self.is_solved;
+        self.is_solved
     }
 
     /// Prints some basic statistics of the graph.
@@ -156,7 +156,7 @@ impl PRM {
             index_node_lookup,
             k_nearest_neighbors: params.k_nearest_neighbors
         };
-        return  setup;
+        return setup;
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
@@ -225,10 +225,7 @@ impl PRM {
             |e| *e.weight(), 
             |_| 0f64);
 
-        self.is_solved = match self.solution {
-            None => false,
-            Some(_) => true,
-        };
+        self.is_solved = self.solution.is_some();
         return self.is_solved;
     }
     
@@ -240,10 +237,10 @@ impl PRM {
     }
 
     pub fn get_graph(&self) -> &Graph<Point, f64, Undirected> {
-        return &self.graph;
+        &self.graph
     }
     
     pub fn print_graph(&self) {
-        pg::print_graph(self.get_graph());
+        pg::print_graph(self.get_graph())
     }
 }

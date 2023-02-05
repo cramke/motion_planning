@@ -27,14 +27,14 @@ impl NaiveCollisionChecker {
 
 impl CollisionChecker for NaiveCollisionChecker {
     fn init(&self) -> bool {
-        return true;
+        true
     }
     
     fn is_edge_colliding(&self, _node: &Point, _end: &Point) -> bool {
-        return false;
+        false
 }
 
     fn is_node_colliding(&self, _node: &Point) -> bool {
-        return false;
+        false
     }
 }

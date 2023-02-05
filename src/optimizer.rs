@@ -27,7 +27,7 @@ impl Optimizer for DefaultOptimizer {
 
     /// Does not do anything. Returns always true without any condition. 
     fn init(&mut self) -> bool {
-        return true;
+        true
     }
 }
 

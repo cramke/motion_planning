@@ -16,12 +16,13 @@ pub struct Parameter {
 
 impl Parameter {
     pub fn new(param1: usize, param2: usize) -> Self {
-        let params: Parameter = Parameter {max_size: param1, k_nearest_neighbors: param2};
-        return params;
+        Parameter {max_size: param1, k_nearest_neighbors: param2}
     }
+}
 
-    pub fn default() -> Self {
-        Parameter { max_size: 40, k_nearest_neighbors: 8 }
+impl Default for Parameter {
+    fn default() -> Self {
+        Parameter { max_size: 64, k_nearest_neighbors: 8 }
     }
 }
 
@@ -33,7 +34,7 @@ pub struct ProblemDefinition {
 
 impl ProblemDefinition {
     pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params.clone(), collision_checker));
+        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params, collision_checker));
         let pdef = ProblemDefinition {planner, params};
         return pdef;
     }
@@ -60,11 +61,11 @@ impl ProblemDefinition {
     }
 
     pub fn get_solution_cost(&self) -> f64 {
-        return self.planner.get_solution_cost();
+        self.planner.get_solution_cost()
     }
 
     pub fn get_solution_path(&self) -> Vec<Point> {
-        return self.planner.get_solution_path();
+        self.planner.get_solution_path()
     }
 
     pub fn write_solution_path(&self, path:&str) {
