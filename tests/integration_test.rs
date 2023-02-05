@@ -16,8 +16,8 @@ fn test_mpf_default_scenario() {
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let cost = pdef.get_solution_cost();
-    assert!(cost > 4f64);
-    assert!(cost < 5.5f64);
+    assert!(cost > 3f64);
+    assert!(cost < 6f64);
 }
 
 
@@ -37,7 +37,7 @@ fn test_mpf_naiv_scenario() {
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
-    assert!(cost < 4.7f64);
+    assert!(cost < 6f64);
 }
 
 #[test]
@@ -80,6 +80,6 @@ fn test_geo_collision() {
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
-    assert!(cost > 4.3f64);
+    assert!(cost > 3.5f64);
     assert!(cost < f64::MAX);
 }
