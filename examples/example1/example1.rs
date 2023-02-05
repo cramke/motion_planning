@@ -1,33 +1,29 @@
-use mpf::node::Node2D;
+use std::time::Instant;
+
+use mpf::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use mpf::boundaries::Boundaries;
 use mpf::optimizer::{self, Optimizer};
-use mpf::problem::ProblemDefinition;
+use mpf::problem::{ProblemDefinition, Parameter};
 
-/** -------------------------------------------------------------------
- *  Setup and/or configure for the specific planning problem.
- */
+use geo_types::Point;
 
-fn is_collision(node: &Node2D) -> bool {
-    if node.x > 1.0 && node.x < 2.0 {
-        return true;
-    }
-    if node.y > 1.0 && node.y < 2.0 {
-        return true;
-    }
-
-    return false;
-}
-
-fn is_edge_in_collision() -> bool {
-    return false;
-}
-
-pub fn main() {
-    let start: Node2D = Node2D { x: 0f64, y: 0f64, idx: 0 };
-    let goal: Node2D = Node2D { x: 3f64, y: 3f64, idx: 0 };
+fn main() {
+    let start: Point = Point::new(0f64, 0f64);
+    let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(optimizer::DefaultOptimizer);
-    let mut pdef= ProblemDefinition::new( start, goal, bounds, is_collision, is_edge_in_collision, optimizer);                                       
+    let params = Parameter::new(10usize);
+    let cc: Box<dyn CollisionChecker> = NaiveCollisionChecker::new();
+    let mut pdef= ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);    
+
+    println!("#### mpf ####");
+    let start = Instant::now();
     pdef.solve();
-    pdef.print_statistics();
+    let duration = start.elapsed();
+    println!("Time elapsed in expensive_function() is: {duration:?}");
+
+    let path: &str = "./graph.dot";
+    pdef.print_statistics(path);
+    let path: &str = "./solution_path.txt";
+    pdef.write_solution_path(path);
 }
