@@ -45,9 +45,9 @@ impl ProblemDefinition {
             let path = self.get_solution_path();
             println!("Solution cost -{}- with {} nodes", self.get_solution_cost(), path.len());
             for el in path {
-                print!("{:?}, ", el);
+                print!("{el:?}, ");
             }
-            print!("\n");
+            println!();
         } else {
             println!("No solution was found");
         }
@@ -58,7 +58,7 @@ impl ProblemDefinition {
     }
 
     pub fn get_solution_path(&self) -> Vec<Point> {
-        return self.planner.get_solution_path().clone();
+        return self.planner.get_solution_path();
     }
 
     pub fn write_solution_path(&self, path:&str) {
@@ -72,7 +72,7 @@ impl ProblemDefinition {
         }
 
         for node in self.get_solution_path() {
-            let res = write!(f, "{:?}, ", node);
+            let res = write!(f, "{node:?}, ");
             match res {
                 Err(_) => {
                     println!("Could not write the solution path to file!"); 
@@ -87,6 +87,6 @@ impl ProblemDefinition {
                 return; }
             Ok(_) => res.unwrap(),
         }
-        println!("Write solution path to file: {}", path);
+        println!("Write solution path to file: {path}");
     }
 }

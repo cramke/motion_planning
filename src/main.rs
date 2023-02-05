@@ -20,7 +20,7 @@ fn main() {
     let start = Instant::now();
     pdef.solve();
     let duration = start.elapsed();
-    println!("Time elapsed in expensive_function() is: {:?}", duration);
+    println!("Time elapsed in expensive_function() is: {duration:?}");
 
     let path: &str = "./examples/example1/graph.dot";
     pdef.print_statistics(path);

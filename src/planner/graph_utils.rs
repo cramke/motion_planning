@@ -37,10 +37,10 @@ pub fn is_node_already_in_graph(_graph:&Graph<Node2D, f64, Undirected>, _node:&N
 pub fn write_graph_to_file(graph:&Graph<Point, f64, Undirected>, path:&str) {
     let mut f = File::create(path).unwrap();
     let output = format!("{:?}", Dot::with_config(&graph, &[]));
-    let res = f.write_all(&output.as_bytes());
+    let res = f.write_all(output.as_bytes());
     match res {
         Err(_) => println!("Could not write the graph to file!"),
-        Ok(_) => println!("Write graph to file: {}", path),
+        Ok(_) => println!("Write graph to file: {path}"),
     }
 }
 

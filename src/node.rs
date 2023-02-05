@@ -29,11 +29,11 @@ impl fmt::Display for Node2D {
 impl Node2D {
     pub fn new(x: f64, y: f64) -> Self {
         let idx: usize = 0;
-        return Node2D { x: x, y: y, idx: idx }
+        return Node2D { x, y, idx }
     }
 
     pub fn new_index(x: f64, y: f64, idx: usize) -> Self {
-        return Node2D { x: x, y: y, idx: idx };
+        return Node2D { x, y, idx };
     }
 
     pub fn from_graph_node(index: NodeIndex) -> Self {

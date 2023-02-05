@@ -112,10 +112,10 @@ impl Planner for PRM {
     /// Prints some basic statistics of the graph.
     fn print_statistics(&self, path:&str) {
         let nodes: usize = self.graph.node_count();
-        println!("Graph contains {} nodes", nodes);
+        println!("Graph contains {nodes} nodes");
 
         let edges: usize = self.graph.edge_count();
-        println!("Graph contains {} edges", edges);
+        println!("Graph contains {edges} edges");
 
         pg::write_graph_to_file(&self.graph, path);
     }
@@ -133,13 +133,13 @@ impl Planner for PRM {
 
 impl PRM {
 
-    pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, 
+    pub fn new(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
         param1: usize, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let tree = RTree::new();
         let index_node_lookup: HashMap<String, NodeIndex> = HashMap::new();
-        let setup: PRM = PRM {  start: start, 
-            goal: goal, 
-            boundaries: bounds,
+        let setup: PRM = PRM { start, 
+            goal, 
+            boundaries,
             graph: Graph::new_undirected(),
             solution: None,
             solution_cost: f64::MAX,
@@ -147,9 +147,9 @@ impl PRM {
             optimizer,
             is_solved: false,
             max_size: param1,
-            collision_checker: collision_checker,
-            tree: tree,
-            index_node_lookup: index_node_lookup,
+            collision_checker,
+            tree,
+            index_node_lookup,
         };
         return  setup;
     }
