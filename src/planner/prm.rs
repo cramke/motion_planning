@@ -40,7 +40,8 @@ pub struct PRM {
     max_size: usize,
     collision_checker: Box<dyn CollisionChecker>,
     tree: RTree<[f64; 2]>,
-    index_node_lookup: HashMap<String, NodeIndex> 
+    index_node_lookup: HashMap<String, NodeIndex>,
+    k_nearest_neighbors: usize,
 }
 
 impl Planner for PRM {
@@ -94,6 +95,7 @@ impl Planner for PRM {
         return cost;
     }
 
+    /// Returns empty Vec if no solution was found.
     fn get_solution_path(& self) -> Vec<Point> {
         let (_, temp) = &self.solution.clone().unwrap();
         let mut path: Vec<Point> = Vec::new();
@@ -127,14 +129,16 @@ impl Planner for PRM {
     /// 
     fn set_params(self: &mut PRM, params: &Parameter) {
         self.max_size = params.max_size;
+        self.k_nearest_neighbors = params.k_nearest_neighbors;
     }
 
 }
 
 impl PRM {
 
+    /// Default constructor
     pub fn new(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
-        param1: usize, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let tree = RTree::new();
         let index_node_lookup: HashMap<String, NodeIndex> = HashMap::new();
         let setup: PRM = PRM { start, 
@@ -146,20 +150,25 @@ impl PRM {
             solution_path: Vec::new(),
             optimizer,
             is_solved: false,
-            max_size: param1,
+            max_size: params.max_size,
             collision_checker,
             tree,
             index_node_lookup,
+            k_nearest_neighbors: params.k_nearest_neighbors
         };
         return  setup;
     }
 
+    /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
     fn add_node(&mut self, node: Point) {
         let index = self.graph.add_node(node);
         self.index_node_lookup.insert(node.to_wkt().to_string(), index);
         self.tree.insert([node.x(), node.y()]);
     }
 
+    /// Generates a random node and adds it to the graph, if:
+    /// - It is not in collision
+    /// - It is not already in the graph
     fn add_random_node(&mut self) -> Point {
         let mut candidate: Point;
         loop {
@@ -181,9 +190,10 @@ impl PRM {
         return candidate;
     }
 
+    /// Try to connect a node to its k nearest neigbors.
     fn connect_node_to_graph(&mut self, node: Point) {
         let mut iterator = self.tree.nearest_neighbor_iter(&[node.x(), node.y()]);
-        for _ in 0..3 {
+        for _ in 0..4 {
             let neighbor = iterator.next();
             let neighbor_point: Point = match neighbor {
                 Some(a) => Point::new(a[0], a[1]),
@@ -215,10 +225,10 @@ impl PRM {
             |e| *e.weight(), 
             |_| 0f64);
 
-        match self.solution {
-            None => self.is_solved = false,
-            Some(_) => self.is_solved = true
-        }
+        self.is_solved = match self.solution {
+            None => false,
+            Some(_) => true,
+        };
         return self.is_solved;
     }
     
@@ -226,7 +236,6 @@ impl PRM {
         if self.graph.node_count() >= self.max_size {
             return true;
         }
-        
         return false;
     }
 

@@ -8,14 +8,20 @@ use crate::optimizer::Optimizer;
 use crate::planner::planner::Planner;
 use crate::planner::prm::PRM;
 
+#[derive(Clone, Copy)]
 pub struct Parameter {
     pub max_size: usize,
+    pub k_nearest_neighbors: usize,
 }
 
 impl Parameter {
-    pub fn new(param1: usize) -> Self {
-        let params: Parameter = Parameter {max_size: param1};
+    pub fn new(param1: usize, param2: usize) -> Self {
+        let params: Parameter = Parameter {max_size: param1, k_nearest_neighbors: param2};
         return params;
+    }
+
+    pub fn default() -> Self {
+        Parameter { max_size: 40, k_nearest_neighbors: 8 }
     }
 }
 
@@ -27,7 +33,7 @@ pub struct ProblemDefinition {
 
 impl ProblemDefinition {
     pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params.max_size, collision_checker));
+        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params.clone(), collision_checker));
         let pdef = ProblemDefinition {planner, params};
         return pdef;
     }
@@ -78,21 +84,17 @@ impl ProblemDefinition {
         };
 
         for node in self.get_solution_path() {
-            let res = write!(file, "{node:?}, ");
-            match res {
+            match write!(file, "{node:?}, "){
                 Err(_) => {
-                    println!("Could not write the solution path to file!"); 
+                    println!("Could not write the solution path to file! -> {path}"); 
                     return; }
-                Ok(_) => res.unwrap(),
-            }
+                Ok(_) => {},
+            };
         }
-        let res = write!(file, "]");
-        match res {
-            Err(_) => {
-                println!("Could not write the solution path to file!"); 
-                return; }
-            Ok(_) => res.unwrap(),
-        }
-        println!("Write solution path to file: {path}");
+
+        match write!(file, "]") {
+            Err(_) => println!("Could not write the solution path to file! -> {path}"),
+            Ok(_) => println!("Write solution path to file: {path}"),
+        };
     }
 }

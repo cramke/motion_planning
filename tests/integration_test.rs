@@ -11,7 +11,7 @@ fn test_mpf_default_scenario() {
     let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
-    let params = Parameter::new(18usize);
+    let params = Parameter::new(18usize, 3usize);
     let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
@@ -31,7 +31,7 @@ fn test_mpf_naiv_scenario() {
     let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
-    let params = Parameter::new(25usize);
+    let params = Parameter::new(25usize, 3usize);
     let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
@@ -75,7 +75,7 @@ fn test_geo_collision() {
     let goal: Point = Point::new(3f64, 3f64);
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
-    let params = Parameter::new(30usize);
+    let params = Parameter::new(30usize, 3usize);
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
