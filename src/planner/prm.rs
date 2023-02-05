@@ -76,8 +76,8 @@ impl Planner for PRM {
     /// Starts building the graph. 
     fn run(&mut self) {
         loop {
-            let added_node: Point = self.add_batch_of_random_nodes();
-            self.connect_added_node_to_graph(added_node);
+            let added_node: Point = self.add_random_node();
+            self.connect_node_to_graph(added_node);
 
             self.check_solution();
 
@@ -90,8 +90,8 @@ impl Planner for PRM {
 
     /// Lower cost means it is a preferrable solution. If no solution was found, the returned cost will be f64::MAX.
     fn get_solution_cost(&self) -> f64 {
-        let (cost, _) = &self.solution.clone().unwrap();
-        return *cost;
+        let (cost, _) = self.solution.clone().unwrap();
+        return cost;
     }
 
     fn get_solution_path(& self) -> Vec<Point> {
@@ -160,23 +160,28 @@ impl PRM {
         self.tree.insert([node.x(), node.y()]);
     }
 
-    fn add_batch_of_random_nodes(&mut self) -> Point {
-        let new_node: Point = self.generate_free_node();
-        self.add_node(new_node);
-        return new_node;
-    }
+    fn add_random_node(&mut self) -> Point {
+        let mut candidate: Point;
+        loop {
+            candidate = self.boundaries.generate_random_configuration();
 
-    fn generate_free_node(&mut self) -> Point {
-        let candidate: Point = self.boundaries.generate_random_configuration();
-        if self.collision_checker.is_node_colliding(&candidate) {
-            return self.generate_free_node();
-        } else {
-            return candidate;
+            if self.collision_checker.is_node_colliding(&candidate) {
+                continue;
+            }
+
+            match self.index_node_lookup.get(&candidate.to_wkt().to_string()) {
+                // If candidate node is found in graph, then continue with next random node.
+                None => {},
+                Some(_) => continue,
+            }
+
+            break;
         }
-        // TODO How to check if nodes are already in graph? Petgraph searches by index and not by weight (aka Coordinates)
+        self.add_node(candidate);
+        return candidate;
     }
 
-    fn connect_added_node_to_graph(&mut self, node: Point) {
+    fn connect_node_to_graph(&mut self, node: Point) {
         let mut iterator = self.tree.nearest_neighbor_iter(&[node.x(), node.y()]);
         for _ in 0..3 {
             let neighbor = iterator.next();
