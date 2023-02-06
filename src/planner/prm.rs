@@ -215,6 +215,10 @@ impl PRM {
         }
     }
 
+    /// Applies the A* algorithm to the graph.
+    /// Return
+    ///  - true: There is a solution
+    ///  - false: There is no (not yet) a solution
     fn check_solution(&mut self) -> bool {
         let start = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
         let goal = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
@@ -228,7 +232,8 @@ impl PRM {
         self.is_solved = self.solution.is_some();
         return self.is_solved;
     }
-    
+
+    /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.     
     fn is_termination_criteria_met(&self) -> bool {
         if self.graph.node_count() >= self.max_size {
             return true;
@@ -236,10 +241,12 @@ impl PRM {
         return false;
     }
 
+    /// Returns the graph object (petgraph)
     pub fn get_graph(&self) -> &Graph<Point, f64, Undirected> {
         &self.graph
     }
     
+    /// Print basic information of the graph.
     pub fn print_graph(&self) {
         pg::print_graph(self.get_graph())
     }
