@@ -21,8 +21,8 @@ pub struct NaiveCollisionChecker {}
 
 /// Does not check any collisions and always returns no collision (false)
 impl NaiveCollisionChecker {
-    pub fn new() -> Box<dyn CollisionChecker> {
-        return Box::new(NaiveCollisionChecker{});
+    pub fn new_box() -> Box<dyn CollisionChecker> {
+        Box::new(NaiveCollisionChecker{})
     }
 }
 

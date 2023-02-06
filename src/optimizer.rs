@@ -17,8 +17,14 @@ pub trait Optimizer {
 /// Simple Optimizer used for examples and testing.
 #[derive(Debug, Copy, Clone)]
 pub struct DefaultOptimizer;
-impl Optimizer for DefaultOptimizer {
 
+impl DefaultOptimizer {
+    pub fn new_box() -> Box<dyn Optimizer> {
+        Box::new(DefaultOptimizer{})
+    }
+}
+
+impl Optimizer for DefaultOptimizer {
     // Cost is based on the distance in 2D. Which is basically just Pythagoras.
     fn get_edge_weight(&self, begin: Point, end: Point) -> (Point, Point, f64) {
         let cost: f64 = begin.euclidean_distance(&end);

@@ -29,18 +29,15 @@ impl Default for Parameter {
 /// The Problem Definition serves as a collector for various planners and problems. 
 pub struct ProblemDefinition {
     planner: Box<dyn Planner>,
-    params: Parameter
 }
 
 impl ProblemDefinition {
     pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params, collision_checker));
-        let pdef = ProblemDefinition {planner, params};
-        return pdef;
+        return ProblemDefinition {planner};
     }
 
     pub fn solve(&mut self) {
-        self.planner.set_params(&self.params);
         self.planner.init();
         self.planner.run();
     }
@@ -77,25 +74,10 @@ impl ProblemDefinition {
             }
         };
 
-        match write!(file, "[") {
-            Err(_) => {
-                println!("Could not write the solution path to file! -> {path:?}"); 
-                return; }
-            Ok(_) => {},
-        };
-
+        write!(file, "[").expect_err("Could not write the solution path to file! -> {path}");
         for node in self.get_solution_path() {
-            match write!(file, "{node:?}, "){
-                Err(_) => {
-                    println!("Could not write the solution path to file! -> {path}"); 
-                    return; }
-                Ok(_) => {},
-            };
+            write!(file, "{node:?}, ").expect_err("Could not write the solution path to file! -> {path}");
         }
-
-        match write!(file, "]") {
-            Err(_) => println!("Could not write the solution path to file! -> {path}"),
-            Ok(_) => println!("Write solution path to file: {path}"),
-        };
+        write!(file, "]").expect_err("Could not write the solution path to file! -> {path}");
     }
 }

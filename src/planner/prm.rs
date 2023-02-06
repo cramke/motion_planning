@@ -10,7 +10,7 @@ use wkt::ToWkt;
 
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
-use crate::optimizer::{Optimizer};
+use crate::optimizer::{Optimizer, DefaultOptimizer};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
@@ -33,15 +33,12 @@ pub struct PRM {
     boundaries: Boundaries,
     pub graph: Graph<Point, f64, Undirected>,
     solution: Option<(f64, Vec<NodeIndex>)>,
-    pub solution_cost: f64,
-    pub solution_path: Vec<Point>,
     optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
-    max_size: usize,
     collision_checker: Box<dyn CollisionChecker>,
     tree: RTree<[f64; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
-    k_nearest_neighbors: usize,
+    params: Parameter,
 }
 
 impl Planner for PRM {
@@ -70,8 +67,7 @@ impl Planner for PRM {
             panic!("Optimizer could not be initialized");
         }
 
-        println!("Setup is ready for planning")
-
+        println!("Setup is ready for planning");
     }
 
     /// Starts building the graph. 
@@ -91,19 +87,21 @@ impl Planner for PRM {
 
     /// Lower cost means it is a preferrable solution. If no solution was found, the returned cost will be f64::MAX.
     fn get_solution_cost(&self) -> f64 {
-        let (cost, _) = self.solution.clone().unwrap();
-        return cost;
+        match &self.solution {
+            Some(sol) => sol.0,
+            None => f64::MAX,
+        }
     }
 
     /// Returns empty Vec if no solution was found.
     fn get_solution_path(& self) -> Vec<Point> {
-        let (_, temp) = &self.solution.clone().unwrap();
-        let mut path: Vec<Point> = Vec::new();
-        for el in temp {
-            let weight = self.graph.node_weight(*el).unwrap();
-            path.push(*weight);
+        match &self.solution {
+            None => Vec::new(),
+            Some(sol) => sol.1
+                .iter()
+                .map(|idx| *self.graph.node_weight(*idx).unwrap())
+                .collect(),
         }
-        return path;
     }
 
     /// Returns a bool saying if any solution between start and goal was found. 
@@ -122,16 +120,6 @@ impl Planner for PRM {
         pg::write_graph_to_file(&self.graph, path);
     }
 
-    /// Allows update of parameters after creation. 
-    /// 
-    /// # Arguments:
-    ///   * `params.max_size` - Parameter struct: Determines the graph size when to stop the algorithm.
-    /// 
-    fn set_params(self: &mut PRM, params: &Parameter) {
-        self.max_size = params.max_size;
-        self.k_nearest_neighbors = params.k_nearest_neighbors;
-    }
-
 }
 
 impl PRM {
@@ -139,22 +127,51 @@ impl PRM {
     /// Default constructor
     pub fn new(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
         params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let tree = RTree::new();
-        let index_node_lookup: HashMap<String, NodeIndex> = HashMap::new();
         let setup: PRM = PRM { start, 
             goal, 
             boundaries,
             graph: Graph::new_undirected(),
             solution: None,
-            solution_cost: f64::MAX,
-            solution_path: Vec::new(),
             optimizer,
             is_solved: false,
-            max_size: params.max_size,
             collision_checker,
-            tree,
-            index_node_lookup,
-            k_nearest_neighbors: params.k_nearest_neighbors
+            tree: RTree::new(),
+            index_node_lookup: HashMap::new(),
+            params,
+        };
+        return setup;
+    }
+
+    /// PRM uses the euclidean distance as optimizer
+    pub fn new_prm(start: Point, goal: Point, boundaries: Boundaries, 
+        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        return PRM { start, 
+            goal, 
+            boundaries,
+            graph: Graph::new_undirected(),
+            solution: None,
+            optimizer: DefaultOptimizer::new_box(),
+            is_solved: false,
+            collision_checker,
+            tree: RTree::new(),
+            index_node_lookup: HashMap::new(),
+            params,
+        };
+    }
+
+    pub fn new_prmstar(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
+        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        let setup: PRM = PRM { start, 
+            goal, 
+            boundaries,
+            graph: Graph::new_undirected(),
+            solution: None,
+            optimizer,
+            is_solved: false,
+            collision_checker,
+            tree: RTree::new(),
+            index_node_lookup: HashMap::new(),
+            params,
         };
         return setup;
     }
@@ -193,7 +210,7 @@ impl PRM {
     /// Try to connect a node to its k nearest neigbors.
     fn connect_node_to_graph(&mut self, node: Point) {
         let mut iterator = self.tree.nearest_neighbor_iter(&[node.x(), node.y()]);
-        for _ in 0..4 {
+        for _ in 0..self.params.k_nearest_neighbors {
             let neighbor = iterator.next();
             let neighbor_point: Point = match neighbor {
                 Some(a) => Point::new(a[0], a[1]),
@@ -216,10 +233,7 @@ impl PRM {
     }
 
     /// Applies the A* algorithm to the graph.
-    /// Return
-    ///  - true: There is a solution
-    ///  - false: There is no (not yet) a solution
-    fn check_solution(&mut self) -> bool {
+    fn check_solution(&mut self) {
         let start = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
         let goal = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
         self.solution = astar(
@@ -230,15 +244,11 @@ impl PRM {
             |_| 0f64);
 
         self.is_solved = self.solution.is_some();
-        return self.is_solved;
     }
 
     /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.     
     fn is_termination_criteria_met(&self) -> bool {
-        if self.graph.node_count() >= self.max_size {
-            return true;
-        }
-        return false;
+        self.graph.node_count() >= self.params.max_size
     }
 
     /// Returns the graph object (petgraph)

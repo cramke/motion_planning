@@ -13,7 +13,7 @@ fn main() {
     let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(optimizer::DefaultOptimizer);
     let params = Parameter::new(10usize, 3usize);
-    let cc: Box<dyn CollisionChecker> = NaiveCollisionChecker::new();
+    let cc: Box<dyn CollisionChecker> = NaiveCollisionChecker::new_box();
     let mut pdef= ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);    
 
     println!("#### mpf ####");
