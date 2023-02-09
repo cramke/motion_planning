@@ -158,6 +158,7 @@ impl PRM {
         };
     }
 
+    /// PRMstar uses the custom optimizer method
     pub fn new_prmstar(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
         params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         PRM { start, 
@@ -223,10 +224,10 @@ impl PRM {
                 continue;
             }
 
-            let weight = self.optimizer.get_edge_weight(node, neighbor_point).2;
-            let a = self.index_node_lookup.get(&node.to_wkt().to_string()).unwrap();
-            let b = self.index_node_lookup.get(&neighbor_point.to_wkt().to_string()).unwrap();
-            self.graph.add_edge(*a, *b, weight);
+            let weight: f64 = self.optimizer.get_edge_weight(node, neighbor_point).2;
+            let a: NodeIndex = *self.index_node_lookup.get(&node.to_wkt().to_string()).unwrap();
+            let b: NodeIndex = *self.index_node_lookup.get(&neighbor_point.to_wkt().to_string()).unwrap();
+            self.graph.add_edge(a, b, weight);
         }
     }
 
