@@ -28,7 +28,7 @@ impl Optimizer for DefaultOptimizer {
     // Cost is based on the distance in 2D. Which is basically just Pythagoras.
     fn get_edge_weight(&self, begin: Point, end: Point) -> (Point, Point, f64) {
         let cost: f64 = begin.euclidean_distance(&end);
-        return (begin, end, cost);
+        (begin, end, cost)
     }
 
     /// Does not do anything. Returns always true without any condition. 

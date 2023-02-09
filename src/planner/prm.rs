@@ -127,7 +127,7 @@ impl PRM {
     /// Default constructor
     pub fn new(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
         params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let setup: PRM = PRM { start, 
+        PRM { start, 
             goal, 
             boundaries,
             graph: Graph::new_undirected(),
@@ -138,8 +138,7 @@ impl PRM {
             tree: RTree::new(),
             index_node_lookup: HashMap::new(),
             params,
-        };
-        return setup;
+        }
     }
 
     /// PRM uses the euclidean distance as optimizer
@@ -161,7 +160,7 @@ impl PRM {
 
     pub fn new_prmstar(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
         params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let setup: PRM = PRM { start, 
+        PRM { start, 
             goal, 
             boundaries,
             graph: Graph::new_undirected(),
@@ -172,8 +171,7 @@ impl PRM {
             tree: RTree::new(),
             index_node_lookup: HashMap::new(),
             params,
-        };
-        return setup;
+        }
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
@@ -204,7 +202,7 @@ impl PRM {
             break;
         }
         self.add_node(candidate);
-        return candidate;
+        candidate
     }
 
     /// Try to connect a node to its k nearest neigbors.

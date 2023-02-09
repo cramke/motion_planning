@@ -34,7 +34,7 @@ pub struct ProblemDefinition {
 impl ProblemDefinition {
     pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params, collision_checker));
-        return ProblemDefinition {planner};
+        ProblemDefinition {planner}
     }
 
     pub fn solve(&mut self) {

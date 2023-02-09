@@ -17,7 +17,7 @@ impl Boundaries {
     // Constructor for an Boundaries Object.
     pub fn new(x_lower: f64, x_upper: f64, y_lower: f64, y_upper: f64) -> Self {
         let rand: ThreadRng = rand::thread_rng();
-        return Boundaries { x_lower, x_upper, y_lower, y_upper, rand };
+        Boundaries { x_lower, x_upper, y_lower, y_upper, rand }
     }
 
     /// Checks if node is inside the boundaries.
@@ -41,7 +41,7 @@ impl Boundaries {
             return false;
         }
 
-        return true;
+        true
     }
 
     /// Generates a random node, which is inside the boundary limits.
@@ -50,8 +50,7 @@ impl Boundaries {
     pub fn generate_random_configuration(&mut self) -> Point {
         let x: f64 = self.rand.gen_range(self.x_lower..self.x_upper);
         let y: f64 = self.rand.gen_range(self.y_lower..self.y_upper);
-        let node: Point = Point::new(x, y);
-        return node;
+        Point::new(x, y)
     }
 }
 
