@@ -74,10 +74,27 @@ impl ProblemDefinition {
             }
         };
 
-        write!(file, "[").expect_err("Could not write the solution path to file! -> {path}");
-        for node in self.get_solution_path() {
-            write!(file, "{node:?}, ").expect_err("Could not write the solution path to file! -> {path}");
+        match write!(file, "[") {
+            Ok(_) => {},
+            Err(_) => {
+                println!("Could not write the solution path to file! -> {path}");
+                return; },
         }
-        write!(file, "]").expect_err("Could not write the solution path to file! -> {path}");
+        
+        for node in self.get_solution_path() {
+            match write!(file, "{node:?}, ") {
+                Ok(_) => {},
+                Err(_) => {
+                    println!("Could not write the solution path to file! -> {path}");
+                    return;},
+            }
+        }
+
+        match write!(file, "]") {
+            Ok(_) => {},
+            Err(_) => {
+                println!("Could not write the solution path to file! -> {path}");
+                return; },
+        }
     }
 }
