@@ -6,7 +6,7 @@ use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
 use crate::optimizer::Optimizer;
 use crate::planner::base_planner::Planner;
-use crate::planner::prm::PRM;
+use crate::planner::prm_star::PRMstar;
 
 #[derive(Clone, Copy)]
 pub struct Parameter {
@@ -33,7 +33,7 @@ pub struct ProblemDefinition {
 
 impl ProblemDefinition {
     pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRM::new( start, goal, bounds, optimizer, params, collision_checker));
+        let planner: Box<dyn Planner> = Box::new(PRMstar::new( start, goal, bounds, optimizer, params, collision_checker));
         ProblemDefinition {planner}
     }
 
@@ -96,5 +96,6 @@ impl ProblemDefinition {
                 println!("Could not write the solution path to file! -> {path}");
                 return; },
         }
+        println!("Written Solution path to file.");
     }
 }

@@ -10,6 +10,7 @@ use wkt::ToWkt;
 
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
+use crate::optimizer::{Optimizer, DefaultOptimizer};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
@@ -26,12 +27,13 @@ use crate::problem::Parameter;
 /// 
 /// # Example
 /// 
-pub struct PRM {
+pub struct PRMstar {
     start: Point,
     goal: Point,
     boundaries: Boundaries,
     pub graph: Graph<Point, f64, Undirected>,
     solution: Option<(f64, Vec<NodeIndex>)>,
+    optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
     collision_checker: Box<dyn CollisionChecker>,
     tree: RTree<[f64; 2]>,
@@ -39,7 +41,7 @@ pub struct PRM {
     params: Parameter,
 }
 
-impl Planner for PRM {
+impl Planner for PRMstar {
     /// run init before starting any planning task. 
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
@@ -60,6 +62,10 @@ impl Planner for PRM {
 
         self.add_node(self.start);
         self.add_node(self.goal);
+
+        if !self.optimizer.init() {
+            panic!("Optimizer could not be initialized");
+        }
 
         println!("Setup is ready for planning");
     }
@@ -116,16 +122,51 @@ impl Planner for PRM {
 
 }
 
-impl PRM {
+impl PRMstar {
 
     /// Default constructor
-    pub fn new(start: Point, goal: Point, boundaries: Boundaries, params: Parameter, 
-        collision_checker: Box<dyn CollisionChecker>) -> Self {
-        PRM { start, 
+    pub fn new(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
+        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        PRMstar { start, 
             goal, 
             boundaries,
             graph: Graph::new_undirected(),
             solution: None,
+            optimizer,
+            is_solved: false,
+            collision_checker,
+            tree: RTree::new(),
+            index_node_lookup: HashMap::new(),
+            params,
+        }
+    }
+
+    /// PRM uses the euclidean distance as optimizer
+    pub fn new_prm(start: Point, goal: Point, boundaries: Boundaries, 
+        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        return PRMstar { start, 
+            goal, 
+            boundaries,
+            graph: Graph::new_undirected(),
+            solution: None,
+            optimizer: DefaultOptimizer::new_box(),
+            is_solved: false,
+            collision_checker,
+            tree: RTree::new(),
+            index_node_lookup: HashMap::new(),
+            params,
+        };
+    }
+
+    /// PRMstar uses the custom optimizer method
+    pub fn new_prmstar(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
+        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+        PRMstar { start, 
+            goal, 
+            boundaries,
+            graph: Graph::new_undirected(),
+            solution: None,
+            optimizer,
             is_solved: false,
             collision_checker,
             tree: RTree::new(),
@@ -167,11 +208,11 @@ impl PRM {
 
     /// Try to connect a node to its k nearest neigbors.
     fn connect_node_to_graph(&mut self, node: Point) {
-        let mut iterator = self.tree.nearest_neighbor_iter_with_distance_2(&[node.x(), node.y()]);
+        let mut iterator = self.tree.nearest_neighbor_iter(&[node.x(), node.y()]);
         for _ in 0..self.params.k_nearest_neighbors {
             let neighbor = iterator.next();
-            let (neighbor_point, distance): (Point, f64) = match neighbor {
-                Some((node, distance)) => (Point::new(node[0], node[1]), distance),
+            let neighbor_point: Point = match neighbor {
+                Some((node)) => Point::new(node[0], node[1]),
                 None => continue,
             };
 
@@ -183,9 +224,10 @@ impl PRM {
                 continue;
             }
 
+            let weight: f64 = self.optimizer.get_edge_weight(node, neighbor_point).2;
             let a: NodeIndex = *self.index_node_lookup.get(&node.to_wkt().to_string()).unwrap();
             let b: NodeIndex = *self.index_node_lookup.get(&neighbor_point.to_wkt().to_string()).unwrap();
-            self.graph.add_edge(a, b, distance);
+            self.graph.add_edge(a, b, weight);
         }
     }
 
