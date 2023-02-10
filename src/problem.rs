@@ -99,3 +99,22 @@ impl ProblemDefinition {
         println!("Written Solution path to file.");
     }
 }
+
+mod tests {
+
+    #[test]
+    fn test_parameter_new() {
+        use super::Parameter;
+        let params = Parameter::new(21, 19);
+        assert_eq!(params.max_size, 21usize);
+        assert_eq!(params.k_nearest_neighbors, 19);
+    }
+
+    #[test]
+    fn test_parameter_default() {
+        use super::Parameter;
+        let params = Parameter::default();
+        assert_eq!(params.max_size, 64usize);
+        assert_eq!(params.k_nearest_neighbors, 8);
+    }
+}

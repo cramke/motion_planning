@@ -10,7 +10,7 @@ use wkt::ToWkt;
 
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
-use crate::optimizer::{Optimizer, DefaultOptimizer};
+use crate::optimizer::Optimizer;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
@@ -141,40 +141,6 @@ impl PRMstar {
         }
     }
 
-    /// PRM uses the euclidean distance as optimizer
-    pub fn new_prm(start: Point, goal: Point, boundaries: Boundaries, 
-        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        return PRMstar { start, 
-            goal, 
-            boundaries,
-            graph: Graph::new_undirected(),
-            solution: None,
-            optimizer: DefaultOptimizer::new_box(),
-            is_solved: false,
-            collision_checker,
-            tree: RTree::new(),
-            index_node_lookup: HashMap::new(),
-            params,
-        };
-    }
-
-    /// PRMstar uses the custom optimizer method
-    pub fn new_prmstar(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
-        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        PRMstar { start, 
-            goal, 
-            boundaries,
-            graph: Graph::new_undirected(),
-            solution: None,
-            optimizer,
-            is_solved: false,
-            collision_checker,
-            tree: RTree::new(),
-            index_node_lookup: HashMap::new(),
-            params,
-        }
-    }
-
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
     fn add_node(&mut self, node: Point) {
         let index = self.graph.add_node(node);
@@ -212,7 +178,7 @@ impl PRMstar {
         for _ in 0..self.params.k_nearest_neighbors {
             let neighbor = iterator.next();
             let neighbor_point: Point = match neighbor {
-                Some((node)) => Point::new(node[0], node[1]),
+                Some(node) => Point::new(node[0], node[1]),
                 None => continue,
             };
 
@@ -258,5 +224,26 @@ impl PRMstar {
     /// Print basic information of the graph.
     pub fn print_graph(&self) {
         pg::print_graph(self.get_graph())
+    }
+}
+
+mod test {
+
+    #[test]
+    fn test_prm_new() {
+        use geo::Point;
+        
+        use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use super::PRMstar;
+    
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
+
+        assert!(!planner.is_solved);
     }
 }

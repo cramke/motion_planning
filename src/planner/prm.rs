@@ -118,7 +118,7 @@ impl Planner for PRM {
 
 impl PRM {
 
-    /// Default constructor
+    /// Standard constructor
     pub fn new(start: Point, goal: Point, boundaries: Boundaries, params: Parameter, 
         collision_checker: Box<dyn CollisionChecker>) -> Self {
         PRM { start, 
@@ -216,5 +216,26 @@ impl PRM {
     /// Print basic information of the graph.
     pub fn print_graph(&self) {
         pg::print_graph(self.get_graph())
+    }
+}
+
+
+mod test {
+
+    #[test]
+    fn test_prm_new() {
+        use geo::Point;
+
+        use super::PRM;
+        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+    
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let planner = PRM::new(start, goal, bounds, params, cc);
+
+        assert!(!planner.is_solved);
     }
 }
