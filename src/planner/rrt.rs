@@ -25,7 +25,6 @@ use crate::problem::Parameter;
 /// [Link](https://www.cs.csustan.edu/~xliang/Courses/CS4710-21S/Papers/06%20RRT.pdf)
 /// 
 /// # Example
-
 pub struct RRT {
     parameters: Parameter,
     solution: Option<(f64, Vec<NodeIndex>)>,
@@ -43,6 +42,7 @@ pub struct RRT {
 }
 
 impl RRT {
+    /// Constructor
     pub fn new(boundaries: Boundaries, collision_checker: Box<dyn CollisionChecker>) -> Self {
         RRT {
             parameters: Parameter::default(),
@@ -69,6 +69,7 @@ impl RRT {
     /// Adds an edge to the graph and 
     fn add_edge(&mut self, begin: Point, end: Point) {
         let weight: f64 = begin.euclidean_distance(&end);
+        if weight == 0.0 {return;}
         let a: NodeIndex = *self.index_node_lookup.get(&begin.to_wkt().to_string()).unwrap();
         let b: NodeIndex = *self.index_node_lookup.get(&end.to_wkt().to_string()).unwrap();
         self.graph.add_edge(a, b, weight);
@@ -76,6 +77,26 @@ impl RRT {
 
     /// Applies A* and checks if a solution exists
     fn check_solution(&mut self) {
+        for coords in self.tree.nearest_neighbor_iter(&[self.goal.x(), self.goal.y()]) {
+            let neighbor: Point = Point::new(coords[0], coords[1]);
+            if self.collision_checker.is_edge_colliding(&neighbor, &self.goal) {
+                continue
+            } else {
+                self.add_edge(neighbor, self.goal);
+                break;
+            }
+        }
+
+        for coords in self.tree.nearest_neighbor_iter(&[self.start.x(), self.start.y()]) {
+            let neighbor: Point = Point::new(coords[0], coords[1]);
+            if self.collision_checker.is_edge_colliding(&neighbor, &self.goal) {
+                continue
+            } else {
+                self.add_edge(neighbor, self.goal);
+                break;
+            }
+        }
+
         let start = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
         let goal = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
         self.solution = astar(
@@ -93,16 +114,17 @@ impl RRT {
         self.graph.node_count() >= self.parameters.max_size
     }
 
+    /// Returns Option to the nearest neighbor from the given point
+    /// - None: No neighbor
+    /// - Some(Point): Contains nearest neighbor
     fn get_nearest_neighbor(&self, node: Point) -> Option<Point> {
         let neighbor = self.tree.nearest_neighbor(&[node.x(), node.y()]);
-        match neighbor {
-            Some(coords) => Some(Point::new(coords[0], coords[1])),
-            None => None,
-        }  
+        neighbor.map(|coords| Point::new(coords[0], coords[1]))
     }
 }
 
 impl Planner for RRT {
+    /// Run once before running the algorithm
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
             panic!("Start is not inside boundaries.");
@@ -126,6 +148,7 @@ impl Planner for RRT {
         println!("Setup is ready for planning");
     }
 
+    /// Builds the graph until a termination criteria is met. 
     fn run(&mut self) {
         loop {
             let random_node: Point = self.boundaries.generate_random_configuration();
@@ -150,10 +173,16 @@ impl Planner for RRT {
         }
     }
 
+    /// Getter method to check if a solution was found. 
+    /// - true: There is a solution
+    /// - false: No solution was found yet. This could mean the algorithm needs to run longer. 
     fn is_solved(&self) -> bool {
         self.is_solved        
     }
 
+    /// Returns the solution cost.
+    /// - f64::MAX: No solution was found
+    /// - cost: The cost of the solution. Implies that a solution was found. 
     fn get_solution_cost(&self) -> f64 {
         match &self.solution {
             None => f64::MAX,
@@ -161,6 +190,7 @@ impl Planner for RRT {
         }
     }
 
+    /// Returns empty Vector if no soulution was found. 
     fn get_solution_path(&self) -> Vec<Point> {
         match &self.solution {
             None => Vec::new(),
@@ -171,8 +201,14 @@ impl Planner for RRT {
         }
     }
 
-    fn print_statistics(&self, path:&str) {
-        println!("Not implmented {path}");
+    /// Print overview of the planner. 
+    fn print_statistics(&self, _path:&str) {
+        println!("Was a solution found? {}", self.is_solved);
+        let nodes: usize = self.graph.node_count();
+        println!("Graph contains {nodes} nodes");
+
+        let edges: usize = self.graph.edge_count();
+        println!("Graph contains {edges} edges");
     }
 }
 
@@ -188,5 +224,20 @@ mod test {
         let rrt = RRT::new(bounds, cc);
         assert_eq!(rrt.parameters.max_size, Parameter::default().max_size);
         assert!(!rrt.is_solved)        
+    }
+
+    #[test]
+    fn test_run() {
+        use crate::planner::rrt::RRT;
+        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}};
+        use crate::planner::base_planner::Planner;
+
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let mut rrt = RRT::new(bounds, cc);
+        rrt.init();
+        rrt.run();
+        rrt.print_statistics("a");
+        assert!(rrt.is_solved);
     }
 }
