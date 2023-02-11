@@ -8,7 +8,7 @@ use geo_types::Point;
 use rstar::RTree;
 use wkt::ToWkt;
 
-use crate::collision_checker::CollisionChecker;
+use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
@@ -219,6 +219,17 @@ impl PRM {
     }
 }
 
+impl Default for PRM {
+    fn default() -> Self {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        PRM::new(start, goal, bounds, params, cc)
+    }
+}
+
 
 mod test {
 
@@ -236,6 +247,14 @@ mod test {
         let planner = PRM::new(start, goal, bounds, params, cc);
 
         assert!(!planner.is_solved);
+    }
+
+    #[test]
+    fn test_default() {
+        use super::PRM;
+
+        let prm = PRM::default();
+        assert!(!prm.is_solved);
     }
 
     #[test]

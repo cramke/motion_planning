@@ -8,9 +8,9 @@ use geo_types::Point;
 use rstar::RTree;
 use wkt::ToWkt;
 
-use crate::collision_checker::CollisionChecker;
+use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
-use crate::optimizer::Optimizer;
+use crate::optimizer::{Optimizer, DefaultOptimizer};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
@@ -124,7 +124,7 @@ impl Planner for PRMstar {
 
 impl PRMstar {
 
-    /// Default constructor
+    /// Standard constructor
     pub fn new(start: Point, goal: Point, boundaries: Boundaries, optimizer: Box<dyn Optimizer>, 
         params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         PRMstar { start, 
@@ -227,6 +227,18 @@ impl PRMstar {
     }
 }
 
+impl Default for PRMstar {
+    fn default() -> Self {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        PRMstar::new(start, goal, bounds, optimizer, params, cc)
+    }
+}
+
 mod test {
 
     #[test]
@@ -245,6 +257,14 @@ mod test {
         let planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
 
         assert!(!planner.is_solved);
+    }
+
+    #[test]
+    fn test_default() {
+        use super::PRMstar;
+
+        let prmstar = PRMstar::default();
+        assert!(!prmstar.is_solved);
     }
 
     #[test]
