@@ -172,7 +172,7 @@ impl Planner for RRT {
     }
 
     fn print_statistics(&self, path:&str) {
-        println!("Not implmented");
+        println!("Not implmented {path}");
     }
 }
 

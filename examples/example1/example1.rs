@@ -1,9 +1,9 @@
 use std::time::Instant;
 
-use mpf::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-use mpf::boundaries::Boundaries;
-use mpf::optimizer::{self, Optimizer};
-use mpf::problem::{ProblemDefinition, Parameter};
+use mpl::collision_checker::{CollisionChecker, NaiveCollisionChecker};
+use mpl::boundaries::Boundaries;
+use mpl::optimizer::{self, Optimizer};
+use mpl::problem::{ProblemDefinition, Parameter};
 
 use geo_types::Point;
 
@@ -16,7 +16,7 @@ fn main() {
     let cc: Box<dyn CollisionChecker> = NaiveCollisionChecker::new();
     let mut pdef= ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);    
 
-    println!("#### mpf ####");
+    println!("#### mpl ####");
     let start = Instant::now();
     pdef.solve();
     let duration = start.elapsed();
