@@ -225,10 +225,9 @@ mod test {
     #[test]
     fn test_prm_new() {
         use geo::Point;
-
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
-    
+
         let start: Point = Point::new(0f64, 0f64);
         let goal: Point = Point::new(3f64, 3f64);
         let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
@@ -237,5 +236,46 @@ mod test {
         let planner = PRM::new(start, goal, bounds, params, cc);
 
         assert!(!planner.is_solved);
+    }
+
+    #[test]
+    fn test_prm_add_node() {
+        use geo::Point;
+        use super::PRM;
+        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let mut planner = PRM::new(start, goal, bounds, params, cc);
+
+        assert_eq!(planner.graph.node_count(), 0);
+        assert_eq!(planner.tree.size(), 0);
+        assert_eq!(planner.index_node_lookup.len(), 0);
+        let p1: Point = Point::new(1.8, 2.0);
+        planner.add_node(p1);
+        assert_eq!(planner.graph.node_count(), 1);
+        assert_eq!(planner.tree.size(), 1);
+        assert_eq!(planner.index_node_lookup.len(), 1);
+    }
+
+    #[test]
+    fn test_prm_get_solution() {
+        use geo::Point;
+        use super::PRM;
+        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use crate::planner::base_planner::Planner;
+        
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let planner = PRM::new(start, goal, bounds, params, cc);
+
+        assert_eq!(planner.get_solution_cost(), f64::MAX);
+        assert_eq!(planner.get_solution_path(), Vec::new());
     }
 }

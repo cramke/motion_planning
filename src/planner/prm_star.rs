@@ -246,4 +246,47 @@ mod test {
 
         assert!(!planner.is_solved);
     }
+
+    #[test]
+    fn test_prm_add_node() {
+        use geo::Point;
+        use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use super::PRMstar;
+    
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let mut planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
+
+        assert_eq!(planner.graph.node_count(), 0);
+        assert_eq!(planner.tree.size(), 0);
+        assert_eq!(planner.index_node_lookup.len(), 0);
+        let p1: Point = Point::new(1.8, 2.0);
+        planner.add_node(p1);
+        assert_eq!(planner.graph.node_count(), 1);
+        assert_eq!(planner.tree.size(), 1);
+        assert_eq!(planner.index_node_lookup.len(), 1);
+    }
+
+    #[test]
+    fn test_prm_get_solution() {
+        use geo::Point;
+        use crate::planner::base_planner::Planner;
+        use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use super::PRMstar;
+    
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let params = Parameter::new(25usize, 3usize);
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
+
+        assert_eq!(crate::planner::base_planner::Planner::get_solution_cost(&planner), f64::MAX);
+        assert_eq!(planner.get_solution_path(), Vec::new());
+    }
 }
