@@ -1,5 +1,5 @@
 [package]
-name = "mpf"
+name = "mpl"
 version = "0.1.0"
 edition = "2021"
 authors = ["Carsten Ramke <carsten.ramke@gmail.com>"]

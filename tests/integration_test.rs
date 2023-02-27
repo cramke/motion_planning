@@ -1,10 +1,10 @@
 use geo::{Contains, Intersects};
-use mpf::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOptimizer, Optimizer}, collision_checker::{CollisionChecker, NaiveCollisionChecker}, boundaries::Boundaries};
+use mpl::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOptimizer, Optimizer}, collision_checker::{CollisionChecker, NaiveCollisionChecker}, boundaries::Boundaries};
 
 #[test]
-fn test_mpf_default_scenario() {
-    use mpf;
-    use mpf::{boundaries::Boundaries};
+fn test_mpl_default_scenario() {
+    use mpl;
+    use mpl::{boundaries::Boundaries};
     use geo::Point;
 
     let start: Point = Point::new(0f64, 0f64);
@@ -22,9 +22,9 @@ fn test_mpf_default_scenario() {
 
 
 #[test]
-fn test_mpf_naiv_scenario() {
-    use mpf;
-    use mpf::boundaries::Boundaries;
+fn test_mpl_naiv_scenario() {
+    use mpl;
+    use mpl::boundaries::Boundaries;
     use geo_types::Point;
 
     let start: Point = Point::new(0f64, 0f64);
