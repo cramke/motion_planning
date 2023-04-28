@@ -5,7 +5,7 @@ use mpl::boundaries::Boundaries;
 use mpl::optimizer::{self, Optimizer};
 use mpl::problem::{ProblemDefinition, Parameter};
 
-use geo_types::Point;
+use geo::Point;
 
 fn main() {
     let start: Point = Point::new(0f64, 0f64);

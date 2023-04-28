@@ -1,5 +1,5 @@
 use rand::{Rng, rngs::ThreadRng};
-use geo_types::Point;
+use geo::Point;
 
 /// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.
 /// Is implemented similar to a bounding box. That means as an upper / lower limit for the boundary axis.
@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn test_boundaries_inside_true() {
         use crate::boundaries::Boundaries;
-        use geo_types::Point;
+        use geo::Point;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Point = Point::new(0.5f64, 2.5f64);
@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn test_boundaries_inside_false_x() {
         use crate::boundaries::Boundaries;
-        use geo_types::Point;
+        use geo::Point;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Point = Point::new(2.5f64, 2.5f64);
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn test_boundaries_inside_false_y() {
         use crate::boundaries::Boundaries;
-        use geo_types::Point;
+        use geo::Point;
 
         let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Point = Point::new(0.5f64, 0f64);

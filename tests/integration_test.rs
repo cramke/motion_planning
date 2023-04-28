@@ -25,7 +25,7 @@ fn test_mpl_default_scenario() {
 fn test_mpl_naiv_scenario() {
     use mpl;
     use mpl::boundaries::Boundaries;
-    use geo_types::Point;
+    use geo::Point;
 
     let start: Point = Point::new(0f64, 0f64);
     let goal: Point = Point::new(3f64, 3f64);

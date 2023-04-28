@@ -1,4 +1,4 @@
-use geo_types::Point;
+use geo::Point;
 use geo::algorithm::euclidean_distance::EuclideanDistance;
 
 /// Every Custom Optimizer needs to be based on this trait.
@@ -49,7 +49,7 @@ mod tests {
 
     #[test]
     fn test_default_edge_weight_x() {
-        use geo_types::Point;
+        use geo::Point;
 
         let optimizer = DefaultOptimizer;
         let a = Point::new(0f64, 0f64);
@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_default_edge_weight_y() {
-        use geo_types::Point;
+        use geo::Point;
 
         let optimizer = DefaultOptimizer;
         let a = Point::new(0f64, 0f64);

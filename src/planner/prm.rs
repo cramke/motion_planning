@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use petgraph::Undirected;
 use petgraph::algo::{astar};
 use petgraph::graph::{Graph, NodeIndex};
-use geo_types::Point;
+use geo::Point;
 use rstar::RTree;
 use wkt::ToWkt;
 

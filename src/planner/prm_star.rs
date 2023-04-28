@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use petgraph::Undirected;
 use petgraph::algo::{astar};
 use petgraph::graph::{Graph, NodeIndex};
-use geo_types::Point;
+use geo::Point;
 use rstar::RTree;
 use wkt::ToWkt;
 
@@ -243,8 +243,7 @@ mod test {
 
     #[test]
     fn test_prm_new() {
-        use geo::Point;
-        
+        use geo::Point;        
         use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use super::PRMstar;
     

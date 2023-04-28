@@ -1,4 +1,4 @@
-use geo_types::Point;
+use geo::Point;
 
 /// CollisionChecker to implement custom Collision checkers.
 pub trait CollisionChecker {

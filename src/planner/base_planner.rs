@@ -1,4 +1,4 @@
-use geo_types::Point;
+use geo::Point;
 
 /// Custom planners can use these traits to implement other algorithm for planning. 
 /// 

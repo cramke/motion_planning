@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Write;
-use geo_types::Point;
+use geo::Point;
 
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
