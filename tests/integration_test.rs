@@ -4,7 +4,7 @@ use mpl::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOpti
 #[test]
 fn test_mpl_default_scenario() {
     use mpl;
-    use mpl::{boundaries::Boundaries};
+    use mpl::boundaries::Boundaries;
     use mpl::space::Point;
 
 
