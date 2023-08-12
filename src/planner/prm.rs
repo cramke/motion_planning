@@ -4,7 +4,8 @@ use std::collections::HashMap;
 use petgraph::Undirected;
 use petgraph::algo::{astar};
 use petgraph::graph::{Graph, NodeIndex};
-use geo::Point;
+use crate::space::Point;
+
 use rstar::RTree;
 use wkt::ToWkt;
 
@@ -27,10 +28,10 @@ use crate::problem::Parameter;
 /// # Example
 /// 
 pub struct PRM {
-    start: Point,
-    goal: Point,
-    boundaries: Boundaries,
-    pub graph: Graph<Point, f64, Undirected>,
+    start: Point<f64>,
+    goal: Point<f64>,
+    boundaries: Boundaries<f64>,
+    pub graph: Graph<Point<f64>, f64, Undirected>,
     solution: Option<(f64, Vec<NodeIndex>)>,
     pub is_solved: bool,
     collision_checker: Box<dyn CollisionChecker>,
@@ -67,7 +68,7 @@ impl Planner for PRM {
     /// Starts building the graph. 
     fn run(&mut self) {
         loop {
-            let added_node: Point = self.add_random_node();
+            let added_node: Point<f64> = self.add_random_node();
             self.connect_node_to_graph(added_node);
 
             self.check_solution();
@@ -88,7 +89,7 @@ impl Planner for PRM {
     }
 
     /// Returns empty Vec if no solution was found.
-    fn get_solution_path(& self) -> Vec<Point> {
+    fn get_solution_path(& self) -> Vec<Point<f64>> {
         match &self.solution {
             None => Vec::new(),
             Some(sol) => sol.1
@@ -119,7 +120,7 @@ impl Planner for PRM {
 impl PRM {
 
     /// Standard constructor
-    pub fn new(start: Point, goal: Point, boundaries: Boundaries, params: Parameter, 
+    pub fn new(start: Point<f64>, goal: Point<f64>, boundaries: Boundaries<f64>, params: Parameter, 
         collision_checker: Box<dyn CollisionChecker>) -> Self {
         PRM { start, 
             goal, 
@@ -135,17 +136,17 @@ impl PRM {
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
-    fn add_node(&mut self, node: Point) {
+    fn add_node(&mut self, node: Point<f64>) {
         let index = self.graph.add_node(node);
         self.index_node_lookup.insert(node.to_wkt().to_string(), index);
-        self.tree.insert([node.x(), node.y()]);
+        self.tree.insert([node.x, node.y]);
     }
 
     /// Generates a random node and adds it to the graph, if:
     /// - It is not in collision
     /// - It is not already in the graph
-    fn add_random_node(&mut self) -> Point {
-        let mut candidate: Point;
+    fn add_random_node(&mut self) -> Point<f64> {
+        let mut candidate: Point<f64>;
         loop {
             candidate = self.boundaries.generate_random_configuration();
 
@@ -166,12 +167,12 @@ impl PRM {
     }
 
     /// Try to connect a node to its k nearest neigbors.
-    fn connect_node_to_graph(&mut self, node: Point) {
-        let mut iterator = self.tree.nearest_neighbor_iter_with_distance_2(&[node.x(), node.y()]);
+    fn connect_node_to_graph(&mut self, node: Point<f64>) {
+        let mut iterator = self.tree.nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
         for _ in 0..self.params.k_nearest_neighbors {
             let neighbor = iterator.next();
-            let (neighbor_point, distance): (Point, f64) = match neighbor {
-                Some((node, distance)) => (Point::new(node[0], node[1]), distance),
+            let (neighbor_point, distance): (Point<f64>, f64) = match neighbor {
+                Some((node, distance)) => (Point{x:node[0], y:node[1]}, distance),
                 None => continue,
             };
 
@@ -209,7 +210,7 @@ impl PRM {
     }
 
     /// Returns the graph object (petgraph)
-    pub fn get_graph(&self) -> &Graph<Point, f64, Undirected> {
+    pub fn get_graph(&self) -> &Graph<Point<f64>, f64, Undirected> {
         &self.graph
     }
     
@@ -221,9 +222,9 @@ impl PRM {
 
 impl Default for PRM {
     fn default() -> Self {
-        let start: Point = Point::new(0f64, 0f64);
-        let goal: Point = Point::new(3f64, 3f64);
-        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let start: Point<f64> = Point{x:0f64, y:0f64};
+        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
         PRM::new(start, goal, bounds, params, cc)
@@ -235,13 +236,14 @@ mod test {
 
     #[test]
     fn test_prm_new() {
-        use geo::Point;
+        use crate::space::Point;
+
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
 
-        let start: Point = Point::new(0f64, 0f64);
-        let goal: Point = Point::new(3f64, 3f64);
-        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let start: Point<f64> = Point{x:0f64, y:0f64};
+        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
         let planner = PRM::new(start, goal, bounds, params, cc);
@@ -259,13 +261,14 @@ mod test {
 
     #[test]
     fn test_prm_add_node() {
-        use geo::Point;
+        use crate::space::Point;
+
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
 
-        let start: Point = Point::new(0f64, 0f64);
-        let goal: Point = Point::new(3f64, 3f64);
-        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let start: Point<f64> = Point{x:0f64, y:0f64};
+        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
         let mut planner = PRM::new(start, goal, bounds, params, cc);
@@ -273,7 +276,7 @@ mod test {
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point = Point::new(1.8, 2.0);
+        let p1: Point<f64> = Point{x:1.8, y:2.0};
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -282,14 +285,15 @@ mod test {
 
     #[test]
     fn test_prm_get_solution() {
-        use geo::Point;
+        use crate::space::Point;
+
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use crate::planner::base_planner::Planner;
         
-        let start: Point = Point::new(0f64, 0f64);
-        let goal: Point = Point::new(3f64, 3f64);
-        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let start: Point<f64> = Point{x:0f64, y:0f64};
+        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
         let planner = PRM::new(start, goal, bounds, params, cc);

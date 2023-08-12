@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Write;
-use geo::Point;
+use crate::space::Point;
+
 
 use petgraph::dot::{Dot};
 use petgraph::{Undirected};
@@ -10,7 +11,7 @@ pub fn is_edge_already_in_graph(graph:&Graph<NodeIndex, f64, Undirected>, begin:
     graph.find_edge(begin, end).is_some()
 }
 
-pub fn write_graph_to_file(graph:&Graph<Point, f64, Undirected>, path:&str) {
+pub fn write_graph_to_file(graph:&Graph<Point<f64>, f64, Undirected>, path:&str) {
     let output = format!("{:?}", Dot::with_config(&graph, &[]));
     let mut file = match File::create(path) {
         Ok(file) => file,
@@ -26,6 +27,6 @@ pub fn write_graph_to_file(graph:&Graph<Point, f64, Undirected>, path:&str) {
     };
 }
 
-pub fn print_graph(graph:&Graph<Point, f64, Undirected>) {
+pub fn print_graph(graph:&Graph<Point<f64>, f64, Undirected>) {
     println!("{:?}", Dot::with_config(graph, &[]));
 }

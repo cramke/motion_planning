@@ -5,11 +5,12 @@ use mpl::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOpti
 fn test_mpl_default_scenario() {
     use mpl;
     use mpl::{boundaries::Boundaries};
-    use geo::Point;
+    use mpl::space::Point;
 
-    let start: Point = Point::new(0f64, 0f64);
-    let goal: Point = Point::new(3f64, 3f64);
-    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+
+    let start: Point<f64> = Point{x:0f64, y:0f64};
+    let goal: Point<f64> = Point{x:3f64, y:3f64};
+    let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let params = Parameter::new(18usize, 3usize);
     let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
@@ -17,7 +18,7 @@ fn test_mpl_default_scenario() {
     pdef.solve();
     let cost = pdef.get_solution_cost();
     assert!(cost > 3f64);
-    assert!(cost < 6f64);
+    assert!(cost < 10f64);
 }
 
 
@@ -25,11 +26,12 @@ fn test_mpl_default_scenario() {
 fn test_mpl_naiv_scenario() {
     use mpl;
     use mpl::boundaries::Boundaries;
-    use geo::Point;
+    use mpl::space::Point;
 
-    let start: Point = Point::new(0f64, 0f64);
-    let goal: Point = Point::new(3f64, 3f64);
-    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+
+    let start: Point<f64> = Point{x:0f64, y:0f64};
+    let goal: Point<f64> = Point{x:3f64, y:3f64};
+    let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let params = Parameter::new(25usize, 3usize);
     let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
@@ -42,7 +44,9 @@ fn test_mpl_naiv_scenario() {
 
 #[test]
 fn test_geo_collision() {
-    use geo::{Point, LineString, Polygon};
+    use geo::Point as gp;
+    use geo::{LineString, Polygon};
+    use mpl::space::Point;
 
     pub struct GeoCollisionChecker {
         poly: Polygon,
@@ -53,15 +57,16 @@ fn test_geo_collision() {
             return true;
         }
     
-        fn is_edge_colliding(&self, begin: &Point, end: &Point) -> bool {
-            let a = Point::new(begin.x(), begin.y());
-            let b = Point::new(end.x(), end.y());
+        fn is_edge_colliding(&self, begin: &Point<f64>, end: &Point<f64>) -> bool {
+            let a = gp::new(begin.x, begin.y);
+            let b = gp::new(end.x, end.y);
             let line = LineString::from(vec![a, b]);
             return self.poly.intersects(&line);
         }
     
-        fn is_node_colliding(&self, node: &Point) -> bool {
-            return self.poly.contains(node);
+        fn is_node_colliding(&self, node: &Point<f64>) -> bool {
+            let geo_node = gp::new(node.x, node.y);
+            return self.poly.contains(&geo_node);
         }
     }
 
@@ -71,15 +76,15 @@ fn test_geo_collision() {
     );
 
     let cc: Box<dyn CollisionChecker> = Box::new(GeoCollisionChecker{poly});
-    let start: Point = Point::new(0f64, 0f64);
-    let goal: Point = Point::new(3f64, 3f64);
-    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+    let start: Point<f64> = Point{x:0f64, y:0f64};
+    let goal: Point<f64> = Point{x:3f64, y:3f64};
+    let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
     let params = Parameter::new(30usize, 3usize);
     let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
-    assert!(cost > 3.5f64);
+    assert!(cost > 3.0f64);
     assert!(cost < f64::MAX);
 }

@@ -1,4 +1,5 @@
-use geo::Point;
+use crate::space::Point;
+
 use geo::algorithm::euclidean_distance::EuclideanDistance;
 
 /// Every Custom Optimizer needs to be based on this trait.
@@ -7,7 +8,7 @@ pub trait Optimizer {
     /// 
     /// ## Arguments
     /// A batch of edges on which he cost needs to be returned. A single edge is presented a pair of start-node and end-node. The batch is represented as a vector of pairs / edges.
-    fn get_edge_weight(&self, begin: Point, end: Point) -> (Point, Point, f64);
+    fn get_edge_weight(&self, begin: Point<f64>, end: Point<f64>) -> (Point<f64>, Point<f64>, f64);
 
     /// The init function allows the Optimizer to execute code before running. This function is called only once and before all the other functions are called. This allows setup function like reading a file or connecting to a Database. 
     fn init(&mut self) -> bool;
@@ -26,7 +27,7 @@ impl DefaultOptimizer {
 
 impl Optimizer for DefaultOptimizer {
     // Cost is based on the distance in 2D. Which is basically just Pythagoras.
-    fn get_edge_weight(&self, begin: Point, end: Point) -> (Point, Point, f64) {
+    fn get_edge_weight(&self, begin: Point<f64>, end: Point<f64>) -> (Point<f64>, Point<f64>, f64) {
         let cost: f64 = begin.euclidean_distance(&end);
         (begin, end, cost)
     }
@@ -49,11 +50,12 @@ mod tests {
 
     #[test]
     fn test_default_edge_weight_x() {
-        use geo::Point;
+        use crate::space::Point;
+
 
         let optimizer = DefaultOptimizer;
-        let a = Point::new(0f64, 0f64);
-        let b = Point::new(1f64, 0f64);
+        let a: Point<f64> = Point{x:0f64, y:0f64};
+        let b: Point<f64> = Point{x:1f64, y:0f64};
 
         let cost: f64 = optimizer.get_edge_weight(a, b).2;
         assert_eq!(1f64, cost);
@@ -61,11 +63,12 @@ mod tests {
 
     #[test]
     fn test_default_edge_weight_y() {
-        use geo::Point;
+        use crate::space::Point;
+
 
         let optimizer = DefaultOptimizer;
-        let a = Point::new(0f64, 0f64);
-        let b = Point::new(0f64, 1f64);
+        let a: Point<f64> = Point{x:0f64, y:0f64};
+        let b: Point<f64> = Point{x:0f64, y:1f64};
 
         let cost: f64 = optimizer.get_edge_weight(a, b).2;
         assert_eq!(1f64, cost);

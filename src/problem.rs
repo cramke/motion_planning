@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Write;
-use geo::Point;
+use crate::space::Point;
+
 
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
@@ -32,7 +33,7 @@ pub struct ProblemDefinition {
 }
 
 impl ProblemDefinition {
-    pub fn new(start: Point, goal: Point, bounds: Boundaries, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+    pub fn new(start: Point<f64>, goal: Point<f64>, bounds: Boundaries<f64>, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
         let planner: Box<dyn Planner> = Box::new(PRMstar::new( start, goal, bounds, optimizer, params, collision_checker));
         ProblemDefinition {planner}
     }
@@ -61,7 +62,7 @@ impl ProblemDefinition {
         self.planner.get_solution_cost()
     }
 
-    pub fn get_solution_path(&self) -> Vec<Point> {
+    pub fn get_solution_path(&self) -> Vec<Point<f64>> {
         self.planner.get_solution_path()
     }
 

@@ -1,21 +1,21 @@
 use rand::{Rng, rngs::ThreadRng};
-use geo::Point;
+use crate::space::Point;
 
 /// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.
 /// Is implemented similar to a bounding box. That means as an upper / lower limit for the boundary axis.
 /// Only 2D.
 #[derive(Debug, Clone)]
-pub struct Boundaries {
-    pub x_lower: f64,
-    pub x_upper: f64,
-    pub y_lower: f64,
-    pub y_upper: f64,
+pub struct Boundaries<T: PartialOrd + rand::distributions::uniform::SampleUniform> {
+    pub x_lower: T,
+    pub x_upper: T,
+    pub y_lower: T,
+    pub y_upper: T,
     rand: ThreadRng,
 }
 
-impl Boundaries {
+impl<T: PartialOrd + rand::distributions::uniform::SampleUniform + Copy> Boundaries<T> {
     // Constructor for an Boundaries Object.
-    pub fn new(x_lower: f64, x_upper: f64, y_lower: f64, y_upper: f64) -> Self {
+    pub fn new(x_lower: T, x_upper: T, y_lower: T, y_upper: T) -> Self {
         let rand: ThreadRng = rand::thread_rng();
         Boundaries { x_lower, x_upper, y_lower, y_upper, rand }
     }
@@ -24,20 +24,20 @@ impl Boundaries {
     /// Returns
     ///  - true: Node is inside space
     ///  - false: Node is outside space
-    pub fn is_node_inside(&self, node: &Point) -> bool {
-        if node.x() < self.x_lower {
+    pub fn is_node_inside(&self, node: &Point<T>) -> bool {
+        if node.x < self.x_lower {
             return false;
         }
 
-        if node.x() > self.x_upper {
+        if node.x > self.x_upper {
             return false;
         }
 
-        if node.y() < self.y_lower {
+        if node.y < self.y_lower {
             return false;
         }
 
-        if node.y() > self.y_upper {
+        if node.y > self.y_upper {
             return false;
         }
 
@@ -47,10 +47,10 @@ impl Boundaries {
     /// Generates a random node, which is inside the boundary limits.
     /// Return
     ///  - Point: Has random coordinates.
-    pub fn generate_random_configuration(&mut self) -> Point {
-        let x: f64 = self.rand.gen_range(self.x_lower..self.x_upper);
-        let y: f64 = self.rand.gen_range(self.y_lower..self.y_upper);
-        Point::new(x, y)
+    pub fn generate_random_configuration(&mut self) -> Point<T> {
+        let x: T = self.rand.gen_range(self.x_lower..self.x_upper);
+        let y: T = self.rand.gen_range(self.y_lower..self.y_upper);
+        Point{x, y}
     }
 }
 
@@ -60,7 +60,7 @@ mod tests {
     fn test_boundaries_dummy() {
         use crate::boundaries::Boundaries;
 
-        let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         assert_eq!(0f64, bounds.x_lower);
         assert_eq!(1f64, bounds.x_upper);
         assert_eq!(2f64, bounds.y_lower);
@@ -70,30 +70,30 @@ mod tests {
     #[test]
     fn test_boundaries_inside_true() {
         use crate::boundaries::Boundaries;
-        use geo::Point;
+        use crate::space::Point;
 
-        let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Point = Point::new(0.5f64, 2.5f64);
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
+        let node: Point<f64> = Point{x:0.5f64, y:2.5f64};
         assert!(bounds.is_node_inside(&node));
     }
 
     #[test]
     fn test_boundaries_inside_false_x() {
         use crate::boundaries::Boundaries;
-        use geo::Point;
+        use crate::space::Point;
 
-        let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Point = Point::new(2.5f64, 2.5f64);
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
+        let node: Point<f64> = Point{x: 2.5f64, y: 2.5f64};
         assert!(!bounds.is_node_inside(&node));
     }
 
     #[test]
     fn test_boundaries_inside_false_y() {
         use crate::boundaries::Boundaries;
-        use geo::Point;
+        use crate::space::Point;
 
-        let bounds: Boundaries = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Point = Point::new(0.5f64, 0f64);
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
+        let node: Point<f64> = Point{x: 0.5f64, y: 0f64};
         assert!(!bounds.is_node_inside(&node));
     }
 

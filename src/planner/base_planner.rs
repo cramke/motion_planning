@@ -1,4 +1,5 @@
-use geo::Point;
+use crate::space::Point;
+
 
 /// Custom planners can use these traits to implement other algorithm for planning. 
 /// 
@@ -11,5 +12,5 @@ pub trait Planner {
     fn is_solved(&self) -> bool;
     fn print_statistics(&self, path:&str);
     fn get_solution_cost(&self) -> f64;
-    fn get_solution_path(&self) -> Vec<Point>;
+    fn get_solution_path(&self) -> Vec<Point<f64>>;
 }
