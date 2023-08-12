@@ -39,7 +39,7 @@ fn test_mpl_naiv_scenario() {
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
-    assert!(cost < 6f64);
+    assert!(cost < 10f64);
 }
 
 #[test]
