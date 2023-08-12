@@ -11,10 +11,6 @@ impl PartialEq for Point<f64> {
         let eq_y: bool = (self.y - other.y).abs() < f64::EPSILON;
         eq_x && eq_y
     }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
-    }
 }
 
 impl<T: ToString + std::ops::Sub<Output = T> + std::ops::Add<Output = T> + std::ops::Mul<Output = T> + Copy> Point<T> 

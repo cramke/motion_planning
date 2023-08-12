@@ -2,12 +2,11 @@ use core::panic;
 use std::collections::HashMap;
 
 use petgraph::Undirected;
-use petgraph::algo::{astar};
+use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
 use crate::space::Point;
 
 use rstar::RTree;
-use wkt::ToWkt;
 
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;

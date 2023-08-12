@@ -1,7 +1,5 @@
 use crate::space::Point;
 
-use geo::algorithm::euclidean_distance::EuclideanDistance;
-
 /// Every Custom Optimizer needs to be based on this trait.
 pub trait Optimizer {
     /// Returns a vector of triplets. Every consists of a start-node, end-node, and the calculated edge weight. Batch-wise weight calculation allows the Optimizer to use parallelism. 

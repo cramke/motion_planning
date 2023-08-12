@@ -7,7 +7,6 @@ use petgraph::graph::{Graph, NodeIndex};
 use crate::space::Point;
 
 use rstar::RTree;
-use wkt::ToWkt;
 
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
