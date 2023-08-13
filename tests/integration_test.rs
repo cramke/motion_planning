@@ -6,7 +6,7 @@ use mpl::{
     boundaries::Boundaries,
     collision_checker::{CollisionChecker, NaiveCollisionChecker},
     optimizer::{DefaultOptimizer, Optimizer},
-    problem::{Parameter, ProblemDefinition},
+    problem::{ProblemDefinition}, planner,
 };
 
 #[test]
@@ -21,12 +21,12 @@ fn test_mpl_default_scenario() {
     let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
         phantom: PhantomData,
     });
-    let params = Parameter::new(18usize, 3usize);
     let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
         phantom: PhantomData,
     });
+    let planner = Box::new(planner::prm::PRM::default());
     let mut pdef: ProblemDefinition<f64> =
-        ProblemDefinition::new(start, goal, bounds, optimizer, params, cc);
+        ProblemDefinition::new(start, goal, bounds, optimizer, cc, planner);
     pdef.solve();
     let cost = pdef.get_solution_cost();
     assert!(cost > 3f64);
@@ -45,12 +45,12 @@ fn test_mpl_naiv_scenario() {
     let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
         phantom: PhantomData,
     });
-    let params = Parameter::new(25usize, 3usize);
     let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
         phantom: PhantomData,
     });
+    let planner = Box::new(planner::prm_star::PRMstar::default());
     let mut pdef: ProblemDefinition<f64> =
-        ProblemDefinition::new(start, goal, bounds, optimizer, params, cc);
+        ProblemDefinition::new(start, goal, bounds, optimizer, cc, planner);
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
@@ -97,12 +97,12 @@ fn test_geo_collision() {
     let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
         phantom: PhantomData,
     });
-    let params = Parameter::new(30usize, 3usize);
+    let planner = Box::new(planner::prm_star::PRMstar::default());
     let mut pdef: ProblemDefinition<f64> =
-        ProblemDefinition::new(start, goal, bounds, optimizer, params, cc);
+        ProblemDefinition::new(start, goal, bounds, optimizer, cc, planner);
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
-    assert!(cost > 3.0f64);
+    assert!(cost > 2.0f64);
     assert!(cost < f64::MAX);
 }

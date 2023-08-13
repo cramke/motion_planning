@@ -7,6 +7,7 @@ pub trait Metric2D:
     + Copy
     + Clone
     + std::fmt::Debug
+    + std::fmt::Display
     + ToString
     + PartialEq
     + PartialOrd
@@ -16,6 +17,7 @@ pub trait Metric2D:
     + Mul<Self, Output = Self>
     + Add<Self, Output = Self>
     + SampleUniform
+    + Sized
 {
     const MAX: Self;
     const EPSILON: Self;

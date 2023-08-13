@@ -3,7 +3,8 @@ use std::time::Instant;
 use mpl::boundaries::Boundaries;
 use mpl::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use mpl::optimizer::{self, Optimizer};
-use mpl::problem::{Parameter, ProblemDefinition};
+use mpl::planner;
+use mpl::problem::ProblemDefinition;
 use mpl::space::Point;
 
 fn main() {
@@ -13,9 +14,9 @@ fn main() {
     let optimizer: Box<dyn Optimizer<f64>> = Box::new(optimizer::DefaultOptimizer {
         phantom: std::marker::PhantomData,
     });
-    let params = Parameter::new(10usize, 1usize);
     let cc: Box<dyn CollisionChecker<f64>> = NaiveCollisionChecker::new_box();
-    let mut pdef = ProblemDefinition::new(start, goal, bounds, optimizer, params, cc);
+    let planner = Box::new(planner::prm::PRM::default());
+    let mut pdef = ProblemDefinition::new(start, goal, bounds, optimizer, cc, planner);
 
     println!("#### mpl ####");
     let start = Instant::now();

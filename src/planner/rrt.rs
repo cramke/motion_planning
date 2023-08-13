@@ -10,8 +10,21 @@ use crate::boundaries::Boundaries;
 use crate::collision_checker::CollisionChecker;
 use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
-use crate::problem::Parameter;
 use crate::space::Point;
+
+pub struct Config {
+    pub default_nearest_neighbors: u8,
+    pub max_size: usize,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            default_nearest_neighbors: 10u8,
+            max_size: 32usize,
+        }
+    }
+}
 
 /// # Rapidly-Exploring Random Trees - RRT
 /// It is an algorithm which is:
@@ -25,19 +38,16 @@ use crate::space::Point;
 ///
 /// # Example
 pub struct RRT<T: Metric2D> {
-    parameters: Parameter,
     solution: Option<(T, Vec<NodeIndex>)>,
     pub is_solved: bool,
-
     start: Point<T>,
     goal: Point<T>,
-
     pub graph: Graph<Point<T>, T, Undirected>,
     tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
-
     boundaries: Boundaries<T>,
     collision_checker: Box<dyn CollisionChecker<T>>,
+    pub config: Config,
 }
 
 impl<T: Metric2D> RRT<T> {
@@ -47,7 +57,7 @@ impl<T: Metric2D> RRT<T> {
         collision_checker: Box<dyn CollisionChecker<T>>,
     ) -> Self {
         RRT {
-            parameters: Parameter::default(),
+            config: Config::default(),
             solution: None,
             is_solved: false,
             start: boundaries.generate_random_configuration(),
@@ -141,7 +151,7 @@ impl<T: Metric2D> RRT<T> {
 
     /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.     
     fn is_termination_criteria_met(&self) -> bool {
-        self.graph.node_count() >= self.parameters.max_size
+        self.graph.node_count() >= self.config.max_size
     }
 
     /// Returns Option to the nearest neighbor from the given point
@@ -254,13 +264,15 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
 
 mod test {
 
+
     #[test]
     fn test_new() {
         use crate::{
             boundaries::Boundaries,
             collision_checker::{CollisionChecker, NaiveCollisionChecker},
+            planner::rrt::Config
         };
-        use crate::{planner::rrt::RRT, problem::Parameter};
+        use crate::planner::rrt::RRT;
         use std::marker::PhantomData;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
@@ -268,7 +280,7 @@ mod test {
             phantom: PhantomData,
         });
         let rrt = RRT::new(bounds, cc);
-        assert_eq!(rrt.parameters.max_size, Parameter::default().max_size);
+        assert_eq!(rrt.config.max_size, Config::default().max_size);
         assert!(!rrt.is_solved)
     }
 

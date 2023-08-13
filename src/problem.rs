@@ -1,81 +1,31 @@
-use num::{Bounded, Float, Signed};
-use rand::distributions::uniform::SampleUniform;
-use std::fmt::Display;
 use std::fs::File;
 use std::io::Write;
-use std::ops::{Add, Mul, Sub};
 
 use crate::boundaries::Boundaries;
 use crate::collision_checker::CollisionChecker;
 use crate::core::Metric2D;
 use crate::optimizer::Optimizer;
 use crate::planner::base_planner::Planner;
-use crate::planner::prm_star::PRMstar;
 use crate::space::Point;
 
-#[derive(Clone, Copy)]
-pub struct Parameter {
-    pub max_size: usize,
-    pub k_nearest_neighbors: usize,
-}
-
-impl Parameter {
-    pub fn new(param1: usize, param2: usize) -> Self {
-        Parameter {
-            max_size: param1,
-            k_nearest_neighbors: param2,
-        }
-    }
-}
-
-impl Default for Parameter {
-    fn default() -> Self {
-        Parameter {
-            max_size: 64,
-            k_nearest_neighbors: 10,
-        }
-    }
-}
-
 /// The Problem Definition serves as a collector for various planners and problems.
-pub struct ProblemDefinition<T> {
-    planner: Box<dyn Planner<T>>,
+pub struct ProblemDefinition<T: Metric2D> {
+    planner: Box<dyn Planner<T>>
 }
 
-impl<
-        T: PartialOrd
-            + SampleUniform
-            + Sub
-            + Add
-            + Mul
-            + Bounded
-            + Float
-            + Signed
-            + std::fmt::Debug
-            + Default
-            + Display
-            + ToString
-            + Metric2D
-            + 'static,
-    > ProblemDefinition<T>
+impl<T: Metric2D> ProblemDefinition<T>
 {
     pub fn new(
         start: Point<T>,
         goal: Point<T>,
         bounds: Boundaries<T>,
         optimizer: Box<dyn Optimizer<T>>,
-        params: Parameter,
         collision_checker: Box<dyn CollisionChecker<T>>,
+        planner: Box<dyn Planner<T>>,
     ) -> Self {
-        let planner: Box<dyn Planner<T>> = Box::new(PRMstar::new(
-            start,
-            goal,
-            bounds,
-            optimizer,
-            params,
-            collision_checker,
-        ));
-        ProblemDefinition { planner }
+        ProblemDefinition { 
+            planner: planner,
+        }
     }
 
     pub fn solve(&mut self) {
@@ -151,18 +101,7 @@ impl<
 mod tests {
 
     #[test]
-    fn test_parameter_new() {
-        use super::Parameter;
-        let params = Parameter::new(21, 19);
-        assert_eq!(params.max_size, 21usize);
-        assert_eq!(params.k_nearest_neighbors, 19);
-    }
-
-    #[test]
-    fn test_parameter_default() {
-        use super::Parameter;
-        let params = Parameter::default();
-        assert_eq!(params.max_size, 64usize);
-        assert_eq!(params.k_nearest_neighbors, 10);
+    fn test_dummy() {
+        assert!(true);
     }
 }
