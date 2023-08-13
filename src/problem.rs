@@ -1,11 +1,14 @@
+use std::fmt::Display;
 use std::fs::File;
 use std::io::Write;
+use std::ops::{Mul, Sub, Add};
+use num::{Bounded, Float, Signed};
+use rand::distributions::uniform::SampleUniform;
+
 use crate::space::Point;
-
-
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
-use crate::optimizer::Optimizer;
+use crate::optimizer::{Optimizer, U};
 use crate::planner::base_planner::Planner;
 use crate::planner::prm_star::PRMstar;
 
@@ -28,13 +31,13 @@ impl Default for Parameter {
 }
 
 /// The Problem Definition serves as a collector for various planners and problems. 
-pub struct ProblemDefinition {
-    planner: Box<dyn Planner>,
+pub struct ProblemDefinition<T> {
+    planner: Box<dyn Planner<T>>,
 }
 
-impl ProblemDefinition {
-    pub fn new(start: Point<f64>, goal: Point<f64>, bounds: Boundaries<f64>, optimizer: Box<dyn Optimizer>, params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
-        let planner: Box<dyn Planner> = Box::new(PRMstar::new( start, goal, bounds, optimizer, params, collision_checker));
+impl<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Signed + std::fmt::Debug + Default + Display + ToString + U + 'static> ProblemDefinition<T> {
+    pub fn new(start: Point<T>, goal: Point<T>, bounds: Boundaries<T>, optimizer: Box<dyn Optimizer<T>>, params: Parameter, collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
+        let planner: Box<dyn Planner<T>> = Box::new(PRMstar::new( start, goal, bounds, optimizer, params, collision_checker));
         ProblemDefinition {planner}
     }
 
@@ -58,11 +61,11 @@ impl ProblemDefinition {
         }
     }
 
-    pub fn get_solution_cost(&self) -> f64 {
+    pub fn get_solution_cost(&self) -> T {
         self.planner.get_solution_cost()
     }
 
-    pub fn get_solution_path(&self) -> Vec<Point<f64>> {
+    pub fn get_solution_path(&self) -> Vec<Point<T>> {
         self.planner.get_solution_path()
     }
 

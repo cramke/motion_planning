@@ -1,20 +1,22 @@
 use core::panic;
 use std::collections::HashMap;
+use std::marker::PhantomData;
+use std::ops::{Sub, Add, Mul};
 
+use num::{Bounded, Signed, Float};
 use petgraph::Undirected;
 use petgraph::algo::{astar};
 use petgraph::graph::{Graph, NodeIndex};
-use crate::space::Point;
-
+use rand::distributions::uniform::SampleUniform;
 use rstar::RTree;
 
+use crate::space::Point;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
-use crate::optimizer::{Optimizer, DefaultOptimizer};
+use crate::optimizer::{Optimizer, DefaultOptimizer, U};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
-
 
 /// # Probabilisic Road Map PRM 
 /// It is an algorithm which is: 
@@ -27,21 +29,21 @@ use crate::problem::Parameter;
 /// 
 /// # Example
 /// 
-pub struct PRMstar {
-    start: Point<f64>,
-    goal: Point<f64>,
-    boundaries: Boundaries<f64>,
-    pub graph: Graph<Point<f64>, f64, Undirected>,
-    solution: Option<(f64, Vec<NodeIndex>)>,
-    optimizer: Box<dyn Optimizer>,
+pub struct PRMstar<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug> {
+    start: Point<T>,
+    goal: Point<T>,
+    boundaries: Boundaries<T>,
+    pub graph: Graph<Point<T>, T, Undirected>,
+    solution: Option<(T, Vec<NodeIndex>)>,
+    optimizer: Box<dyn Optimizer<T>>,
     pub is_solved: bool,
-    collision_checker: Box<dyn CollisionChecker>,
-    tree: RTree<[f64; 2]>,
+    collision_checker: Box<dyn CollisionChecker<T>>,
+    tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
     params: Parameter,
 }
 
-impl Planner for PRMstar {
+impl<T: ToString + PartialOrd + PartialEq + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug + Default + U> Planner<T> for PRMstar<T> {
     /// run init before starting any planning task. 
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
@@ -73,7 +75,7 @@ impl Planner for PRMstar {
     /// Starts building the graph. 
     fn run(&mut self) {
         loop {
-            let added_node: Point<f64> = self.add_random_node();
+            let added_node: Point<T> = self.add_random_node();
             self.connect_node_to_graph(added_node);
 
             self.check_solution();
@@ -86,15 +88,15 @@ impl Planner for PRMstar {
     }
 
     /// Lower cost means it is a preferrable solution. If no solution was found, the returned cost will be f64::MAX.
-    fn get_solution_cost(&self) -> f64 {
+    fn get_solution_cost(&self) -> T {
         match &self.solution {
             Some(sol) => sol.0,
-            None => f64::MAX,
+            None => <T as Bounded>::max_value(),
         }
     }
 
     /// Returns empty Vec if no solution was found.
-    fn get_solution_path(& self) -> Vec<Point<f64>> {
+    fn get_solution_path(& self) -> Vec<Point<T>> {
         match &self.solution {
             None => Vec::new(),
             Some(sol) => sol.1
@@ -122,11 +124,11 @@ impl Planner for PRMstar {
 
 }
 
-impl PRMstar {
+impl<T: ToString + PartialOrd + PartialEq + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug + Default + U> PRMstar<T> {
 
     /// Standard constructor
-    pub fn new(start: Point<f64>, goal: Point<f64>, boundaries: Boundaries<f64>, optimizer: Box<dyn Optimizer>, 
-        params: Parameter, collision_checker: Box<dyn CollisionChecker>) -> Self {
+    pub fn new(start: Point<T>, goal: Point<T>, boundaries: Boundaries<T>, optimizer: Box<dyn Optimizer<T>>, 
+        params: Parameter, collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
         PRMstar { start, 
             goal, 
             boundaries,
@@ -142,7 +144,7 @@ impl PRMstar {
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
-    fn add_node(&mut self, node: Point<f64>) {
+    fn add_node(&mut self, node: Point<T>) {
         let index = self.graph.add_node(node);
         self.index_node_lookup.insert(node.to_wkt().to_string(), index);
         self.tree.insert([node.x, node.y]);
@@ -151,8 +153,8 @@ impl PRMstar {
     /// Generates a random node and adds it to the graph, if:
     /// - It is not in collision
     /// - It is not already in the graph
-    fn add_random_node(&mut self) -> Point<f64> {
-        let mut candidate: Point<f64>;
+    fn add_random_node(&mut self) -> Point<T> {
+        let mut candidate: Point<T>;
         loop {
             candidate = self.boundaries.generate_random_configuration();
 
@@ -173,11 +175,11 @@ impl PRMstar {
     }
 
     /// Try to connect a node to its k nearest neigbors.
-    fn connect_node_to_graph(&mut self, node: Point<f64>) {
+    fn connect_node_to_graph(&mut self, node: Point<T>) {
         let mut iterator = self.tree.nearest_neighbor_iter(&[node.x, node.y]);
         for _ in 0..self.params.k_nearest_neighbors {
             let neighbor = iterator.next();
-            let neighbor_point: Point<f64> = match neighbor {
+            let neighbor_point: Point<T> = match neighbor {
                 Some(node) => Point{x:node[0], y:node[1]},
                 None => continue,
             };
@@ -190,7 +192,7 @@ impl PRMstar {
                 continue;
             }
 
-            let weight: f64 = self.optimizer.get_edge_weight(node, neighbor_point).2;
+            let weight: T = self.optimizer.get_edge_weight(node, neighbor_point).2;
             let a: NodeIndex = *self.index_node_lookup.get(&node.to_wkt().to_string()).unwrap();
             let b: NodeIndex = *self.index_node_lookup.get(&neighbor_point.to_wkt().to_string()).unwrap();
             self.graph.add_edge(a, b, weight);
@@ -206,7 +208,7 @@ impl PRMstar {
             start, 
             |finish| finish == goal, 
             |e| *e.weight(), 
-            |_| 0f64);
+            |_| T::default());
 
         self.is_solved = self.solution.is_some();
     }
@@ -217,7 +219,7 @@ impl PRMstar {
     }
 
     /// Returns the graph object (petgraph)
-    pub fn get_graph(&self) -> &Graph<Point<f64>, f64, Undirected> {
+    pub fn get_graph(&self) -> &Graph<Point<T>, T, Undirected> {
         &self.graph
     }
     
@@ -227,19 +229,20 @@ impl PRMstar {
     }
 }
 
-impl Default for PRMstar {
+impl Default for PRMstar<f64> {
     fn default() -> Self {
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
         PRMstar::new(start, goal, bounds, optimizer, params, cc)
     }
 }
 
 mod test {
+    use std::marker::PhantomData;
 
     #[test]
     fn test_prm_new() {
@@ -251,9 +254,9 @@ mod test {
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
         let planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
 
         assert!(!planner.is_solved);
@@ -277,9 +280,9 @@ mod test {
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
         let mut planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
 
         assert_eq!(planner.graph.node_count(), 0);
@@ -303,9 +306,9 @@ mod test {
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
         let planner = PRMstar::new(start, goal, bounds, optimizer, params, cc);
 
         assert_eq!(crate::planner::base_planner::Planner::get_solution_cost(&planner), f64::MAX);

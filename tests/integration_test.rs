@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use geo::{Contains, Intersects};
 use mpl::{self, problem::{ProblemDefinition, Parameter}, optimizer::{DefaultOptimizer, Optimizer}, collision_checker::{CollisionChecker, NaiveCollisionChecker}, boundaries::Boundaries};
 
@@ -7,14 +9,13 @@ fn test_mpl_default_scenario() {
     use mpl::boundaries::Boundaries;
     use mpl::space::Point;
 
-
     let start: Point<f64> = Point{x:0f64, y:0f64};
     let goal: Point<f64> = Point{x:3f64, y:3f64};
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+    let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
     let params = Parameter::new(18usize, 3usize);
-    let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
-    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
+    let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let cost = pdef.get_solution_cost();
     assert!(cost > 3f64);
@@ -28,14 +29,13 @@ fn test_mpl_naiv_scenario() {
     use mpl::boundaries::Boundaries;
     use mpl::space::Point;
 
-
     let start: Point<f64> = Point{x:0f64, y:0f64};
     let goal: Point<f64> = Point{x:3f64, y:3f64};
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+    let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
     let params = Parameter::new(25usize, 3usize);
-    let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
-    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
+    let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);
@@ -52,7 +52,7 @@ fn test_geo_collision() {
         poly: Polygon,
     }
     
-    impl CollisionChecker for GeoCollisionChecker {
+    impl CollisionChecker<f64> for GeoCollisionChecker {
         fn init(&self) -> bool {
             return true;
         }
@@ -75,13 +75,13 @@ fn test_geo_collision() {
     vec![],
     );
 
-    let cc: Box<dyn CollisionChecker> = Box::new(GeoCollisionChecker{poly});
+    let cc: Box<dyn CollisionChecker<f64>> = Box::new(GeoCollisionChecker{poly});
     let start: Point<f64> = Point{x:0f64, y:0f64};
     let goal: Point<f64> = Point{x:3f64, y:3f64};
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer);
+    let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer{phantom: PhantomData});
     let params = Parameter::new(30usize, 3usize);
-    let mut pdef: ProblemDefinition = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
+    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);                                       
     pdef.solve();
     let cost: f64 = pdef.get_solution_cost();
     println!("{}", cost);

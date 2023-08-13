@@ -3,15 +3,16 @@ use std::io::Write;
 use crate::space::Point;
 
 
+use num::Signed;
 use petgraph::dot::{Dot};
 use petgraph::{Undirected};
 use petgraph::graph::{Graph, NodeIndex};
 
-pub fn is_edge_already_in_graph(graph:&Graph<NodeIndex, f64, Undirected>, begin:NodeIndex, end:NodeIndex) -> bool {
+pub fn is_edge_already_in_graph<T: Copy + Clone + Signed + std::fmt::Debug>(graph:&Graph<NodeIndex, T, Undirected>, begin:NodeIndex, end:NodeIndex) -> bool {
     graph.find_edge(begin, end).is_some()
 }
 
-pub fn write_graph_to_file(graph:&Graph<Point<f64>, f64, Undirected>, path:&str) {
+pub fn write_graph_to_file<T: Copy + Clone + Signed + std::fmt::Debug>(graph:&Graph<Point<T>, T, Undirected>, path:&str) {
     let output = format!("{:?}", Dot::with_config(&graph, &[]));
     let mut file = match File::create(path) {
         Ok(file) => file,
@@ -27,6 +28,6 @@ pub fn write_graph_to_file(graph:&Graph<Point<f64>, f64, Undirected>, path:&str)
     };
 }
 
-pub fn print_graph(graph:&Graph<Point<f64>, f64, Undirected>) {
+pub fn print_graph<T: PartialEq + std::fmt::Debug>(graph:&Graph<Point<T>, T, Undirected>) {
     println!("{:?}", Dot::with_config(graph, &[]));
 }

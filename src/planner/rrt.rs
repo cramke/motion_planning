@@ -1,9 +1,12 @@
 use core::panic;
 use std::collections::HashMap;
+use std::ops::{Sub, Add, Mul};
 
+use num::{Bounded, Signed, Float};
 use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
+use rand::distributions::uniform::SampleUniform;
 use rstar::RTree;
 
 use crate::space::Point;
@@ -23,31 +26,31 @@ use crate::problem::Parameter;
 /// [Link](https://www.cs.csustan.edu/~xliang/Courses/CS4710-21S/Papers/06%20RRT.pdf)
 /// 
 /// # Example
-pub struct RRT {
+pub struct RRT<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Signed + std::fmt::Debug + Default> {
     parameters: Parameter,
-    solution: Option<(f64, Vec<NodeIndex>)>,
+    solution: Option<(T, Vec<NodeIndex>)>,
     pub is_solved: bool,
 
-    start: Point<f64>,
-    goal: Point<f64>,
+    start: Point<T>,
+    goal: Point<T>,
 
-    pub graph: Graph<Point<f64>, f64, Undirected>,
-    tree: RTree<[f64; 2]>,
+    pub graph: Graph<Point<T>, T, Undirected>,
+    tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
 
-    boundaries: Boundaries<f64>,
-    collision_checker: Box<dyn CollisionChecker>,
+    boundaries: Boundaries<T>,
+    collision_checker: Box<dyn CollisionChecker<T>>,
 }
 
-impl RRT {
+impl<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Float + Bounded + Clone + Copy + ToString + Signed + std::fmt::Debug + Default> RRT<T> {
     /// Constructor
-    pub fn new(boundaries: Boundaries<f64>, collision_checker: Box<dyn CollisionChecker>) -> Self {
+    pub fn new(mut boundaries: Boundaries<T>, collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
         RRT {
             parameters: Parameter::default(),
             solution: None,
             is_solved: false,
-            start: Point{x:0.0, y:0.0},
-            goal: Point{x:3.0, y:3.0},
+            start: boundaries.generate_random_configuration(),
+            goal: boundaries.generate_random_configuration(),
             graph: Graph::new_undirected(),
             tree: RTree::new(),
             index_node_lookup: HashMap::new(),
@@ -58,16 +61,15 @@ impl RRT {
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
-    fn add_node(&mut self, node: Point<f64>) {
+    fn add_node(&mut self, node: Point<T>) {
         let index = self.graph.add_node(node);
         self.index_node_lookup.insert(node.to_wkt().to_string(), index);
         self.tree.insert([node.x, node.y]);
     }
 
     /// Adds an edge to the graph and 
-    fn add_edge(&mut self, begin: Point<f64>, end: Point<f64>) {
-        let weight: f64 = begin.euclidean_distance(&end);
-        if weight == 0.0 {return;}
+    fn add_edge(&mut self, begin: Point<T>, end: Point<T>) {
+        let weight: T = begin.euclidean_distance(&end);
         let a: NodeIndex = *self.index_node_lookup.get(&begin.to_wkt().to_string()).unwrap();
         let b: NodeIndex = *self.index_node_lookup.get(&end.to_wkt().to_string()).unwrap();
         self.graph.add_edge(a, b, weight);
@@ -76,7 +78,7 @@ impl RRT {
     /// Applies A* and checks if a solution exists
     fn check_solution(&mut self) {
         for coords in self.tree.nearest_neighbor_iter(&[self.goal.x, self.goal.y]) {
-            let neighbor: Point<f64> = Point{x:coords[0], y:coords[1]};
+            let neighbor: Point<T> = Point{x:coords[0], y:coords[1]};
             if self.collision_checker.is_edge_colliding(&neighbor, &self.goal) {
                 continue
             } else {
@@ -86,7 +88,7 @@ impl RRT {
         }
 
         for coords in self.tree.nearest_neighbor_iter(&[self.start.x, self.start.y]) {
-            let neighbor: Point<f64> = Point{x:coords[0], y:coords[1]};
+            let neighbor: Point<T> = Point{x:coords[0], y:coords[1]};
             if self.collision_checker.is_edge_colliding(&neighbor, &self.goal) {
                 continue
             } else {
@@ -102,7 +104,7 @@ impl RRT {
             start, 
             |finish| finish == goal, 
             |e| *e.weight(), 
-            |_| 0f64);
+            |_| T::default());
 
         self.is_solved = self.solution.is_some();
     }
@@ -115,13 +117,13 @@ impl RRT {
     /// Returns Option to the nearest neighbor from the given point
     /// - None: No neighbor
     /// - Some(Point): Contains nearest neighbor
-    fn get_nearest_neighbor(&self, node: Point<f64>) -> Option<Point<f64>> {
-        let neighbor = self.tree.nearest_neighbor(&[node.x, node.y]);
+    fn get_nearest_neighbor(&self, node: Point<T>) -> Option<Point<T>> {
+        let neighbor: Option<&[T; 2]> = self.tree.nearest_neighbor(&[node.x, node.y]);
         neighbor.map(|coords| Point{x:coords[0], y:coords[1]})
     }
 }
 
-impl Planner for RRT {
+impl<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug + Default> Planner<T> for RRT<T> {
     /// Run once before running the algorithm
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
@@ -149,7 +151,7 @@ impl Planner for RRT {
     /// Builds the graph until a termination criteria is met. 
     fn run(&mut self) {
         loop {
-            let random_node: Point<f64> = self.boundaries.generate_random_configuration();
+            let random_node: Point<T> = self.boundaries.generate_random_configuration();
 
             let nearest_neighbour = match self.get_nearest_neighbor(random_node) {
                 Some(point) => point,
@@ -181,15 +183,15 @@ impl Planner for RRT {
     /// Returns the solution cost.
     /// - f64::MAX: No solution was found
     /// - cost: The cost of the solution. Implies that a solution was found. 
-    fn get_solution_cost(&self) -> f64 {
+    fn get_solution_cost(&self) -> T {
         match &self.solution {
-            None => f64::MAX,
+            None => <T as Bounded>::max_value(),
             Some((cost, _)) => *cost,
         }
     }
 
     /// Returns empty Vector if no soulution was found. 
-    fn get_solution_path(&self) -> Vec<Point<f64>> {
+    fn get_solution_path(&self) -> Vec<Point<T>> {
         match &self.solution {
             None => Vec::new(),
             Some((_, path_idx)) => path_idx
@@ -211,6 +213,8 @@ impl Planner for RRT {
 }
 
 mod test {
+    use std::marker::PhantomData;
+
 
     #[test]
     fn test_new() {
@@ -218,7 +222,7 @@ mod test {
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}};
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
         let rrt = RRT::new(bounds, cc);
         assert_eq!(rrt.parameters.max_size, Parameter::default().max_size);
         assert!(!rrt.is_solved)        
@@ -231,7 +235,7 @@ mod test {
         use crate::planner::base_planner::Planner;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker{});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
         let mut rrt = RRT::new(bounds, cc);
         rrt.init();
         rrt.run();
