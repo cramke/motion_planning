@@ -11,8 +11,21 @@ use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
-use crate::problem::Parameter;
 use crate::space::Point;
+
+pub struct Config {
+    default_nearest_neighbors: u8,
+    max_size: usize,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            default_nearest_neighbors: 10u8,
+            max_size: 32usize,
+        }
+    }
+}
 
 /// # Probabilisic Road Map PRM
 /// It is an algorithm which is:
@@ -35,7 +48,7 @@ pub struct PRM<T: Metric2D> {
     collision_checker: Box<dyn CollisionChecker<T>>,
     tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
-    params: Parameter,
+    config: Config,
 }
 
 impl<T: Metric2D> Planner<T> for PRM<T> {
@@ -121,7 +134,6 @@ impl<T: Metric2D> PRM<T> {
         start: Point<T>,
         goal: Point<T>,
         boundaries: Boundaries<T>,
-        params: Parameter,
         collision_checker: Box<dyn CollisionChecker<T>>,
     ) -> Self {
         PRM {
@@ -134,7 +146,7 @@ impl<T: Metric2D> PRM<T> {
             collision_checker,
             tree: RTree::new(),
             index_node_lookup: HashMap::new(),
-            params,
+            config: Config::default(),
         }
     }
 
@@ -175,7 +187,7 @@ impl<T: Metric2D> PRM<T> {
         let mut iterator = self
             .tree
             .nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
-        for _ in 0..self.params.k_nearest_neighbors {
+        for _ in 0..self.config.default_nearest_neighbors {
             let neighbor = iterator.next();
             let (neighbor_point, distance): (Point<T>, T) = match neighbor {
                 Some((node, distance)) => (
@@ -234,7 +246,7 @@ impl<T: Metric2D> PRM<T> {
 
     /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.     
     fn is_termination_criteria_met(&self) -> bool {
-        self.graph.node_count() >= self.params.max_size
+        self.graph.node_count() >= self.config.max_size
     }
 
     /// Returns the graph object (petgraph)
@@ -253,11 +265,10 @@ impl Default for PRM<f64> {
         let start: Point<f64> = Point { x: 0f64, y: 0f64 };
         let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        PRM::new(start, goal, bounds, params, cc)
+        PRM::new(start, goal, bounds, cc)
     }
 }
 
@@ -270,18 +281,16 @@ mod test {
         use crate::{
             boundaries::Boundaries,
             collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            problem::Parameter,
         };
         use std::marker::PhantomData;
 
         let start: Point<f64> = Point { x: 0f64, y: 0f64 };
         let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let planner = PRM::new(start, goal, bounds, params, cc);
+        let planner = PRM::new(start, goal, bounds, cc);
 
         assert!(!planner.is_solved);
     }
@@ -302,18 +311,16 @@ mod test {
         use crate::{
             boundaries::Boundaries,
             collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            problem::Parameter,
         };
         use std::marker::PhantomData;
 
         let start: Point<f64> = Point { x: 0f64, y: 0f64 };
         let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let mut planner = PRM::new(start, goal, bounds, params, cc);
+        let mut planner = PRM::new(start, goal, bounds, cc);
 
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
@@ -334,18 +341,16 @@ mod test {
         use crate::{
             boundaries::Boundaries,
             collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            problem::Parameter,
         };
         use std::marker::PhantomData;
 
         let start: Point<f64> = Point { x: 0f64, y: 0f64 };
         let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let params = Parameter::new(25usize, 3usize);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let planner = PRM::new(start, goal, bounds, params, cc);
+        let planner = PRM::new(start, goal, bounds, cc);
 
         assert_eq!(planner.get_solution_cost(), f64::MAX);
         assert_eq!(planner.get_solution_path(), Vec::new());

@@ -32,7 +32,7 @@ impl Default for Parameter {
     fn default() -> Self {
         Parameter {
             max_size: 64,
-            k_nearest_neighbors: 8,
+            k_nearest_neighbors: 10,
         }
     }
 }
@@ -87,7 +87,7 @@ impl<
         self.planner.print_statistics(path);
 
         if self.planner.is_solved() {
-            let path = self.get_solution_path();
+            let path: Vec<Point<T>> = self.get_solution_path();
             println!(
                 "Solution cost -{}- with {} nodes",
                 self.get_solution_cost(),
@@ -163,6 +163,6 @@ mod tests {
         use super::Parameter;
         let params = Parameter::default();
         assert_eq!(params.max_size, 64usize);
-        assert_eq!(params.k_nearest_neighbors, 8);
+        assert_eq!(params.k_nearest_neighbors, 10);
     }
 }

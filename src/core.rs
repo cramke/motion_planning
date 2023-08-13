@@ -11,7 +11,8 @@ pub trait Metric2D:
     + PartialEq
     + PartialOrd
     + Signed
-    + Bounded + Sub<Self, Output = Self>
+    + Bounded
+    + Sub<Self, Output = Self>
     + Mul<Self, Output = Self>
     + Add<Self, Output = Self>
     + SampleUniform
