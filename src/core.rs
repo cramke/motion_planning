@@ -1,16 +1,21 @@
-use std::ops::{Sub, Mul, Add};
-use num::{Signed, Bounded};
+use num::{Bounded, Signed};
 use rand::distributions::uniform::SampleUniform;
+use std::ops::{Add, Mul, Sub};
 
-pub trait Metric2D: 
-    Default + 
-    Copy + Clone + 
-    std::fmt::Debug + ToString + 
-    PartialEq + PartialOrd + 
-    Signed +
-    Bounded +
-    Sub<Self, Output = Self> + Mul<Self, Output = Self>+ Add<Self, Output = Self> + 
-    SampleUniform
+pub trait Metric2D:
+    Default
+    + Copy
+    + Clone
+    + std::fmt::Debug
+    + ToString
+    + PartialEq
+    + PartialOrd
+    + Signed
+    + Bounded
+    + Sub<Self, Output = Self>
+    + Mul<Self, Output = Self>
+    + Add<Self, Output = Self>
+    + SampleUniform
 {
     const MAX: Self;
     const EPSILON: Self;

@@ -1,19 +1,21 @@
 use std::time::Instant;
 
-use mpl::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use mpl::boundaries::Boundaries;
+use mpl::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use mpl::optimizer::{self, Optimizer};
-use mpl::problem::{ProblemDefinition, Parameter};
+use mpl::problem::{Parameter, ProblemDefinition};
 use mpl::space::Point;
 
 fn main() {
-    let start: Point<f64> = Point{x:0f64, y:0f64};
-    let goal: Point<f64> = Point{x:3f64, y:3f64};
+    let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+    let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer<f64>> = Box::new(optimizer::DefaultOptimizer{phantom: std::marker::PhantomData});
+    let optimizer: Box<dyn Optimizer<f64>> = Box::new(optimizer::DefaultOptimizer {
+        phantom: std::marker::PhantomData,
+    });
     let params = Parameter::new(10usize, 1usize);
     let cc: Box<dyn CollisionChecker<f64>> = NaiveCollisionChecker::new_box();
-    let mut pdef= ProblemDefinition::new( start, goal, bounds, optimizer, params, cc);    
+    let mut pdef = ProblemDefinition::new(start, goal, bounds, optimizer, params, cc);
 
     println!("#### mpl ####");
     let start = Instant::now();

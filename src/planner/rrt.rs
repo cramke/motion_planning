@@ -1,28 +1,28 @@
 use core::panic;
 use std::collections::HashMap;
 
-use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
+use petgraph::Undirected;
 use rstar::RTree;
 
-use crate::core::Metric2D;
-use crate::space::Point;
 use crate::boundaries::Boundaries;
 use crate::collision_checker::CollisionChecker;
+use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::problem::Parameter;
+use crate::space::Point;
 
-/// # Rapidly-Exploring Random Trees - RRT 
-/// It is an algorithm which is: 
-/// - probabilistically complete 
+/// # Rapidly-Exploring Random Trees - RRT
+/// It is an algorithm which is:
+/// - probabilistically complete
 /// - probabilistically optimal algorithm
 /// - Single query
-/// 
+///
 /// # Source / Credits
 /// LaValle, S. M. (), "Rapidly-Exploring Random Trees: A New Tool for Path"
 /// [Link](https://www.cs.csustan.edu/~xliang/Courses/CS4710-21S/Papers/06%20RRT.pdf)
-/// 
+///
 /// # Example
 pub struct RRT<T: Metric2D> {
     parameters: Parameter,
@@ -42,7 +42,10 @@ pub struct RRT<T: Metric2D> {
 
 impl<T: Metric2D> RRT<T> {
     /// Constructor
-    pub fn new(mut boundaries: Boundaries<T>, collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
+    pub fn new(
+        mut boundaries: Boundaries<T>,
+        collision_checker: Box<dyn CollisionChecker<T>>,
+    ) -> Self {
         RRT {
             parameters: Parameter::default(),
             solution: None,
@@ -61,48 +64,77 @@ impl<T: Metric2D> RRT<T> {
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
     fn add_node(&mut self, node: Point<T>) {
         let index = self.graph.add_node(node);
-        self.index_node_lookup.insert(node.to_wkt().to_string(), index);
+        self.index_node_lookup
+            .insert(node.to_wkt().to_string(), index);
         self.tree.insert([node.x, node.y]);
     }
 
-    /// Adds an edge to the graph and 
+    /// Adds an edge to the graph and
     fn add_edge(&mut self, begin: Point<T>, end: Point<T>) {
         let weight: T = begin.euclidean_distance(&end);
-        let a: NodeIndex = *self.index_node_lookup.get(&begin.to_wkt().to_string()).unwrap();
-        let b: NodeIndex = *self.index_node_lookup.get(&end.to_wkt().to_string()).unwrap();
+        let a: NodeIndex = *self
+            .index_node_lookup
+            .get(&begin.to_wkt().to_string())
+            .unwrap();
+        let b: NodeIndex = *self
+            .index_node_lookup
+            .get(&end.to_wkt().to_string())
+            .unwrap();
         self.graph.add_edge(a, b, weight);
     }
 
     /// Applies A* and checks if a solution exists
     fn check_solution(&mut self) {
         for coords in self.tree.nearest_neighbor_iter(&[self.goal.x, self.goal.y]) {
-            let neighbor: Point<T> = Point{x:coords[0], y:coords[1]};
-            if self.collision_checker.is_edge_colliding(&neighbor, &self.goal) {
-                continue
+            let neighbor: Point<T> = Point {
+                x: coords[0],
+                y: coords[1],
+            };
+            if self
+                .collision_checker
+                .is_edge_colliding(&neighbor, &self.goal)
+            {
+                continue;
             } else {
                 self.add_edge(neighbor, self.goal);
                 break;
             }
         }
 
-        for coords in self.tree.nearest_neighbor_iter(&[self.start.x, self.start.y]) {
-            let neighbor: Point<T> = Point{x:coords[0], y:coords[1]};
-            if self.collision_checker.is_edge_colliding(&neighbor, &self.goal) {
-                continue
+        for coords in self
+            .tree
+            .nearest_neighbor_iter(&[self.start.x, self.start.y])
+        {
+            let neighbor: Point<T> = Point {
+                x: coords[0],
+                y: coords[1],
+            };
+            if self
+                .collision_checker
+                .is_edge_colliding(&neighbor, &self.goal)
+            {
+                continue;
             } else {
                 self.add_edge(neighbor, self.goal);
                 break;
             }
         }
 
-        let start = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
-        let goal = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
+        let start = *self
+            .index_node_lookup
+            .get(&self.start.to_wkt().to_string())
+            .unwrap();
+        let goal = *self
+            .index_node_lookup
+            .get(&self.goal.to_wkt().to_string())
+            .unwrap();
         self.solution = astar(
-            &self.graph, 
-            start, 
-            |finish| finish == goal, 
-            |e| *e.weight(), 
-            |_| T::default());
+            &self.graph,
+            start,
+            |finish| finish == goal,
+            |e| *e.weight(),
+            |_| T::default(),
+        );
 
         self.is_solved = self.solution.is_some();
     }
@@ -117,7 +149,10 @@ impl<T: Metric2D> RRT<T> {
     /// - Some(Point): Contains nearest neighbor
     fn get_nearest_neighbor(&self, node: Point<T>) -> Option<Point<T>> {
         let neighbor: Option<&[T; 2]> = self.tree.nearest_neighbor(&[node.x, node.y]);
-        neighbor.map(|coords| Point{x:coords[0], y:coords[1]})
+        neighbor.map(|coords| Point {
+            x: coords[0],
+            y: coords[1],
+        })
     }
 }
 
@@ -146,7 +181,7 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
         println!("Setup is ready for planning");
     }
 
-    /// Builds the graph until a termination criteria is met. 
+    /// Builds the graph until a termination criteria is met.
     fn run(&mut self) {
         loop {
             let random_node: Point<T> = self.boundaries.generate_random_configuration();
@@ -156,8 +191,15 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
                 None => continue,
             };
 
-            if self.collision_checker.is_node_colliding(&random_node) {continue}
-            if self.collision_checker.is_edge_colliding(&random_node, &nearest_neighbour) {continue}
+            if self.collision_checker.is_node_colliding(&random_node) {
+                continue;
+            }
+            if self
+                .collision_checker
+                .is_edge_colliding(&random_node, &nearest_neighbour)
+            {
+                continue;
+            }
 
             self.add_node(random_node);
             self.add_edge(random_node, nearest_neighbour);
@@ -171,16 +213,16 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
         }
     }
 
-    /// Getter method to check if a solution was found. 
+    /// Getter method to check if a solution was found.
     /// - true: There is a solution
-    /// - false: No solution was found yet. This could mean the algorithm needs to run longer. 
+    /// - false: No solution was found yet. This could mean the algorithm needs to run longer.
     fn is_solved(&self) -> bool {
-        self.is_solved        
+        self.is_solved
     }
 
     /// Returns the solution cost.
     /// - f64::MAX: No solution was found
-    /// - cost: The cost of the solution. Implies that a solution was found. 
+    /// - cost: The cost of the solution. Implies that a solution was found.
     fn get_solution_cost(&self) -> T {
         match &self.solution {
             None => T::MAX,
@@ -188,19 +230,19 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
         }
     }
 
-    /// Returns empty Vector if no soulution was found. 
+    /// Returns empty Vector if no soulution was found.
     fn get_solution_path(&self) -> Vec<Point<T>> {
         match &self.solution {
             None => Vec::new(),
             Some((_, path_idx)) => path_idx
-            .iter()
-            .map(|idx| *self.graph.node_weight(*idx).unwrap())
-            .collect(),
+                .iter()
+                .map(|idx| *self.graph.node_weight(*idx).unwrap())
+                .collect(),
         }
     }
 
-    /// Print overview of the planner. 
-    fn print_statistics(&self, _path:&str) {
+    /// Print overview of the planner.
+    fn print_statistics(&self, _path: &str) {
         println!("Was a solution found? {}", self.is_solved);
         let nodes: usize = self.graph.node_count();
         println!("Graph contains {nodes} nodes");
@@ -214,28 +256,36 @@ mod test {
 
     #[test]
     fn test_new() {
-        use crate::{problem::Parameter, planner::rrt::RRT};
-        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}};
+        use crate::{
+            boundaries::Boundaries,
+            collision_checker::{CollisionChecker, NaiveCollisionChecker},
+        };
+        use crate::{planner::rrt::RRT, problem::Parameter};
         use std::marker::PhantomData;
 
-
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
         let rrt = RRT::new(bounds, cc);
         assert_eq!(rrt.parameters.max_size, Parameter::default().max_size);
-        assert!(!rrt.is_solved)        
+        assert!(!rrt.is_solved)
     }
 
     #[test]
     fn test_run() {
-        use crate::planner::rrt::RRT;
-        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}};
         use crate::planner::base_planner::Planner;
+        use crate::planner::rrt::RRT;
+        use crate::{
+            boundaries::Boundaries,
+            collision_checker::{CollisionChecker, NaiveCollisionChecker},
+        };
         use std::marker::PhantomData;
 
-
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
         let mut rrt = RRT::new(bounds, cc);
         rrt.init();
         rrt.run();

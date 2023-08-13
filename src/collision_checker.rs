@@ -1,11 +1,9 @@
+use crate::{core::Metric2D, space::Point};
 use std::marker::PhantomData;
-
-use crate::{space::Point, core::Metric2D};
-
 
 /// CollisionChecker to implement custom Collision checkers.
 pub trait CollisionChecker<T: Metric2D> {
-    /// Is run only once and before any checks are done. Can be used to read a file or database. 
+    /// Is run only once and before any checks are done. Can be used to read a file or database.
     fn init(&self) -> bool;
 
     /// Returns:
@@ -20,18 +18,18 @@ pub trait CollisionChecker<T: Metric2D> {
 }
 
 #[derive(Copy, Clone, Debug)]
-#[allow(unused)]
 pub struct NaiveCollisionChecker<T: Metric2D> {
-    pub phantom:PhantomData<T>
+    pub phantom: PhantomData<T>,
 }
 
 /// Does not check any collisions and always returns no collision (false)
 impl<T: Metric2D + 'static> NaiveCollisionChecker<T> {
     pub fn new_box() -> Box<dyn CollisionChecker<T>> {
-        Box::new(NaiveCollisionChecker{phantom: PhantomData})
+        Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        })
     }
 }
-
 
 impl<T: Metric2D> CollisionChecker<T> for NaiveCollisionChecker<T> {
     /// Does nothing
@@ -40,7 +38,7 @@ impl<T: Metric2D> CollisionChecker<T> for NaiveCollisionChecker<T> {
     fn init(&self) -> bool {
         true
     }
-    
+
     /// Does nothing
     /// Return
     ///     false: always
@@ -58,26 +56,26 @@ impl<T: Metric2D> CollisionChecker<T> for NaiveCollisionChecker<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::marker::PhantomData;
-
+    use super::{CollisionChecker, NaiveCollisionChecker};
     use crate::space::Point;
-
-
-    use super::{NaiveCollisionChecker, CollisionChecker};
+    use std::marker::PhantomData;
 
     #[test]
     fn test_naive_init() {
-        let cc: NaiveCollisionChecker<f64> = NaiveCollisionChecker{phantom: PhantomData};
+        let cc: NaiveCollisionChecker<f64> = NaiveCollisionChecker {
+            phantom: PhantomData,
+        };
         let result = cc.init();
         assert!(result);
     }
 
     #[test]
     fn test_naive_node() {
-        let cc = NaiveCollisionChecker{phantom: PhantomData};
-        let p1: &Point<f64> = &Point{x:1.0, y:2.0};
-        let p2: &Point<f64> = &Point{x:1.0, y:2.0};
-
+        let cc: NaiveCollisionChecker<f64> = NaiveCollisionChecker {
+            phantom: PhantomData,
+        };
+        let p1: &Point<f64> = &Point { x: 1.0, y: 2.0 };
+        let p2: &Point<f64> = &Point { x: 1.0, y: 2.0 };
 
         let result = cc.is_edge_colliding(p1, p2);
         assert!(!result);
@@ -85,8 +83,10 @@ mod tests {
 
     #[test]
     fn test_naive_edge() {
-        let cc = NaiveCollisionChecker{phantom: PhantomData};
-        let p1: &Point<f64> = &Point{x:1.0, y:2.0};
+        let cc: NaiveCollisionChecker<f64> = NaiveCollisionChecker {
+            phantom: PhantomData,
+        };
+        let p1: &Point<f64> = &Point { x: 1.0, y: 2.0 };
         let result: bool = cc.is_node_colliding(p1);
         assert!(!result);
     }

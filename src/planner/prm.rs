@@ -2,31 +2,30 @@ use core::panic;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
-use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
+use petgraph::Undirected;
 use rstar::RTree;
 
-use crate::core::Metric2D;
-use crate::space::Point;
-use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
+use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
+use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
+use crate::space::Point;
 
-
-/// # Probabilisic Road Map PRM 
-/// It is an algorithm which is: 
-/// - probabilistically complete and 
+/// # Probabilisic Road Map PRM
+/// It is an algorithm which is:
+/// - probabilistically complete and
 /// - probabilistically optimal algorithm
 /// - Multi-query capable It can be used to do multi-queries.
-/// 
+///
 /// # Source / Credits
 /// Kavraki, L. E.; Svestka, P.; Latombe, J.-C.; Overmars, M. H. (1996), "Probabilistic roadmaps for path planning in high-dimensional configuration spaces", IEEE Transactions on Robotics and Automation, 12 (4): 566–580, doi:10.1109/70.508439
-/// 
+///
 /// # Example
-/// 
+///
 pub struct PRM<T: Metric2D> {
     start: Point<T>,
     goal: Point<T>,
@@ -41,7 +40,7 @@ pub struct PRM<T: Metric2D> {
 }
 
 impl<T: Metric2D> Planner<T> for PRM<T> {
-    /// run init before starting any planning task. 
+    /// run init before starting any planning task.
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
             panic!("Start is not inside boundaries.");
@@ -65,7 +64,7 @@ impl<T: Metric2D> Planner<T> for PRM<T> {
         println!("Setup is ready for planning");
     }
 
-    /// Starts building the graph. 
+    /// Starts building the graph.
     fn run(&mut self) {
         loop {
             let added_node: Point<T> = self.add_random_node();
@@ -89,23 +88,24 @@ impl<T: Metric2D> Planner<T> for PRM<T> {
     }
 
     /// Returns empty Vec if no solution was found.
-    fn get_solution_path(& self) -> Vec<Point<T>> {
+    fn get_solution_path(&self) -> Vec<Point<T>> {
         match &self.solution {
             None => Vec::new(),
-            Some(sol) => sol.1
+            Some(sol) => sol
+                .1
                 .iter()
                 .map(|idx| *self.graph.node_weight(*idx).unwrap())
                 .collect(),
         }
     }
 
-    /// Returns a bool saying if any solution between start and goal was found. 
+    /// Returns a bool saying if any solution between start and goal was found.
     fn is_solved(&self) -> bool {
         self.is_solved
     }
 
     /// Prints some basic statistics of the graph.
-    fn print_statistics(&self, path:&str) {
+    fn print_statistics(&self, path: &str) {
         let nodes: usize = self.graph.node_count();
         println!("Graph contains {nodes} nodes");
 
@@ -114,16 +114,20 @@ impl<T: Metric2D> Planner<T> for PRM<T> {
 
         pg::write_graph_to_file(&self.graph, path);
     }
-
 }
 
 impl<T: Metric2D> PRM<T> {
-
     /// Standard constructor
-    pub fn new(start: Point<T>, goal: Point<T>, boundaries: Boundaries<T>, params: Parameter, 
-        collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
-        PRM { start, 
-            goal, 
+    pub fn new(
+        start: Point<T>,
+        goal: Point<T>,
+        boundaries: Boundaries<T>,
+        params: Parameter,
+        collision_checker: Box<dyn CollisionChecker<T>>,
+    ) -> Self {
+        PRM {
+            start,
+            goal,
             boundaries,
             graph: Graph::new_undirected(),
             solution: None,
@@ -138,7 +142,8 @@ impl<T: Metric2D> PRM<T> {
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
     fn add_node(&mut self, node: Point<T>) {
         let index = self.graph.add_node(node);
-        self.index_node_lookup.insert(node.to_wkt().to_string(), index);
+        self.index_node_lookup
+            .insert(node.to_wkt().to_string(), index);
         self.tree.insert([node.x, node.y]);
     }
 
@@ -156,7 +161,7 @@ impl<T: Metric2D> PRM<T> {
 
             match self.index_node_lookup.get(&candidate.to_wkt().to_string()) {
                 // If candidate node is found in graph, then continue with next random node.
-                None => {},
+                None => {}
                 Some(_) => continue,
             }
 
@@ -168,11 +173,19 @@ impl<T: Metric2D> PRM<T> {
 
     /// Try to connect a node to its k nearest neigbors.
     fn connect_node_to_graph(&mut self, node: Point<T>) {
-        let mut iterator = self.tree.nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
+        let mut iterator = self
+            .tree
+            .nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
         for _ in 0..self.params.k_nearest_neighbors {
             let neighbor = iterator.next();
-            let (neighbor_point, distance): (Point<T>, T)= match neighbor {
-                Some((node, distance)) => (Point{x:node[0], y:node[1]}, distance),
+            let (neighbor_point, distance): (Point<T>, T) = match neighbor {
+                Some((node, distance)) => (
+                    Point {
+                        x: node[0],
+                        y: node[1],
+                    },
+                    distance,
+                ),
                 None => continue,
             };
 
@@ -180,26 +193,42 @@ impl<T: Metric2D> PRM<T> {
                 continue;
             }
 
-            if self.collision_checker.is_edge_colliding(&node, &neighbor_point) {
+            if self
+                .collision_checker
+                .is_edge_colliding(&node, &neighbor_point)
+            {
                 continue;
             }
 
-            let a: NodeIndex = *self.index_node_lookup.get(&node.to_wkt().to_string()).unwrap();
-            let b: NodeIndex = *self.index_node_lookup.get(&neighbor_point.to_wkt().to_string()).unwrap();
+            let a: NodeIndex = *self
+                .index_node_lookup
+                .get(&node.to_wkt().to_string())
+                .unwrap();
+            let b: NodeIndex = *self
+                .index_node_lookup
+                .get(&neighbor_point.to_wkt().to_string())
+                .unwrap();
             self.graph.add_edge(a, b, distance);
         }
     }
 
     /// Applies the A* algorithm to the graph.
     fn check_solution(&mut self) {
-        let start = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
-        let goal = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
+        let start = *self
+            .index_node_lookup
+            .get(&self.start.to_wkt().to_string())
+            .unwrap();
+        let goal = *self
+            .index_node_lookup
+            .get(&self.goal.to_wkt().to_string())
+            .unwrap();
         self.solution = astar(
-            &self.graph, 
-            start, 
-            |finish| finish == goal, 
-            |e| *e.weight(), 
-            |_| T::default());
+            &self.graph,
+            start,
+            |finish| finish == goal,
+            |e| *e.weight(),
+            |_| T::default(),
+        );
 
         self.is_solved = self.solution.is_some();
     }
@@ -213,7 +242,7 @@ impl<T: Metric2D> PRM<T> {
     pub fn get_graph(&self) -> &Graph<Point<T>, T, Undirected> {
         &self.graph
     }
-    
+
     /// Print basic information of the graph.
     pub fn print_graph(&self) {
         pg::print_graph(self.get_graph())
@@ -222,15 +251,16 @@ impl<T: Metric2D> PRM<T> {
 
 impl Default for PRM<f64> {
     fn default() -> Self {
-        let start: Point<f64> = Point{x:0f64, y:0f64};
-        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
         PRM::new(start, goal, bounds, params, cc)
     }
 }
-
 
 mod test {
     #[test]
@@ -238,14 +268,20 @@ mod test {
         use crate::space::Point;
 
         use super::PRM;
-        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use crate::{
+            boundaries::Boundaries,
+            collision_checker::{CollisionChecker, NaiveCollisionChecker},
+            problem::Parameter,
+        };
         use std::marker::PhantomData;
 
-        let start: Point<f64> = Point{x:0f64, y:0f64};
-        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
         let planner = PRM::new(start, goal, bounds, params, cc);
 
         assert!(!planner.is_solved);
@@ -264,20 +300,26 @@ mod test {
         use crate::space::Point;
 
         use super::PRM;
-        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use crate::{
+            boundaries::Boundaries,
+            collision_checker::{CollisionChecker, NaiveCollisionChecker},
+            problem::Parameter,
+        };
         use std::marker::PhantomData;
 
-        let start: Point<f64> = Point{x:0f64, y:0f64};
-        let goal: Point<f64> = Point{x:3f64, y:3f64};
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
         let mut planner = PRM::new(start, goal, bounds, params, cc);
 
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point<f64> = Point{x:1.8, y:2.0};
+        let p1: Point<f64> = Point { x: 1.8, y: 2.0 };
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -289,15 +331,21 @@ mod test {
         use crate::space::Point;
 
         use super::PRM;
-        use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use crate::planner::base_planner::Planner;
+        use crate::{
+            boundaries::Boundaries,
+            collision_checker::{CollisionChecker, NaiveCollisionChecker},
+            problem::Parameter,
+        };
         use std::marker::PhantomData;
-        
-        let start: Point<f64> = Point{x:0f64, y:0f64};
-        let goal: Point<f64> = Point{x:3f64, y:3f64};
+
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let params = Parameter::new(25usize, 3usize);
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
         let planner = PRM::new(start, goal, bounds, params, cc);
 
         assert_eq!(planner.get_solution_cost(), f64::MAX);

@@ -10,9 +10,9 @@ The main idea is to easily usable with various problems in different domains. It
 */
 
 pub mod boundaries;
-pub mod problem;
+pub mod collision_checker;
+pub mod core;
 pub mod optimizer;
 pub mod planner;
-pub mod collision_checker;
+pub mod problem;
 pub mod space;
-pub mod core;
