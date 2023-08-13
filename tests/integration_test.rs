@@ -6,7 +6,8 @@ use mpl::{
     boundaries::Boundaries,
     collision_checker::{CollisionChecker, NaiveCollisionChecker},
     optimizer::{DefaultOptimizer, Optimizer},
-    problem::{ProblemDefinition}, planner,
+    planner,
+    problem::ProblemDefinition,
 };
 
 #[test]

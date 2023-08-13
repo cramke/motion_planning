@@ -264,15 +264,14 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
 
 mod test {
 
-
     #[test]
     fn test_new() {
+        use crate::planner::rrt::RRT;
         use crate::{
             boundaries::Boundaries,
             collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            planner::rrt::Config
+            planner::rrt::Config,
         };
-        use crate::planner::rrt::RRT;
         use std::marker::PhantomData;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);

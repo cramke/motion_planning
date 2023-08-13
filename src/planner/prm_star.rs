@@ -51,7 +51,7 @@ pub struct PRMstar<T: Metric2D> {
     collision_checker: Box<dyn CollisionChecker<T>>,
     tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
-    config: Config
+    config: Config,
 }
 
 impl<T: Metric2D> Planner<T> for PRMstar<T> {

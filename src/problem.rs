@@ -10,11 +10,10 @@ use crate::space::Point;
 
 /// The Problem Definition serves as a collector for various planners and problems.
 pub struct ProblemDefinition<T: Metric2D> {
-    planner: Box<dyn Planner<T>>
+    planner: Box<dyn Planner<T>>,
 }
 
-impl<T: Metric2D> ProblemDefinition<T>
-{
+impl<T: Metric2D> ProblemDefinition<T> {
     pub fn new(
         start: Point<T>,
         goal: Point<T>,
@@ -23,9 +22,7 @@ impl<T: Metric2D> ProblemDefinition<T>
         collision_checker: Box<dyn CollisionChecker<T>>,
         planner: Box<dyn Planner<T>>,
     ) -> Self {
-        ProblemDefinition { 
-            planner: planner,
-        }
+        ProblemDefinition { planner: planner }
     }
 
     pub fn solve(&mut self) {
