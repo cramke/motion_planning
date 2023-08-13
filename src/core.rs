@@ -10,7 +10,6 @@ pub trait Metric2D:
     Signed +
     Bounded +
     Sub<Self, Output = Self> + Mul<Self, Output = Self>+ Add<Self, Output = Self> + 
-    Default +
     SampleUniform
 {
     const MAX: Self;

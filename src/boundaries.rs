@@ -57,7 +57,7 @@ impl<T: Metric2D> Boundaries<T> {
 mod tests {
 
     #[test]
-    fn test_boundaries_dummy() {
+    fn test_boundaries_dummy_f64() {
         use crate::boundaries::Boundaries;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
@@ -65,6 +65,17 @@ mod tests {
         assert_eq!(1f64, bounds.x_upper);
         assert_eq!(2f64, bounds.y_lower);
         assert_eq!(3f64, bounds.y_upper);
+    }
+
+    #[test]
+    fn test_boundaries_dummy_f32() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f32> = Boundaries::new(0f32, 1f32, 2f32, 3f32);
+        assert_eq!(0f32, bounds.x_lower);
+        assert_eq!(1f32, bounds.x_upper);
+        assert_eq!(2f32, bounds.y_lower);
+        assert_eq!(3f32, bounds.y_upper);
     }
 
     #[test]
