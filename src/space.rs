@@ -16,7 +16,7 @@ impl<T: Metric2D> PartialEq for Point<T> {
 
 impl<T: Metric2D> Point<T> {
     pub fn to_wkt(&self) -> String {
-        format!("POINT({} {})", self.x.to_string(), self.x.to_string())
+        format!("POINT({} {})", self.x, self.x)
     }
 
     pub fn euclidean_distance(&self, other: &Point<T>) -> T {

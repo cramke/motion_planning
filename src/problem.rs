@@ -1,10 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use crate::boundaries::Boundaries;
-use crate::collision_checker::CollisionChecker;
 use crate::core::Metric2D;
-use crate::optimizer::Optimizer;
 use crate::planner::base_planner::Planner;
 use crate::space::Point;
 
@@ -14,15 +11,8 @@ pub struct ProblemDefinition<T: Metric2D> {
 }
 
 impl<T: Metric2D> ProblemDefinition<T> {
-    pub fn new(
-        start: Point<T>,
-        goal: Point<T>,
-        bounds: Boundaries<T>,
-        optimizer: Box<dyn Optimizer<T>>,
-        collision_checker: Box<dyn CollisionChecker<T>>,
-        planner: Box<dyn Planner<T>>,
-    ) -> Self {
-        ProblemDefinition { planner: planner }
+    pub fn new(planner: Box<dyn Planner<T>>) -> Self {
+        ProblemDefinition { planner }
     }
 
     pub fn solve(&mut self) {

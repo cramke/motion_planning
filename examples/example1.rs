@@ -2,21 +2,19 @@ use std::time::Instant;
 
 use mpl::boundaries::Boundaries;
 use mpl::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-use mpl::optimizer::{self, Optimizer};
 use mpl::planner;
 use mpl::problem::ProblemDefinition;
 use mpl::space::Point;
 
 fn main() {
-    let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-    let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer<f64>> = Box::new(optimizer::DefaultOptimizer {
-        phantom: std::marker::PhantomData,
-    });
     let cc: Box<dyn CollisionChecker<f64>> = NaiveCollisionChecker::new_box();
-    let planner = Box::new(planner::prm::PRM::default());
-    let mut pdef = ProblemDefinition::new(start, goal, bounds, optimizer, cc, planner);
+    let mut planner = Box::new(planner::prm::PRM::default());
+    planner.start = Point { x: 0f64, y: 0f64 };
+    planner.goal = Point { x: 3f64, y: 3f64 };
+    planner.boundaries = bounds;
+    planner.collision_checker = cc;
+    let mut pdef = ProblemDefinition::new(planner);
 
     println!("#### mpl ####");
     let start = Instant::now();

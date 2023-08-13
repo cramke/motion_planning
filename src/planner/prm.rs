@@ -39,13 +39,13 @@ impl Default for Config {
 /// # Example
 ///
 pub struct PRM<T: Metric2D> {
-    start: Point<T>,
-    goal: Point<T>,
-    boundaries: Boundaries<T>,
+    pub start: Point<T>,
+    pub goal: Point<T>,
+    pub boundaries: Boundaries<T>,
     pub graph: Graph<Point<T>, T, Undirected>,
     solution: Option<(T, Vec<NodeIndex>)>,
     pub is_solved: bool,
-    collision_checker: Box<dyn CollisionChecker<T>>,
+    pub collision_checker: Box<dyn CollisionChecker<T>>,
     tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
     config: Config,
