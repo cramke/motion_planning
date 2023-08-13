@@ -1,14 +1,13 @@
-use std::ops::{Sub, Add, Mul};
-use num::Float;
+use crate::core::Metric2D;
 
 #[derive(Debug, Clone, Copy)]
-pub struct Point<T: PartialEq> 
+pub struct Point<T: Metric2D> 
 {
     pub x: T,
     pub y: T
 }
 
-impl<T: PartialEq + Float> PartialEq for Point<T> {
+impl<T: Metric2D> PartialEq for Point<T> {
     fn eq(&self, other: &Self) -> bool {
         let eq_x: bool = (self.x - other.x).abs() < T::epsilon();
         let eq_y: bool = (self.y - other.y).abs() < T::epsilon();
@@ -16,7 +15,7 @@ impl<T: PartialEq + Float> PartialEq for Point<T> {
     }
 }
 
-impl<T: ToString + Sub<Output = T> + Add<Output = T> + Mul<Output = T> + Copy + PartialEq> Point<T> 
+impl<T: Metric2D> Point<T> 
 {
     pub fn to_wkt(&self) -> String {
         format!("POINT({} {})", self.x.to_string(), self.x.to_string())

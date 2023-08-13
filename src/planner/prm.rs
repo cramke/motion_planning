@@ -1,15 +1,14 @@
 use core::panic;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::ops::{Sub, Add, Mul};
 
-use num::{Bounded, Signed, Float};
+use num::Bounded;
 use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
-use rand::distributions::uniform::SampleUniform;
 use rstar::RTree;
 
+use crate::core::Metric2D;
 use crate::space::Point;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
@@ -29,7 +28,7 @@ use crate::problem::Parameter;
 /// 
 /// # Example
 /// 
-pub struct PRM<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug> {
+pub struct PRM<T: Metric2D> {
     start: Point<T>,
     goal: Point<T>,
     boundaries: Boundaries<T>,
@@ -42,7 +41,7 @@ pub struct PRM<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float
     params: Parameter,
 }
 
-impl<T: ToString + Default + PartialEq + PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug> Planner<T> for PRM<T> {
+impl<T: Metric2D> Planner<T> for PRM<T> {
     /// run init before starting any planning task. 
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
@@ -119,7 +118,7 @@ impl<T: ToString + Default + PartialEq + PartialOrd + SampleUniform + Sub + Add 
 
 }
 
-impl<T: ToString + PartialOrd + PartialEq + SampleUniform + Sub + Add + Mul + Bounded +  Float + Copy + Clone + Signed + std::fmt::Debug + Default> PRM<T> {
+impl<T: Metric2D> PRM<T> {
 
     /// Standard constructor
     pub fn new(start: Point<T>, goal: Point<T>, boundaries: Boundaries<T>, params: Parameter, 
@@ -235,15 +234,13 @@ impl Default for PRM<f64> {
 
 
 mod test {
-    use std::marker::PhantomData;
-
-
     #[test]
     fn test_prm_new() {
         use crate::space::Point;
 
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use std::marker::PhantomData;
 
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
@@ -269,6 +266,7 @@ mod test {
 
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
+        use std::marker::PhantomData;
 
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
@@ -294,6 +292,7 @@ mod test {
         use super::PRM;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use crate::planner::base_planner::Planner;
+        use std::marker::PhantomData;
         
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};

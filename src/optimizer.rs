@@ -1,14 +1,10 @@
-use std::{ops::{Add, Sub, Mul}, marker::PhantomData};
+use std::marker::PhantomData;
 
+use crate::core::Metric2D;
 use crate::space::Point;
 
-pub trait U: Default + Copy + Clone + std::fmt::Debug + ToString + PartialEq + PartialOrd + Sub<Self, Output = Self> + Mul<Self, Output = Self>+ Add<Self, Output = Self> + Default + Clone {}
-
-impl U for f64 {}
-impl U for f32 {}
-
 /// Every Custom Optimizer needs to be based on this trait.
-pub trait Optimizer<T: U> {
+pub trait Optimizer<T: Metric2D> {
     /// Returns a vector of triplets. Every consists of a start-node, end-node, and the calculated edge weight. Batch-wise weight calculation allows the Optimizer to use parallelism. 
     /// 
     /// ## Arguments
@@ -22,17 +18,17 @@ pub trait Optimizer<T: U> {
 
 /// Simple Optimizer used for examples and testing.
 #[derive(Debug, Copy, Clone)]
-pub struct DefaultOptimizer<T: U> {
+pub struct DefaultOptimizer<T: Metric2D> {
     pub phantom: PhantomData<T>
 }
 
-impl<T: U + 'static> DefaultOptimizer<T> {
+impl<T: Metric2D + 'static> DefaultOptimizer<T> {
     pub fn new_box() -> Box<dyn Optimizer<T>> {
         Box::new(DefaultOptimizer{phantom: PhantomData})
     }
 }
 
-impl<T: U> Optimizer<T> for DefaultOptimizer<T> {
+impl<T: Metric2D> Optimizer<T> for DefaultOptimizer<T> {
     // Cost is based on the distance in 2D. Which is basically just Pythagoras.
     fn get_edge_weight(&self, begin: Point<T>, end: Point<T>) -> (Point<T>, Point<T>, T) {
         let cost: T = begin.euclidean_distance(&end);

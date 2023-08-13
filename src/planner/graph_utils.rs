@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Write;
+use crate::core::Metric2D;
 use crate::space::Point;
 
 
@@ -12,7 +13,7 @@ pub fn is_edge_already_in_graph<T: Copy + Clone + Signed + std::fmt::Debug>(grap
     graph.find_edge(begin, end).is_some()
 }
 
-pub fn write_graph_to_file<T: Copy + Clone + Signed + std::fmt::Debug>(graph:&Graph<Point<T>, T, Undirected>, path:&str) {
+pub fn write_graph_to_file<T: Metric2D>(graph:&Graph<Point<T>, T, Undirected>, path:&str) {
     let output = format!("{:?}", Dot::with_config(&graph, &[]));
     let mut file = match File::create(path) {
         Ok(file) => file,
@@ -28,6 +29,6 @@ pub fn write_graph_to_file<T: Copy + Clone + Signed + std::fmt::Debug>(graph:&Gr
     };
 }
 
-pub fn print_graph<T: PartialEq + std::fmt::Debug>(graph:&Graph<Point<T>, T, Undirected>) {
+pub fn print_graph<T: Metric2D>(graph:&Graph<Point<T>, T, Undirected>) {
     println!("{:?}", Dot::with_config(graph, &[]));
 }

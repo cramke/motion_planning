@@ -1,13 +1,10 @@
-use std::{ops::{Sub, Add, Mul}, marker::PhantomData};
+use std::marker::PhantomData;
 
-use num::{Bounded, Signed};
-use rand::distributions::uniform::SampleUniform;
-
-use crate::space::Point;
+use crate::{space::Point, core::Metric2D};
 
 
 /// CollisionChecker to implement custom Collision checkers.
-pub trait CollisionChecker<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Copy + Signed + std::fmt::Debug> {
+pub trait CollisionChecker<T: Metric2D> {
     /// Is run only once and before any checks are done. Can be used to read a file or database. 
     fn init(&self) -> bool;
 
@@ -24,19 +21,19 @@ pub trait CollisionChecker<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bou
 
 #[derive(Copy, Clone, Debug)]
 #[allow(unused)]
-pub struct NaiveCollisionChecker<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Copy + Signed + std::fmt::Debug> {
+pub struct NaiveCollisionChecker<T: Metric2D> {
     pub phantom:PhantomData<T>
 }
 
 /// Does not check any collisions and always returns no collision (false)
-impl<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Copy + Signed + std::fmt::Debug + 'static> NaiveCollisionChecker<T> {
+impl<T: Metric2D + 'static> NaiveCollisionChecker<T> {
     pub fn new_box() -> Box<dyn CollisionChecker<T>> {
         Box::new(NaiveCollisionChecker{phantom: PhantomData})
     }
 }
 
 
-impl<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Copy + Signed + std::fmt::Debug> CollisionChecker<T> for NaiveCollisionChecker<T> {
+impl<T: Metric2D> CollisionChecker<T> for NaiveCollisionChecker<T> {
     /// Does nothing
     /// Return
     ///     true: always

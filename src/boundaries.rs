@@ -1,12 +1,11 @@
-use num::{Bounded, Float};
 use rand::{Rng, rngs::ThreadRng};
-use crate::space::Point;
+use crate::{space::Point, core::Metric2D};
 
 /// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.
 /// Is implemented similar to a bounding box. That means as an upper / lower limit for the boundary axis.
 /// Only 2D.
 #[derive(Debug, Clone)]
-pub struct Boundaries<T: PartialOrd + rand::distributions::uniform::SampleUniform + Float> {
+pub struct Boundaries<T: Metric2D> {
     pub x_lower: T,
     pub x_upper: T,
     pub y_lower: T,
@@ -14,7 +13,7 @@ pub struct Boundaries<T: PartialOrd + rand::distributions::uniform::SampleUnifor
     rand: ThreadRng,
 }
 
-impl<T: PartialOrd + rand::distributions::uniform::SampleUniform + Copy + Float> Boundaries<T> {
+impl<T: Metric2D> Boundaries<T> {
     // Constructor for an Boundaries Object.
     pub fn new(x_lower: T, x_upper: T, y_lower: T, y_upper: T) -> Self {
         let rand: ThreadRng = rand::thread_rng();

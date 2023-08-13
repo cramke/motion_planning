@@ -1,19 +1,18 @@
 use core::panic;
 use std::collections::HashMap;
 use std::marker::PhantomData;
-use std::ops::{Sub, Add, Mul};
 
-use num::{Bounded, Signed, Float};
+use num::Bounded;
 use petgraph::Undirected;
-use petgraph::algo::{astar};
+use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
-use rand::distributions::uniform::SampleUniform;
 use rstar::RTree;
 
 use crate::space::Point;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::boundaries::Boundaries;
-use crate::optimizer::{Optimizer, DefaultOptimizer, U};
+use crate::optimizer::{Optimizer, DefaultOptimizer};
+use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::Parameter;
@@ -29,7 +28,7 @@ use crate::problem::Parameter;
 /// 
 /// # Example
 /// 
-pub struct PRMstar<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug> {
+pub struct PRMstar<T: Metric2D> {
     start: Point<T>,
     goal: Point<T>,
     boundaries: Boundaries<T>,
@@ -43,7 +42,7 @@ pub struct PRMstar<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + F
     params: Parameter,
 }
 
-impl<T: ToString + PartialOrd + PartialEq + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug + Default + U> Planner<T> for PRMstar<T> {
+impl<T: Metric2D> Planner<T> for PRMstar<T> {
     /// run init before starting any planning task. 
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
@@ -124,7 +123,7 @@ impl<T: ToString + PartialOrd + PartialEq + SampleUniform + Sub + Add + Mul + Bo
 
 }
 
-impl<T: ToString + PartialOrd + PartialEq + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug + Default + U> PRMstar<T> {
+impl<T: Metric2D> PRMstar<T> {
 
     /// Standard constructor
     pub fn new(start: Point<T>, goal: Point<T>, boundaries: Boundaries<T>, optimizer: Box<dyn Optimizer<T>>, 
@@ -242,7 +241,6 @@ impl Default for PRMstar<f64> {
 }
 
 mod test {
-    use std::marker::PhantomData;
 
     #[test]
     fn test_prm_new() {
@@ -250,6 +248,8 @@ mod test {
         
         use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use super::PRMstar;
+        use std::marker::PhantomData;
+
     
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};
@@ -273,7 +273,7 @@ mod test {
     #[test]
     fn test_prm_add_node() {
         use crate::space::Point;
-
+        use std::marker::PhantomData;
         use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use super::PRMstar;
     
@@ -302,6 +302,8 @@ mod test {
         use crate::planner::base_planner::Planner;
         use crate::{boundaries::Boundaries,optimizer::Optimizer, optimizer::DefaultOptimizer, collision_checker::{NaiveCollisionChecker, CollisionChecker}, problem::Parameter};
         use super::PRMstar;
+        use std::marker::PhantomData;
+
     
         let start: Point<f64> = Point{x:0f64, y:0f64};
         let goal: Point<f64> = Point{x:3f64, y:3f64};

@@ -8,7 +8,8 @@ use rand::distributions::uniform::SampleUniform;
 use crate::space::Point;
 use crate::collision_checker::CollisionChecker;
 use crate::boundaries::Boundaries;
-use crate::optimizer::{Optimizer, U};
+use crate::optimizer::Optimizer;
+use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::prm_star::PRMstar;
 
@@ -35,7 +36,7 @@ pub struct ProblemDefinition<T> {
     planner: Box<dyn Planner<T>>,
 }
 
-impl<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Signed + std::fmt::Debug + Default + Display + ToString + U + 'static> ProblemDefinition<T> {
+impl<T: PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Signed + std::fmt::Debug + Default + Display + ToString + Metric2D + 'static> ProblemDefinition<T> {
     pub fn new(start: Point<T>, goal: Point<T>, bounds: Boundaries<T>, optimizer: Box<dyn Optimizer<T>>, params: Parameter, collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
         let planner: Box<dyn Planner<T>> = Box::new(PRMstar::new( start, goal, bounds, optimizer, params, collision_checker));
         ProblemDefinition {planner}

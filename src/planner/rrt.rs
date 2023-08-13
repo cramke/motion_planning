@@ -1,14 +1,13 @@
 use core::panic;
 use std::collections::HashMap;
-use std::ops::{Sub, Add, Mul};
 
-use num::{Bounded, Signed, Float};
+use num::Bounded;
 use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
-use rand::distributions::uniform::SampleUniform;
 use rstar::RTree;
 
+use crate::core::Metric2D;
 use crate::space::Point;
 use crate::boundaries::Boundaries;
 use crate::collision_checker::CollisionChecker;
@@ -26,7 +25,7 @@ use crate::problem::Parameter;
 /// [Link](https://www.cs.csustan.edu/~xliang/Courses/CS4710-21S/Papers/06%20RRT.pdf)
 /// 
 /// # Example
-pub struct RRT<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Signed + std::fmt::Debug + Default> {
+pub struct RRT<T: Metric2D> {
     parameters: Parameter,
     solution: Option<(T, Vec<NodeIndex>)>,
     pub is_solved: bool,
@@ -42,7 +41,7 @@ pub struct RRT<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Boun
     collision_checker: Box<dyn CollisionChecker<T>>,
 }
 
-impl<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Float + Bounded + Clone + Copy + ToString + Signed + std::fmt::Debug + Default> RRT<T> {
+impl<T: Metric2D> RRT<T> {
     /// Constructor
     pub fn new(mut boundaries: Boundaries<T>, collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
         RRT {
@@ -123,7 +122,7 @@ impl<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Float + Bounde
     }
 }
 
-impl<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Float + Copy + Clone + Signed + std::fmt::Debug + Default> Planner<T> for RRT<T> {
+impl<T: Metric2D> Planner<T> for RRT<T> {
     /// Run once before running the algorithm
     fn init(&mut self) {
         if !self.boundaries.is_node_inside(&self.start) {
@@ -213,13 +212,13 @@ impl<T: ToString + PartialOrd + SampleUniform + Sub + Add + Mul + Bounded + Floa
 }
 
 mod test {
-    use std::marker::PhantomData;
-
 
     #[test]
     fn test_new() {
         use crate::{problem::Parameter, planner::rrt::RRT};
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}};
+        use std::marker::PhantomData;
+
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
@@ -233,6 +232,8 @@ mod test {
         use crate::planner::rrt::RRT;
         use crate::{boundaries::Boundaries, collision_checker::{NaiveCollisionChecker, CollisionChecker}};
         use crate::planner::base_planner::Planner;
+        use std::marker::PhantomData;
+
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker{phantom: PhantomData});
