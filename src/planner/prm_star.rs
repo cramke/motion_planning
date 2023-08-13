@@ -2,7 +2,6 @@ use core::panic;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
-use num::Bounded;
 use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
@@ -90,7 +89,7 @@ impl<T: Metric2D> Planner<T> for PRMstar<T> {
     fn get_solution_cost(&self) -> T {
         match &self.solution {
             Some(sol) => sol.0,
-            None => <T as Bounded>::max_value(),
+            None => T::MAX,
         }
     }
 

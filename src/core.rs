@@ -1,5 +1,5 @@
 use std::ops::{Sub, Mul, Add};
-use num::{Signed, Bounded, Float};
+use num::{Signed, Bounded};
 use rand::distributions::uniform::SampleUniform;
 
 pub trait Metric2D: 
@@ -8,12 +8,20 @@ pub trait Metric2D:
     std::fmt::Debug + ToString + 
     PartialEq + PartialOrd + 
     Signed +
-    Bounded + Float +
+    Bounded +
     Sub<Self, Output = Self> + Mul<Self, Output = Self>+ Add<Self, Output = Self> + 
     Default +
     SampleUniform
 {
+    const MAX: Self;
+    const EPSILON: Self;
 }
 
-impl Metric2D for f64 {}
-impl Metric2D for f32 {}
+impl Metric2D for f64 {
+    const MAX: Self = f64::MAX;
+    const EPSILON: Self = f64::EPSILON;
+}
+impl Metric2D for f32 {
+    const MAX: Self = f32::MAX;
+    const EPSILON: Self = f32::EPSILON;
+}

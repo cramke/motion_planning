@@ -1,7 +1,6 @@
 use core::panic;
 use std::collections::HashMap;
 
-use num::Bounded;
 use petgraph::Undirected;
 use petgraph::algo::astar;
 use petgraph::graph::{Graph, NodeIndex};
@@ -184,7 +183,7 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
     /// - cost: The cost of the solution. Implies that a solution was found. 
     fn get_solution_cost(&self) -> T {
         match &self.solution {
-            None => <T as Bounded>::max_value(),
+            None => T::MAX,
             Some((cost, _)) => *cost,
         }
     }
