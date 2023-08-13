@@ -3,7 +3,7 @@ name = "mpl"
 version = "0.1.0"
 edition = "2021"
 authors = ["Carsten Ramke <carsten.ramke@gmail.com>"]
-description = "MO PLAnning library."
+description = "motion planning library."
 license = "Apache-2.0"
 keywords = ["prm", "robotics", "path planning", "probabilistic algorithm", "motion planning"]
 
@@ -13,6 +13,6 @@ keywords = ["prm", "robotics", "path planning", "probabilistic algorithm", "moti
 petgraph = "0.6.2"
 rand = "0.8.5"
 wkt = "0.10.3"
-geo = "0.23.1"
-rstar = "0.10.0"
+geo = "0.26.0"
+rstar = "0.11.0"
 num = "0.4.1"
