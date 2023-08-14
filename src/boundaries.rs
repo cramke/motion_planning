@@ -60,6 +60,17 @@ impl<T: Metric2D> Boundaries<T> {
     }
 }
 
+impl<T: Metric2D> Default for Boundaries<T> {
+    fn default() -> Self {
+        Boundaries::new(
+            Metric2D::DEFAULT,
+            Metric2D::DEFAULT,
+            Metric2D::DEFAULT,
+            Metric2D::DEFAULT,
+        )
+    }
+}
+
 mod tests {
 
     #[test]

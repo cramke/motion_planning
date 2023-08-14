@@ -95,8 +95,8 @@ pub struct ProblemDefinition2<T: Metric2D> {
 impl<T: Metric2D> ProblemDefinition2<T> {
     pub fn new() -> Self {
         ProblemDefinition2 {
-            start: Point::new(),
-            goal: Point::new(),
+            start: Point::default(),
+            goal: Point::default(),
             solution: Vec::new(),
         }
     }
@@ -109,14 +109,18 @@ impl<T: Metric2D> ProblemDefinition2<T> {
         self.goal
     }
 
-    pub fn set_start(&mut self, start: Point<T>) -> Result<bool, bool> {
+    pub fn set_start(&mut self, start: Point<T>) {
         self.start = start;
-        Ok(true)
     }
 
-    pub fn set_goal(&mut self, goal: Point<T>) -> Result<bool, bool> {
+    pub fn set_goal(&mut self, goal: Point<T>) {
         self.goal = goal;
-        Ok(true)
+    }
+}
+
+impl<T: Metric2D> Default for ProblemDefinition2<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

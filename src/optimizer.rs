@@ -53,7 +53,7 @@ mod tests {
         let mut optimizer: DefaultOptimizer<f64> = DefaultOptimizer {
             phantom: PhantomData,
         };
-        assert_eq!(true, optimizer.init());
+        assert!(optimizer.init());
     }
 
     #[test]

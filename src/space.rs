@@ -30,3 +30,12 @@ impl<T: Metric2D> Point<T> {
         ((self.x - other.x) * (self.x - other.x)) + ((self.y - other.y) * (self.y - other.y))
     }
 }
+
+impl<T: Metric2D> Default for Point<T> {
+    fn default() -> Self {
+        Point {
+            x: Metric2D::DEFAULT,
+            y: Metric2D::DEFAULT,
+        }
+    }
+}

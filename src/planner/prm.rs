@@ -11,7 +11,7 @@ use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
-use crate::problem::{ProblemDefinition, ProblemDefinition2};
+use crate::problem::ProblemDefinition2;
 use crate::space::Point;
 
 pub struct Config {
@@ -151,14 +151,11 @@ impl<T: Metric2D> PRM<T> {
         }
     }
 
-    pub fn new2(
-        boundaries: Boundaries<T>,
-        collision_checker: Box<dyn CollisionChecker<T>>,
-    ) -> Self {
+    pub fn new2(collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
         PRM {
-            start: Point::new(),
-            goal: Point::new(),
-            boundaries,
+            start: Point::default(),
+            goal: Point::default(),
+            boundaries: Boundaries::default(),
             graph: Graph::new_undirected(),
             solution: None,
             is_solved: false,
@@ -172,6 +169,10 @@ impl<T: Metric2D> PRM<T> {
     pub fn setup_from_problem(&mut self, problem: ProblemDefinition2<T>) {
         self.start = problem.get_start();
         self.goal = problem.get_goal();
+    }
+
+    pub fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
+        self.boundaries = boundaries;
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
@@ -302,10 +303,7 @@ mod test {
     use crate::boundaries::Boundaries;
     use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
     use crate::planner::base_planner::Planner;
-    use crate::{
-        problem::ProblemDefinition2,
-        space::Point,
-    };
+    use crate::{problem::ProblemDefinition2, space::Point};
     use std::marker::PhantomData;
 
     #[test]
@@ -349,20 +347,37 @@ mod test {
 
     #[test]
     fn test_setup_from_problem() {
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let mut prm = PRM::new2(bounds, cc);
+        let mut prm = PRM::new2(cc);
 
         let mut problem: ProblemDefinition2<f64> = ProblemDefinition2::new();
-        let _ = problem.set_start(Point { x: 8f64, y: 9f64 });
-        let _ = problem.set_goal(Point { x: 10f64, y: 11f64 });
+        problem.set_start(Point { x: 8f64, y: 9f64 });
+        problem.set_goal(Point { x: 10f64, y: 11f64 });
 
         prm.setup_from_problem(problem);
 
         assert_eq!(prm.start, Point { x: 8f64, y: 9f64 });
         assert_eq!(prm.goal, Point { x: 10f64, y: 11f64 });
+    }
+
+    #[test]
+    fn test_setup_boundaries() {
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
+        let mut prm = PRM::new2(cc);
+        let bounds: Boundaries<f64> = Boundaries::new(1f64, 2f64, 3f64, 4f64);
+        assert_ne!(prm.boundaries.x_lower, bounds.x_lower);
+        assert_ne!(prm.boundaries.x_upper, bounds.x_upper);
+        assert_ne!(prm.boundaries.y_lower, bounds.y_lower);
+        assert_ne!(prm.boundaries.y_upper, bounds.y_upper);
+        prm.set_boundaries(bounds.clone());
+        assert_eq!(prm.boundaries.x_lower, bounds.x_lower);
+        assert_eq!(prm.boundaries.x_upper, bounds.x_upper);
+        assert_eq!(prm.boundaries.y_lower, bounds.y_lower);
+        assert_eq!(prm.boundaries.y_upper, bounds.y_upper);
     }
 
     #[test]
