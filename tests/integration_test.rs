@@ -18,14 +18,16 @@ fn test_prmstar_scenario() {
     let start = Point { x: 0f64, y: 0f64 };
     let goal = Point { x: 3f64, y: 3f64 };
     let pdef: ProblemDefinition2<f64> = ProblemDefinition2::new(start, goal);
-
-    let setup: PlanningSetup<f64> = PlanningSetup {
+    let mut setup: PlanningSetup<f64> = PlanningSetup {
         planner,
         problem: pdef,
         boundaries: bounds,
         ready: false,
     };
+    setup.setup();
+    setup.solve();
     let cost = setup.planner.get_solution_cost();
+
     assert!(cost > 2f64);
     assert!(cost < 10f64);
 }
@@ -38,13 +40,16 @@ fn test_prm_naiv_scenario() {
     let goal = Point { x: 3f64, y: 3f64 };
     let pdef: ProblemDefinition2<f64> = ProblemDefinition2::new(start, goal);
 
-    let setup: PlanningSetup<f64> = PlanningSetup {
+    let mut setup: PlanningSetup<f64> = PlanningSetup {
         planner,
         problem: pdef,
         boundaries: bounds,
         ready: false,
     };
+    setup.setup();
+    setup.solve();
     let cost = setup.planner.get_solution_cost();
+
     assert!(cost > 2f64);
     assert!(cost < 10f64);
 }
@@ -108,10 +113,11 @@ fn test_geo_collision() {
         boundaries: bounds,
         ready: false,
     };
-
+    setup.setup();
     setup.solve();
     let cost: f64 = setup.planner.get_solution_cost();
     println!("{}", cost);
+
     assert!(cost > 2.0f64);
     assert!(cost < f64::MAX);
 }
