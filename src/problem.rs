@@ -97,7 +97,7 @@ impl<T: Metric2D> ProblemDefinition2<T> {
         ProblemDefinition2 {
             start: Point::new(),
             goal: Point::new(),
-            solution:Vec::new(),
+            solution: Vec::new(),
         }
     }
 

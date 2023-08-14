@@ -15,5 +15,5 @@ pub mod core;
 pub mod optimizer;
 pub mod planner;
 pub mod problem;
-pub mod space;
 pub mod setup;
+pub mod space;
