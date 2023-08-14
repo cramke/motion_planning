@@ -14,7 +14,7 @@ use mpl::{
 #[test]
 fn test_prmstar_scenario() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let planner = Box::new(PRMstar::default());
+    let planner = Box::<PRMstar<f64>>::default();
     let start = Point { x: 0f64, y: 0f64 };
     let goal = Point { x: 3f64, y: 3f64 };
     let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
@@ -35,7 +35,7 @@ fn test_prmstar_scenario() {
 #[test]
 fn test_prm_naiv_scenario() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let planner = Box::new(PRM::default());
+    let planner = Box::<PRM<f64>>::default();
     let start = Point { x: 0f64, y: 0f64 };
     let goal = Point { x: 3f64, y: 3f64 };
     let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
@@ -71,19 +71,19 @@ fn test_geo_collision() {
 
     impl CollisionChecker<f64> for GeoCollisionChecker {
         fn init(&self) -> bool {
-            return true;
+            true
         }
 
         fn is_edge_colliding(&self, begin: &Point<f64>, end: &Point<f64>) -> bool {
             let a = gp::new(begin.x, begin.y);
             let b = gp::new(end.x, end.y);
             let line = LineString::from(vec![a, b]);
-            return self.poly.intersects(&line);
+            self.poly.intersects(&line)
         }
 
         fn is_node_colliding(&self, node: &Point<f64>) -> bool {
             let geo_node = gp::new(node.x, node.y);
-            return self.poly.contains(&geo_node);
+            self.poly.contains(&geo_node)
         }
     }
 
@@ -102,7 +102,7 @@ fn test_geo_collision() {
     pdef.set_start(start);
     pdef.set_goal(goal);
 
-    let mut planner: Box<PRMstar<f64>> = Box::new(PRMstar::default());
+    let mut planner: Box<PRMstar<f64>> = Box::default();
     planner.optimizer = optimizer;
     let cc: Box<GeoCollisionChecker> = Box::new(GeoCollisionChecker { poly });
     planner.set_collision_checker(cc);
