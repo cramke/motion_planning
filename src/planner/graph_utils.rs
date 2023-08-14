@@ -1,5 +1,5 @@
-use crate::core::Metric2D;
 use crate::space::Point;
+use crate::types::Metric2D;
 use std::fs::File;
 use std::io::Write;
 

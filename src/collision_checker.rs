@@ -1,4 +1,4 @@
-use crate::{core::Metric2D, space::Point};
+use crate::{space::Point, types::Metric2D};
 use std::marker::PhantomData;
 
 /// CollisionChecker to implement custom Collision checkers.

@@ -8,9 +8,9 @@ use rstar::RTree;
 
 use crate::boundaries::Boundaries;
 use crate::collision_checker::CollisionChecker;
-use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::space::Point;
+use crate::types::Metric2D;
 
 pub struct Config {
     pub default_nearest_neighbors: u8,

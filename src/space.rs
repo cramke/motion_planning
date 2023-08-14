@@ -1,4 +1,4 @@
-use crate::core::Metric2D;
+use crate::types::Metric2D;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point<T: Metric2D> {

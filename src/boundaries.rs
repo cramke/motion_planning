@@ -1,4 +1,4 @@
-use crate::{core::Metric2D, space::Point};
+use crate::{space::Point, types::Metric2D};
 use rand::{rngs::ThreadRng, Rng};
 
 /// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.

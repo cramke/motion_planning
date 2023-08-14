@@ -8,11 +8,11 @@ use rstar::RTree;
 
 use crate::boundaries::Boundaries;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::problem::ProblemDefinition2;
 use crate::space::Point;
+use crate::types::Metric2D;
 
 use super::base_planner::Planner2;
 

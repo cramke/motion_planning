@@ -1,9 +1,9 @@
 use std::fs::File;
 use std::io::Write;
 
-use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::space::Point;
+use crate::types::Metric2D;
 
 /// The Problem Definition serves as a collector for various planners and problems.
 pub struct ProblemDefinition<T: Metric2D> {

@@ -1,4 +1,4 @@
-use crate::{boundaries::Boundaries, core::Metric2D, space::Point};
+use crate::{boundaries::Boundaries, space::Point, types::Metric2D};
 
 /// Custom planners can use these traits to implement other algorithm for planning.
 ///

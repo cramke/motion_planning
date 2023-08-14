@@ -9,11 +9,11 @@ use rstar::RTree;
 
 use crate::boundaries::Boundaries;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-use crate::core::Metric2D;
 use crate::optimizer::{DefaultOptimizer, Optimizer};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::space::Point;
+use crate::types::Metric2D;
 
 pub struct Config {
     default_nearest_neighbors: u8,

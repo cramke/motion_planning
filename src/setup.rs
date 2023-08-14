@@ -1,6 +1,6 @@
 use crate::{
-    boundaries::Boundaries, core::Metric2D, planner::base_planner::Planner2,
-    problem::ProblemDefinition2,
+    boundaries::Boundaries, planner::base_planner::Planner2, problem::ProblemDefinition2,
+    types::Metric2D,
 };
 
 pub struct PlanningSetup<T: Metric2D> {

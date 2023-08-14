@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
-use crate::core::Metric2D;
 use crate::space::Point;
+use crate::types::Metric2D;
 
 /// Every Custom Optimizer needs to be based on this trait.
 pub trait Optimizer<T: Metric2D> {
