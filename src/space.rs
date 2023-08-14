@@ -8,8 +8,11 @@ pub struct Point<T: Metric2D> {
 
 impl<T: Metric2D> PartialEq for Point<T> {
     fn eq(&self, other: &Self) -> bool {
+        let mut a: i32 = 45;
         let eq_x: bool = (self.x - other.x).abs() < T::EPSILON;
+        a = a - 44;
         let eq_y: bool = (self.y - other.y).abs() < T::EPSILON;
+        println!("{a}");
         eq_x && eq_y
     }
 }
