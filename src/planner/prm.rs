@@ -11,6 +11,7 @@ use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::core::Metric2D;
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
+use crate::problem::{ProblemDefinition, ProblemDefinition2};
 use crate::space::Point;
 
 pub struct Config {
@@ -150,6 +151,11 @@ impl<T: Metric2D> PRM<T> {
         }
     }
 
+    pub fn setup_from_problem(&mut self, problem: ProblemDefinition2<T>) {
+        self.start = problem.get_start();
+        self.goal = problem.get_goal();
+    }
+
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
     fn add_node(&mut self, node: Point<T>) {
         let index = self.graph.add_node(node);
@@ -273,6 +279,8 @@ impl Default for PRM<f64> {
 }
 
 mod test {
+    use crate::{space::Point, problem::{self, ProblemDefinition2}};
+
     #[test]
     fn test_prm_new() {
         use crate::space::Point;
@@ -305,8 +313,6 @@ mod test {
 
     #[test]
     fn test_prm_add_node() {
-        use crate::space::Point;
-
         use super::PRM;
         use crate::{
             boundaries::Boundaries,
@@ -330,6 +336,33 @@ mod test {
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
         assert_eq!(planner.index_node_lookup.len(), 1);
+    }
+
+    #[test]
+    fn test_setup_from_problem() {
+        use crate::space::Point;
+        use crate::boundaries::Boundaries;
+        use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
+        use crate::problem::ProblemDefinition2;
+        use std::marker::PhantomData;
+        use super::PRM;
+
+        let start: Point<f64> = Point::new();
+        let goal: Point<f64> = Point::new();
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
+        let mut prm = PRM::new(start, goal, bounds, cc);
+
+        let mut problem: ProblemDefinition2<f64> = ProblemDefinition2::new();
+        let _ = problem.set_start(Point { x: 8f64, y: 9f64 });
+        let _ = problem.set_goal(Point { x: 10f64, y: 11f64 });
+
+        prm.setup_from_problem(problem);
+
+        assert_eq!(prm.start, Point { x: 8f64, y: 9f64 });
+        assert_eq!(prm.goal, Point { x: 10f64, y: 11f64 });
     }
 
     #[test]

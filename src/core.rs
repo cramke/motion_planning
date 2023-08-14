@@ -21,13 +21,16 @@ pub trait Metric2D:
 {
     const MAX: Self;
     const EPSILON: Self;
+    const DEFAULT: Self;
 }
 
 impl Metric2D for f64 {
     const MAX: Self = f64::MAX;
     const EPSILON: Self = f64::EPSILON;
+    const DEFAULT: Self = 0f64;
 }
 impl Metric2D for f32 {
     const MAX: Self = f32::MAX;
     const EPSILON: Self = f32::EPSILON;
+    const DEFAULT: Self = 0f32;
 }
