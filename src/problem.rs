@@ -93,10 +93,10 @@ pub struct ProblemDefinition2<T: Metric2D> {
 }
 
 impl<T: Metric2D> ProblemDefinition2<T> {
-    pub fn new() -> Self {
+    pub fn new(start: Point<T>, goal: Point<T>) -> Self {
         ProblemDefinition2 {
-            start: Point::default(),
-            goal: Point::default(),
+            start,
+            goal,
             solution: Vec::new(),
         }
     }
@@ -120,7 +120,7 @@ impl<T: Metric2D> ProblemDefinition2<T> {
 
 impl<T: Metric2D> Default for ProblemDefinition2<T> {
     fn default() -> Self {
-        Self::new()
+        ProblemDefinition2::new(Point::default(), Point::default())
     }
 }
 

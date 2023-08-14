@@ -15,32 +15,39 @@ impl<T: Metric2D> PlanningSetup<T> {
         self.planner.set_start(self.problem.get_start());
         self.planner.set_goal(self.problem.get_goal());
         self.planner.set_boundaries(self.boundaries.clone());
+        if self.sanity_check() {
+            self.planner.init();
+            self.ready = true;
+        } else {
+            self.ready = false;
+        }
+    }
 
-        self.ready = true;
+    fn sanity_check(&self) -> bool {
+        true
     }
 
     pub fn solve(&mut self) {
-        self.planner.solve();
+        if self.ready {
+            self.planner.solve();
+        } else {
+            panic!("PlanningSetup is not ready for solving.")
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
     use crate::boundaries::Boundaries;
-    use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
     use crate::planner::prm::PRM;
     use crate::problem::ProblemDefinition2;
     use crate::setup::PlanningSetup;
-    use std::marker::PhantomData;
+    use crate::space::Point;
 
     #[test]
     fn test_setup_with_prm_new() {
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
-            phantom: PhantomData,
-        });
-
         let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::new(PRM::new(cc)),
+            planner: Box::new(PRM::default()),
             problem: ProblemDefinition2::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -51,12 +58,8 @@ mod test {
 
     #[test]
     fn test_setup_with_prm_setup() {
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
-            phantom: PhantomData,
-        });
-
         let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::new(PRM::new(cc)),
+            planner: Box::new(PRM::default()),
             problem: ProblemDefinition2::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -65,5 +68,33 @@ mod test {
         assert!(!setup.ready);
         setup.setup();
         assert!(setup.ready);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_setup_with_prm_solve_wo_setup() {
+        let mut setup: PlanningSetup<f64> = PlanningSetup {
+            planner: Box::new(PRM::default()),
+            problem: ProblemDefinition2::default(),
+            boundaries: Boundaries::default(),
+            ready: false,
+        };
+        setup.solve();
+    }
+
+    #[test]
+    fn test_setup_with_prm_solve() {
+        let start: Point<f64> = Point::new(1f64, 1f64);
+        let goal: Point<f64> = Point::new(2f64, 2f64);
+
+        let mut setup: PlanningSetup<f64> = PlanningSetup {
+            planner: Box::new(PRM::default()),
+            problem: ProblemDefinition2::new(start, goal),
+            boundaries: Boundaries::default(),
+            ready: false,
+        };
+
+        setup.setup();
+        setup.solve();
     }
 }

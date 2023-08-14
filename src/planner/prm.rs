@@ -67,6 +67,11 @@ impl<T: Metric2D> Planner2<T> for PRM<T> {
         self.boundaries = boundaries;
     }
 
+    fn init(&mut self) {
+        self.add_node(self.start);
+        self.add_node(self.goal);
+    }
+
     fn solve(&mut self) {
         self._run();
     }
@@ -345,7 +350,7 @@ mod test {
         });
         let mut prm = PRM::new(cc);
 
-        let mut problem: ProblemDefinition2<f64> = ProblemDefinition2::new();
+        let mut problem: ProblemDefinition2<f64> = ProblemDefinition2::default();
         problem.set_start(Point { x: 8f64, y: 9f64 });
         problem.set_goal(Point { x: 10f64, y: 11f64 });
 

@@ -15,11 +15,8 @@ impl<T: Metric2D> PartialEq for Point<T> {
 }
 
 impl<T: Metric2D> Point<T> {
-    pub fn new() -> Self {
-        Point {
-            x: T::DEFAULT,
-            y: T::DEFAULT,
-        }
+    pub fn new(x: T, y: T) -> Self {
+        Point { x, y }
     }
 
     pub fn to_wkt(&self) -> String {
