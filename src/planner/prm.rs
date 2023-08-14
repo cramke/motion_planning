@@ -131,27 +131,7 @@ impl<T: Metric2D> Planner<T> for PRM<T> {
 
 impl<T: Metric2D> PRM<T> {
     /// Standard constructor
-    pub fn new(
-        start: Point<T>,
-        goal: Point<T>,
-        boundaries: Boundaries<T>,
-        collision_checker: Box<dyn CollisionChecker<T>>,
-    ) -> Self {
-        PRM {
-            start,
-            goal,
-            boundaries,
-            graph: Graph::new_undirected(),
-            solution: None,
-            is_solved: false,
-            collision_checker,
-            tree: RTree::new(),
-            index_node_lookup: HashMap::new(),
-            config: Config::default(),
-        }
-    }
-
-    pub fn new2(collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
+    pub fn new(collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
         PRM {
             start: Point::default(),
             goal: Point::default(),
@@ -287,13 +267,10 @@ impl<T: Metric2D> PRM<T> {
 
 impl Default for PRM<f64> {
     fn default() -> Self {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        PRM::new(start, goal, bounds, cc)
+        PRM::new(cc)
     }
 }
 
@@ -308,13 +285,10 @@ mod test {
 
     #[test]
     fn test_prm_new() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let planner = PRM::new(start, goal, bounds, cc);
+        let planner = PRM::new(cc);
 
         assert!(!planner.is_solved);
     }
@@ -327,13 +301,16 @@ mod test {
 
     #[test]
     fn test_prm_add_node() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let mut problem = ProblemDefinition2::default();
+        problem.set_start(Point { x: 0f64, y: 0f64 });
+        problem.set_goal(Point { x: 3f64, y: 3f64 });
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let mut planner = PRM::new(start, goal, bounds, cc);
+        let mut planner = PRM::new(cc);
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        planner.set_boundaries(bounds);
+        planner.setup_from_problem(problem);
 
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
@@ -350,7 +327,7 @@ mod test {
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let mut prm = PRM::new2(cc);
+        let mut prm = PRM::new(cc);
 
         let mut problem: ProblemDefinition2<f64> = ProblemDefinition2::new();
         problem.set_start(Point { x: 8f64, y: 9f64 });
@@ -367,7 +344,7 @@ mod test {
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let mut prm = PRM::new2(cc);
+        let mut prm = PRM::new(cc);
         let bounds: Boundaries<f64> = Boundaries::new(1f64, 2f64, 3f64, 4f64);
         assert_ne!(prm.boundaries.x_lower, bounds.x_lower);
         assert_ne!(prm.boundaries.x_upper, bounds.x_upper);
@@ -382,13 +359,10 @@ mod test {
 
     #[test]
     fn test_prm_get_solution() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let planner = PRM::new(start, goal, bounds, cc);
+        let planner = PRM::new(cc);
 
         assert_eq!(planner.get_solution_cost(), f64::MAX);
         assert_eq!(planner.get_solution_path(), Vec::new());
