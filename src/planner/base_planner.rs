@@ -7,15 +7,6 @@ use crate::{
 /// # Available Planners:
 /// As of the time of writing the number is still extremely limited. This framework should simplify the implementation of further algorithms.
 /// - PRM: Probabilistic Road Maps
-pub trait Planner<T: Metric2D> {
-    fn init(&mut self);
-    fn _run(&mut self);
-    fn is_solved(&self) -> bool;
-    fn print_statistics(&self, path: &str);
-    fn get_solution_cost(&self) -> T;
-    fn get_solution_path(&self) -> Vec<Point<T>>;
-}
-
 pub trait Planner2<T: Metric2D> {
     fn set_start(&mut self, start: Point<T>);
     fn set_goal(&mut self, goal: Point<T>);
