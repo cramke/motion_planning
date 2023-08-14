@@ -47,7 +47,7 @@ mod test {
     #[test]
     fn test_setup_with_prm_new() {
         let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::new(PRM::default()),
+            planner: Box::<PRM<f64>>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -59,7 +59,7 @@ mod test {
     #[test]
     fn test_setup_with_prm_setup() {
         let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::new(PRM::default()),
+            planner: Box::<PRM<f64>>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -74,7 +74,7 @@ mod test {
     #[should_panic]
     fn test_setup_with_prm_solve_wo_setup() {
         let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::new(PRM::default()),
+            planner: Box::<PRM<f64>>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -88,7 +88,7 @@ mod test {
         let goal: Point<f64> = Point::new(2f64, 2f64);
 
         let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::new(PRM::default()),
+            planner: Box::<PRM<f64>>::default(),
             problem: ProblemDefinition::new(start, goal),
             boundaries: Boundaries::default(),
             ready: false,
