@@ -1,4 +1,6 @@
-use crate::{boundaries::Boundaries, space::Point, types::Metric2D};
+use crate::{
+    boundaries::Boundaries, collision_checker::CollisionChecker, space::Point, types::Metric2D,
+};
 
 /// Custom planners can use these traits to implement other algorithm for planning.
 ///
@@ -18,6 +20,8 @@ pub trait Planner2<T: Metric2D> {
     fn set_start(&mut self, start: Point<T>);
     fn set_goal(&mut self, goal: Point<T>);
     fn set_boundaries(&mut self, boundaries: Boundaries<T>);
+    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>);
     fn init(&mut self);
     fn solve(&mut self);
+    fn get_solution_cost(&self) -> T;
 }

@@ -1,4 +1,3 @@
-use core::panic;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
@@ -10,10 +9,11 @@ use rstar::RTree;
 use crate::boundaries::Boundaries;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::optimizer::{DefaultOptimizer, Optimizer};
-use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::space::Point;
 use crate::types::Metric2D;
+
+use super::base_planner::Planner2;
 
 pub struct Config {
     default_nearest_neighbors: u8,
@@ -54,37 +54,29 @@ pub struct PRMstar<T: Metric2D> {
     pub config: Config,
 }
 
-impl<T: Metric2D> Planner<T> for PRMstar<T> {
-    /// run init before starting any planning task.
-    fn init(&mut self) {
-        if !self.boundaries.is_node_inside(&self.start) {
-            panic!("Start is not inside boundaries.");
-        }
-
-        if !self.boundaries.is_node_inside(&self.goal) {
-            panic!("Goal is not inside boundaries.");
-        }
-
-        if self.collision_checker.is_node_colliding(&self.start) {
-            panic!("Start is in collision");
-        }
-
-        if self.collision_checker.is_node_colliding(&self.goal) {
-            panic!("Goal is in collision");
-        }
-
-        self.add_node(self.start);
-        self.add_node(self.goal);
-
-        if !self.optimizer.init() {
-            panic!("Optimizer could not be initialized");
-        }
-
-        println!("Setup is ready for planning");
+impl<T: Metric2D> Planner2<T> for PRMstar<T> {
+    fn set_start(&mut self, start: Point<T>) {
+        self.start = start;
     }
 
-    /// Starts building the graph.
-    fn _run(&mut self) {
+    fn set_goal(&mut self, goal: Point<T>) {
+        self.goal = goal;
+    }
+
+    fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
+        self.boundaries = boundaries;
+    }
+
+    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>) {
+        self.collision_checker = cc;
+    }
+
+    fn init(&mut self) {
+        self.add_node(self.start);
+        self.add_node(self.goal);
+    }
+
+    fn solve(&mut self) {
         loop {
             let added_node: Point<T> = self.add_random_node();
             self.connect_node_to_graph(added_node);
@@ -98,40 +90,14 @@ impl<T: Metric2D> Planner<T> for PRMstar<T> {
         }
     }
 
-    /// Lower cost means it is a preferrable solution. If no solution was found, the returned cost will be f64::MAX.
+    /// Returns the solution cost.
+    /// - f64::MAX: No solution was found
+    /// - cost: The cost of the solution. Implies that a solution was found.
     fn get_solution_cost(&self) -> T {
         match &self.solution {
-            Some(sol) => sol.0,
             None => T::MAX,
+            Some((cost, _)) => *cost,
         }
-    }
-
-    /// Returns empty Vec if no solution was found.
-    fn get_solution_path(&self) -> Vec<Point<T>> {
-        match &self.solution {
-            None => Vec::new(),
-            Some(sol) => sol
-                .1
-                .iter()
-                .map(|idx| *self.graph.node_weight(*idx).unwrap())
-                .collect(),
-        }
-    }
-
-    /// Returns a bool saying if any solution between start and goal was found.
-    fn is_solved(&self) -> bool {
-        self.is_solved
-    }
-
-    /// Prints some basic statistics of the graph.
-    fn print_statistics(&self, path: &str) {
-        let nodes: usize = self.graph.node_count();
-        println!("Graph contains {nodes} nodes");
-
-        let edges: usize = self.graph.edge_count();
-        println!("Graph contains {edges} edges");
-
-        pg::write_graph_to_file(&self.graph, path);
     }
 }
 
@@ -280,21 +246,21 @@ impl Default for PRMstar<f64> {
     }
 }
 
+#[cfg(test)]
 mod test {
+    use crate::space::Point;
+
+    use super::PRMstar;
+    use crate::{
+        boundaries::Boundaries,
+        collision_checker::{CollisionChecker, NaiveCollisionChecker},
+        optimizer::DefaultOptimizer,
+        optimizer::Optimizer,
+    };
+    use std::marker::PhantomData;
 
     #[test]
     fn test_prm_new() {
-        use crate::space::Point;
-
-        use super::PRMstar;
-        use crate::{
-            boundaries::Boundaries,
-            collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            optimizer::DefaultOptimizer,
-            optimizer::Optimizer,
-        };
-        use std::marker::PhantomData;
-
         let start: Point<f64> = Point { x: 0f64, y: 0f64 };
         let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
@@ -319,16 +285,6 @@ mod test {
 
     #[test]
     fn test_prm_add_node() {
-        use super::PRMstar;
-        use crate::space::Point;
-        use crate::{
-            boundaries::Boundaries,
-            collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            optimizer::DefaultOptimizer,
-            optimizer::Optimizer,
-        };
-        use std::marker::PhantomData;
-
         let start: Point<f64> = Point { x: 0f64, y: 0f64 };
         let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
@@ -348,37 +304,5 @@ mod test {
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
         assert_eq!(planner.index_node_lookup.len(), 1);
-    }
-
-    #[test]
-    fn test_prm_get_solution() {
-        use crate::space::Point;
-
-        use super::PRMstar;
-        use crate::planner::base_planner::Planner;
-        use crate::{
-            boundaries::Boundaries,
-            collision_checker::{CollisionChecker, NaiveCollisionChecker},
-            optimizer::DefaultOptimizer,
-            optimizer::Optimizer,
-        };
-        use std::marker::PhantomData;
-
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
-            phantom: PhantomData,
-        });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
-            phantom: PhantomData,
-        });
-        let planner = PRMstar::new(start, goal, bounds, optimizer, cc);
-
-        assert_eq!(
-            crate::planner::base_planner::Planner::get_solution_cost(&planner),
-            f64::MAX
-        );
-        assert_eq!(planner.get_solution_path(), Vec::new());
     }
 }

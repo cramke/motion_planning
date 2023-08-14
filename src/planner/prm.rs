@@ -44,7 +44,7 @@ pub struct PRM<T: Metric2D> {
     pub goal: Point<T>,
     pub boundaries: Boundaries<T>,
     pub graph: Graph<Point<T>, T, Undirected>,
-    solution: Option<(T, Vec<NodeIndex>)>,
+    pub solution: Option<(T, Vec<NodeIndex>)>,
     pub is_solved: bool,
     pub collision_checker: Box<dyn CollisionChecker<T>>,
     tree: RTree<[T; 2]>,
@@ -65,6 +65,10 @@ impl<T: Metric2D> Planner2<T> for PRM<T> {
         self.boundaries = boundaries;
     }
 
+    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>) {
+        self.collision_checker = cc;
+    }
+
     fn init(&mut self) {
         self.add_node(self.start);
         self.add_node(self.goal);
@@ -81,6 +85,16 @@ impl<T: Metric2D> Planner2<T> for PRM<T> {
                 println!("Termination Criteria met");
                 break;
             }
+        }
+    }
+
+    /// Returns the solution cost.
+    /// - f64::MAX: No solution was found
+    /// - cost: The cost of the solution. Implies that a solution was found.
+    fn get_solution_cost(&self) -> T {
+        match &self.solution {
+            None => T::MAX,
+            Some((cost, _)) => *cost,
         }
     }
 }

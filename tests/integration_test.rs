@@ -2,72 +2,63 @@ use std::marker::PhantomData;
 
 use geo::{Contains, Intersects};
 use mpl::{
-    self,
     boundaries::Boundaries,
-    collision_checker::{CollisionChecker, NaiveCollisionChecker},
+    collision_checker::CollisionChecker,
     optimizer::{DefaultOptimizer, Optimizer},
-    planner,
-    problem::ProblemDefinition,
+    planner::{base_planner::Planner2, prm::PRM, prm_star::PRMstar},
+    problem::ProblemDefinition2,
+    setup::PlanningSetup,
+    space::Point,
 };
 
 #[test]
-fn test_mpl_default_scenario() {
-    use mpl;
-    use mpl::boundaries::Boundaries;
-    use mpl::space::Point;
-
+fn test_prmstar_scenario() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
-        phantom: PhantomData,
-    });
-    let collision_checker: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
-        phantom: PhantomData,
-    });
-    let mut planner = Box::new(planner::prm_star::PRMstar::default());
-    planner.start = Point { x: 0f64, y: 0f64 };
-    planner.goal = Point { x: 3f64, y: 3f64 };
-    planner.boundaries = bounds;
-    planner.optimizer = optimizer;
-    planner.collision_checker = collision_checker;
-    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::new(planner);
-    pdef.solve();
-    let cost = pdef.get_solution_cost();
+    let planner = Box::new(PRMstar::default());
+    let start = Point { x: 0f64, y: 0f64 };
+    let goal = Point { x: 3f64, y: 3f64 };
+    let pdef: ProblemDefinition2<f64> = ProblemDefinition2::new(start, goal);
+
+    let setup: PlanningSetup<f64> = PlanningSetup {
+        planner,
+        problem: pdef,
+        boundaries: bounds,
+        ready: false,
+    };
+    let cost = setup.planner.get_solution_cost();
     assert!(cost > 2f64);
     assert!(cost < 10f64);
 }
 
 #[test]
-fn test_mpl_naiv_scenario() {
-    use mpl;
-    use mpl::boundaries::Boundaries;
-    use mpl::space::Point;
-
-    let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+fn test_prm_naiv_scenario() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
-        phantom: PhantomData,
-    });
-    let collision_checker: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
-        phantom: PhantomData,
-    });
-    let mut planner = Box::new(planner::prm_star::PRMstar::default());
-    planner.start = Point { x: 0f64, y: 0f64 };
-    planner.goal = goal;
-    planner.boundaries = bounds;
-    planner.optimizer = optimizer;
-    planner.collision_checker = collision_checker;
-    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::new(planner);
-    pdef.solve();
-    let cost: f64 = pdef.get_solution_cost();
-    println!("{}", cost);
+    let planner = Box::new(PRM::default());
+    let start = Point { x: 0f64, y: 0f64 };
+    let goal = Point { x: 3f64, y: 3f64 };
+    let pdef: ProblemDefinition2<f64> = ProblemDefinition2::new(start, goal);
+
+    let setup: PlanningSetup<f64> = PlanningSetup {
+        planner,
+        problem: pdef,
+        boundaries: bounds,
+        ready: false,
+    };
+    let cost = setup.planner.get_solution_cost();
+    assert!(cost > 2f64);
     assert!(cost < 10f64);
+}
+
+#[test]
+#[should_panic]
+fn test_rrt_naiv_scenario() {
+    panic!("Not yet implemented");
 }
 
 #[test]
 fn test_geo_collision() {
     use geo::Point as gp;
     use geo::{LineString, Polygon};
-    use mpl::space::Point;
 
     pub struct GeoCollisionChecker {
         poly: Polygon,
@@ -96,21 +87,30 @@ fn test_geo_collision() {
         vec![],
     );
 
-    let collision_checker: Box<dyn CollisionChecker<f64>> = Box::new(GeoCollisionChecker { poly });
-    let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
         phantom: PhantomData,
     });
-    let mut planner = Box::new(planner::prm_star::PRMstar::default());
-    planner.start = Point { x: 0f64, y: 0f64 };
-    planner.goal = goal;
-    planner.boundaries = bounds;
+    let mut pdef: ProblemDefinition2<f64> = ProblemDefinition2::default();
+    let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+    let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+    pdef.set_start(start);
+    pdef.set_goal(goal);
+
+    let mut planner: Box<PRMstar<f64>> = Box::new(PRMstar::default());
     planner.optimizer = optimizer;
-    planner.collision_checker = collision_checker;
-    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::new(planner);
-    pdef.solve();
-    let cost: f64 = pdef.get_solution_cost();
+    let cc: Box<GeoCollisionChecker> = Box::new(GeoCollisionChecker { poly });
+    planner.set_collision_checker(cc);
+
+    let mut setup: PlanningSetup<f64> = PlanningSetup {
+        planner,
+        problem: pdef,
+        boundaries: bounds,
+        ready: false,
+    };
+
+    setup.solve();
+    let cost: f64 = setup.planner.get_solution_cost();
     println!("{}", cost);
     assert!(cost > 2.0f64);
     assert!(cost < f64::MAX);
