@@ -1,4 +1,4 @@
-use crate::{core::Metric2D, space::Point};
+use crate::{boundaries::Boundaries, core::Metric2D, space::Point};
 
 /// Custom planners can use these traits to implement other algorithm for planning.
 ///
@@ -7,9 +7,16 @@ use crate::{core::Metric2D, space::Point};
 /// - PRM: Probabilistic Road Maps
 pub trait Planner<T: Metric2D> {
     fn init(&mut self);
-    fn run(&mut self);
+    fn _run(&mut self);
     fn is_solved(&self) -> bool;
     fn print_statistics(&self, path: &str);
     fn get_solution_cost(&self) -> T;
     fn get_solution_path(&self) -> Vec<Point<T>>;
+}
+
+pub trait Planner2<T: Metric2D> {
+    fn set_start(&mut self, start: Point<T>);
+    fn set_goal(&mut self, goal: Point<T>);
+    fn set_boundaries(&mut self, boundaries: Boundaries<T>);
+    fn solve(&mut self);
 }

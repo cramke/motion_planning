@@ -192,7 +192,7 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
     }
 
     /// Builds the graph until a termination criteria is met.
-    fn run(&mut self) {
+    fn _run(&mut self) {
         loop {
             let random_node: Point<T> = self.boundaries.generate_random_configuration();
 
@@ -299,7 +299,7 @@ mod test {
         });
         let mut rrt = RRT::new(bounds, cc);
         rrt.init();
-        rrt.run();
+        rrt._run();
         rrt.print_statistics("a");
         assert!(rrt.is_solved);
     }

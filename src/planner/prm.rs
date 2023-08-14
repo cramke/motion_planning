@@ -14,6 +14,8 @@ use crate::planner::graph_utils as pg;
 use crate::problem::ProblemDefinition2;
 use crate::space::Point;
 
+use super::base_planner::Planner2;
+
 pub struct Config {
     default_nearest_neighbors: u8,
     max_size: usize,
@@ -52,6 +54,24 @@ pub struct PRM<T: Metric2D> {
     config: Config,
 }
 
+impl<T: Metric2D> Planner2<T> for PRM<T> {
+    fn set_start(&mut self, start: Point<T>) {
+        self.start = start;
+    }
+
+    fn set_goal(&mut self, goal: Point<T>) {
+        self.goal = goal;
+    }
+
+    fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
+        self.boundaries = boundaries;
+    }
+
+    fn solve(&mut self) {
+        self._run();
+    }
+}
+
 impl<T: Metric2D> Planner<T> for PRM<T> {
     /// run init before starting any planning task.
     fn init(&mut self) {
@@ -78,7 +98,7 @@ impl<T: Metric2D> Planner<T> for PRM<T> {
     }
 
     /// Starts building the graph.
-    fn run(&mut self) {
+    fn _run(&mut self) {
         loop {
             let added_node: Point<T> = self.add_random_node();
             self.connect_node_to_graph(added_node);
@@ -149,10 +169,6 @@ impl<T: Metric2D> PRM<T> {
     pub fn setup_from_problem(&mut self, problem: ProblemDefinition2<T>) {
         self.start = problem.get_start();
         self.goal = problem.get_goal();
-    }
-
-    pub fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
-        self.boundaries = boundaries;
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
@@ -279,7 +295,7 @@ mod test {
     use super::PRM;
     use crate::boundaries::Boundaries;
     use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-    use crate::planner::base_planner::Planner;
+    use crate::planner::base_planner::{Planner, Planner2};
     use crate::{problem::ProblemDefinition2, space::Point};
     use std::marker::PhantomData;
 

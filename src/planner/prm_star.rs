@@ -84,7 +84,7 @@ impl<T: Metric2D> Planner<T> for PRMstar<T> {
     }
 
     /// Starts building the graph.
-    fn run(&mut self) {
+    fn _run(&mut self) {
         loop {
             let added_node: Point<T> = self.add_random_node();
             self.connect_node_to_graph(added_node);

@@ -17,7 +17,7 @@ impl<T: Metric2D> ProblemDefinition<T> {
 
     pub fn solve(&mut self) {
         self.planner.init();
-        self.planner.run();
+        self.planner._run();
     }
 
     pub fn print_statistics(&self, path: &str) {
