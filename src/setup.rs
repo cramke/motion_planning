@@ -7,7 +7,7 @@ pub struct PlanningSetup<T: Metric2D> {
     pub planner: Box<dyn Planner2<T>>,
     pub problem: ProblemDefinition2<T>,
     pub boundaries: Boundaries<T>,
-    ready: bool,
+    pub ready: bool,
 }
 
 impl<T: Metric2D> PlanningSetup<T> {
