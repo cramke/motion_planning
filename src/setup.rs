@@ -1,11 +1,11 @@
 use crate::{
-    boundaries::Boundaries, planner::base_planner::Planner2, problem::ProblemDefinition2,
+    boundaries::Boundaries, planner::base_planner::Planner, problem::ProblemDefinition,
     types::Metric2D,
 };
 
 pub struct PlanningSetup<T: Metric2D> {
-    pub planner: Box<dyn Planner2<T>>,
-    pub problem: ProblemDefinition2<T>,
+    pub planner: Box<dyn Planner<T>>,
+    pub problem: ProblemDefinition<T>,
     pub boundaries: Boundaries<T>,
     pub ready: bool,
 }
@@ -40,7 +40,7 @@ impl<T: Metric2D> PlanningSetup<T> {
 mod test {
     use crate::boundaries::Boundaries;
     use crate::planner::prm::PRM;
-    use crate::problem::ProblemDefinition2;
+    use crate::problem::ProblemDefinition;
     use crate::setup::PlanningSetup;
     use crate::space::Point;
 
@@ -48,7 +48,7 @@ mod test {
     fn test_setup_with_prm_new() {
         let setup: PlanningSetup<f64> = PlanningSetup {
             planner: Box::new(PRM::default()),
-            problem: ProblemDefinition2::default(),
+            problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
         };
@@ -60,7 +60,7 @@ mod test {
     fn test_setup_with_prm_setup() {
         let mut setup: PlanningSetup<f64> = PlanningSetup {
             planner: Box::new(PRM::default()),
-            problem: ProblemDefinition2::default(),
+            problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
         };
@@ -75,7 +75,7 @@ mod test {
     fn test_setup_with_prm_solve_wo_setup() {
         let mut setup: PlanningSetup<f64> = PlanningSetup {
             planner: Box::new(PRM::default()),
-            problem: ProblemDefinition2::default(),
+            problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
         };
@@ -89,7 +89,7 @@ mod test {
 
         let mut setup: PlanningSetup<f64> = PlanningSetup {
             planner: Box::new(PRM::default()),
-            problem: ProblemDefinition2::new(start, goal),
+            problem: ProblemDefinition::new(start, goal),
             boundaries: Boundaries::default(),
             ready: false,
         };

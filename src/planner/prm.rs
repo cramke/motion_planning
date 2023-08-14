@@ -12,7 +12,7 @@ use crate::planner::graph_utils as pg;
 use crate::space::Point;
 use crate::types::Metric2D;
 
-use super::base_planner::Planner2;
+use super::base_planner::Planner;
 
 pub struct Config {
     default_nearest_neighbors: u8,
@@ -52,7 +52,7 @@ pub struct PRM<T: Metric2D> {
     config: Config,
 }
 
-impl<T: Metric2D> Planner2<T> for PRM<T> {
+impl<T: Metric2D> Planner<T> for PRM<T> {
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }
@@ -240,7 +240,7 @@ mod test {
     use super::PRM;
     use crate::boundaries::Boundaries;
     use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
-    use crate::planner::base_planner::Planner2;
+    use crate::planner::base_planner::Planner;
     use crate::space::Point;
     use std::marker::PhantomData;
 

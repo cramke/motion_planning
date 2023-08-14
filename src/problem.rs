@@ -2,15 +2,15 @@ use crate::space::Point;
 use crate::types::Metric2D;
 
 /// The Problem Definition serves as a collector for various planners and problems.
-pub struct ProblemDefinition2<T: Metric2D> {
+pub struct ProblemDefinition<T: Metric2D> {
     pub start: Point<T>,
     pub goal: Point<T>,
     pub solution: Vec<Point<T>>,
 }
 
-impl<T: Metric2D> ProblemDefinition2<T> {
+impl<T: Metric2D> ProblemDefinition<T> {
     pub fn new(start: Point<T>, goal: Point<T>) -> Self {
-        ProblemDefinition2 {
+        ProblemDefinition {
             start,
             goal,
             solution: Vec::new(),
@@ -34,9 +34,9 @@ impl<T: Metric2D> ProblemDefinition2<T> {
     }
 }
 
-impl<T: Metric2D> Default for ProblemDefinition2<T> {
+impl<T: Metric2D> Default for ProblemDefinition<T> {
     fn default() -> Self {
-        ProblemDefinition2::new(Point::default(), Point::default())
+        ProblemDefinition::new(Point::default(), Point::default())
     }
 }
 

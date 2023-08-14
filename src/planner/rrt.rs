@@ -10,7 +10,7 @@ use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::space::Point;
 use crate::types::Metric2D;
 
-use super::base_planner::Planner2;
+use super::base_planner::Planner;
 
 pub struct Config {
     pub default_nearest_neighbors: u8,
@@ -50,7 +50,7 @@ pub struct RRT<T: Metric2D> {
     pub config: Config,
 }
 
-impl<T: Metric2D> Planner2<T> for RRT<T> {
+impl<T: Metric2D> Planner<T> for RRT<T> {
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }

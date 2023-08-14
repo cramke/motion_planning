@@ -5,8 +5,8 @@ use mpl::{
     boundaries::Boundaries,
     collision_checker::CollisionChecker,
     optimizer::{DefaultOptimizer, Optimizer},
-    planner::{base_planner::Planner2, prm::PRM, prm_star::PRMstar},
-    problem::ProblemDefinition2,
+    planner::{base_planner::Planner, prm::PRM, prm_star::PRMstar},
+    problem::ProblemDefinition,
     setup::PlanningSetup,
     space::Point,
 };
@@ -17,7 +17,7 @@ fn test_prmstar_scenario() {
     let planner = Box::new(PRMstar::default());
     let start = Point { x: 0f64, y: 0f64 };
     let goal = Point { x: 3f64, y: 3f64 };
-    let pdef: ProblemDefinition2<f64> = ProblemDefinition2::new(start, goal);
+    let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
     let mut setup: PlanningSetup<f64> = PlanningSetup {
         planner,
         problem: pdef,
@@ -38,7 +38,7 @@ fn test_prm_naiv_scenario() {
     let planner = Box::new(PRM::default());
     let start = Point { x: 0f64, y: 0f64 };
     let goal = Point { x: 3f64, y: 3f64 };
-    let pdef: ProblemDefinition2<f64> = ProblemDefinition2::new(start, goal);
+    let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
 
     let mut setup: PlanningSetup<f64> = PlanningSetup {
         planner,
@@ -96,7 +96,7 @@ fn test_geo_collision() {
     let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
         phantom: PhantomData,
     });
-    let mut pdef: ProblemDefinition2<f64> = ProblemDefinition2::default();
+    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::default();
     let start: Point<f64> = Point { x: 0f64, y: 0f64 };
     let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
     pdef.set_start(start);

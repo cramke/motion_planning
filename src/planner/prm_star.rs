@@ -13,7 +13,7 @@ use crate::planner::graph_utils as pg;
 use crate::space::Point;
 use crate::types::Metric2D;
 
-use super::base_planner::Planner2;
+use super::base_planner::Planner;
 
 pub struct Config {
     default_nearest_neighbors: u8,
@@ -54,7 +54,7 @@ pub struct PRMstar<T: Metric2D> {
     pub config: Config,
 }
 
-impl<T: Metric2D> Planner2<T> for PRMstar<T> {
+impl<T: Metric2D> Planner<T> for PRMstar<T> {
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }

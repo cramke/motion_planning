@@ -1,9 +1,9 @@
 use std::time::Instant;
 
 use mpl::boundaries::Boundaries;
-use mpl::planner::base_planner::Planner2;
+use mpl::planner::base_planner::Planner;
 use mpl::planner::prm::PRM;
-use mpl::problem::ProblemDefinition2;
+use mpl::problem::ProblemDefinition;
 use mpl::setup::PlanningSetup;
 use mpl::space::Point;
 
@@ -15,7 +15,7 @@ fn main() {
 
     let mut setup = PlanningSetup {
         planner,
-        problem: ProblemDefinition2::default(),
+        problem: ProblemDefinition::default(),
         boundaries: bounds,
         ready: false,
     };
