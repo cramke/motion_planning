@@ -226,12 +226,12 @@ impl<T: SpaceContinuous> PRM<T> {
     }
 }
 
-impl Default for PRM<f64> {
+impl<T: SpaceContinuous +  'static> Default for PRM<T> {
     fn default() -> Self {
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let collision_checker: Box<dyn CollisionChecker<T>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        PRM::new(cc)
+        PRM::new(collision_checker)
     }
 }
 
@@ -245,18 +245,14 @@ mod test {
     use std::marker::PhantomData;
 
     #[test]
-    fn test_prm_new() {
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
-            phantom: PhantomData,
-        });
-        let planner = PRM::new(cc);
-
-        assert!(!planner.is_solved);
+    fn test_default_f64() {
+        let prm: PRM<f64> = PRM::default();
+        assert!(!prm.is_solved);
     }
-
+    
     #[test]
-    fn test_default() {
-        let prm = PRM::default();
+    fn test_default_f32() {
+        let prm: PRM<f32> = PRM::default();
         assert!(!prm.is_solved);
     }
 
