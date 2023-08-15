@@ -7,11 +7,14 @@ use rstar::RTree;
 
 use crate::boundaries::Boundaries;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
+use crate::planner::base_planner::Planner;
 use crate::space::Point;
 use crate::types::SpaceContinuous;
 
-use super::base_planner::Planner;
-
+/// # Holds configuration parameters for PRM*
+/// It does configure:
+/// - default_nearest_neighbors: Limits the number of nodes that are used to calculate motionCost to the n closest ones
+/// - max_size: Limits the number of Nodes in the graph before termination of the algrithm
 pub struct Config {
     pub default_nearest_neighbors: u8,
     pub max_size: usize,

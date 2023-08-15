@@ -9,12 +9,15 @@ use rstar::RTree;
 use crate::boundaries::Boundaries;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::optimizer::{DefaultOptimizer, Optimizer};
+use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::space::Point;
 use crate::types::SpaceContinuous;
 
-use super::base_planner::Planner;
-
+/// # Holds configuration parameters for PRM*
+/// It does configure:
+/// - default_nearest_neighbors: Limits the number of nodes that are used to calculate motionCost to the n closest ones
+/// - max_size: Limits the number of Nodes in the graph before termination of the algrithm
 pub struct Config {
     pub default_nearest_neighbors: u8,
     pub max_size: usize,
@@ -29,7 +32,7 @@ impl Default for Config {
     }
 }
 
-/// # Probabilisic Road Map PRM
+/// # Probabilisic Road Map PRM* for optimal planning
 /// It is an algorithm which is:
 /// - probabilistically complete and
 /// - probabilistically optimal algorithm
@@ -55,27 +58,33 @@ pub struct PRMstar<T: SpaceContinuous> {
 }
 
 impl<T: SpaceContinuous> Planner<T> for PRMstar<T> {
+    /// Setter for start
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }
 
+    /// Setter for goal
     fn set_goal(&mut self, goal: Point<T>) {
         self.goal = goal;
     }
 
+    /// Setter for boundaries
     fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
         self.boundaries = boundaries;
     }
 
+    /// Setter for Collision Checker
     fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>) {
         self.collision_checker = cc;
     }
 
+    /// Initializes the problem by adding the start and goal fields into the solution graph
     fn init(&mut self) {
         self.add_node(self.start);
         self.add_node(self.goal);
     }
 
+    /// Use the current configuration to solve the problem
     fn solve(&mut self) {
         loop {
             let added_node: Point<T> = self.add_random_node();
