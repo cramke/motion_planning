@@ -16,8 +16,8 @@ use crate::types::SpaceContinuous;
 use super::base_planner::Planner;
 
 pub struct Config {
-    default_nearest_neighbors: u8,
-    max_size: usize,
+    pub default_nearest_neighbors: u8,
+    pub max_size: usize,
 }
 
 impl Default for Config {
