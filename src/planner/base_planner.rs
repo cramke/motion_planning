@@ -1,5 +1,6 @@
 use crate::{
-    boundaries::Boundaries, collision_checker::CollisionChecker, space::Point, types::SpaceContinuous,
+    boundaries::Boundaries, collision_checker::CollisionChecker, space::Point,
+    types::SpaceContinuous,
 };
 
 /// Custom planners can use these traits to implement other algorithm for planning.

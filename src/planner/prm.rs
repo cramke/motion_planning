@@ -15,8 +15,8 @@ use crate::types::SpaceContinuous;
 use super::base_planner::Planner;
 
 pub struct Config {
-    default_nearest_neighbors: u8,
-    max_size: usize,
+    pub default_nearest_neighbors: u8,
+    pub max_size: usize,
 }
 
 impl Default for Config {
@@ -49,7 +49,7 @@ pub struct PRM<T: SpaceContinuous> {
     pub collision_checker: Box<dyn CollisionChecker<T>>,
     tree: RTree<[T; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
-    config: Config,
+    pub config: Config,
 }
 
 impl<T: SpaceContinuous> Planner<T> for PRM<T> {
@@ -226,7 +226,7 @@ impl<T: SpaceContinuous> PRM<T> {
     }
 }
 
-impl<T: SpaceContinuous +  'static> Default for PRM<T> {
+impl<T: SpaceContinuous + 'static> Default for PRM<T> {
     fn default() -> Self {
         let collision_checker: Box<dyn CollisionChecker<T>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
@@ -249,7 +249,7 @@ mod test {
         let prm: PRM<f64> = PRM::default();
         assert!(!prm.is_solved);
     }
-    
+
     #[test]
     fn test_default_f32() {
         let prm: PRM<f32> = PRM::default();

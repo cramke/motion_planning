@@ -34,6 +34,12 @@ impl<T: SpaceContinuous> PlanningSetup<T> {
             panic!("PlanningSetup is not ready for solving.")
         }
     }
+
+    pub fn get_statistics(&self) -> T {
+        let cost = self.planner.get_solution_cost();
+        println!("Cost: {}", cost);
+        cost
+    }
 }
 
 #[cfg(test)]

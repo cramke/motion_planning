@@ -75,15 +75,15 @@ impl<T: SpaceContinuous> Planner<T> for RRT<T> {
     fn solve(&mut self) {
         loop {
             let random_node: Point<T> = self.boundaries.generate_random_configuration();
+            if self.collision_checker.is_node_colliding(&random_node) {
+                continue;
+            }
 
             let nearest_neighbour = match self.get_nearest_neighbor(random_node) {
                 Some(point) => point,
                 None => continue,
             };
 
-            if self.collision_checker.is_node_colliding(&random_node) {
-                continue;
-            }
             if self
                 .collision_checker
                 .is_edge_colliding(&random_node, &nearest_neighbour)
