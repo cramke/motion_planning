@@ -1,8 +1,8 @@
-use crate::{space::Point, types::Metric2D};
+use crate::{space::Point, types::SpaceContinuous};
 use std::marker::PhantomData;
 
 /// CollisionChecker to implement custom Collision checkers.
-pub trait CollisionChecker<T: Metric2D> {
+pub trait CollisionChecker<T: SpaceContinuous> {
     /// Is run only once and before any checks are done. Can be used to read a file or database.
     fn init(&self) -> bool;
 
@@ -18,12 +18,12 @@ pub trait CollisionChecker<T: Metric2D> {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct NaiveCollisionChecker<T: Metric2D> {
+pub struct NaiveCollisionChecker<T: SpaceContinuous> {
     pub phantom: PhantomData<T>,
 }
 
 /// Does not check any collisions and always returns no collision (false)
-impl<T: Metric2D + 'static> NaiveCollisionChecker<T> {
+impl<T: SpaceContinuous + 'static> NaiveCollisionChecker<T> {
     pub fn new_box() -> Box<dyn CollisionChecker<T>> {
         Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
@@ -31,7 +31,7 @@ impl<T: Metric2D + 'static> NaiveCollisionChecker<T> {
     }
 }
 
-impl<T: Metric2D> CollisionChecker<T> for NaiveCollisionChecker<T> {
+impl<T: SpaceContinuous> CollisionChecker<T> for NaiveCollisionChecker<T> {
     /// Does nothing
     /// Return
     ///     true: always

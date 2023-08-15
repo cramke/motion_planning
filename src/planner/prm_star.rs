@@ -11,7 +11,7 @@ use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::optimizer::{DefaultOptimizer, Optimizer};
 use crate::planner::graph_utils as pg;
 use crate::space::Point;
-use crate::types::Metric2D;
+use crate::types::SpaceContinuous;
 
 use super::base_planner::Planner;
 
@@ -40,7 +40,7 @@ impl Default for Config {
 ///
 /// # Example
 ///
-pub struct PRMstar<T: Metric2D> {
+pub struct PRMstar<T: SpaceContinuous> {
     pub start: Point<T>,
     pub goal: Point<T>,
     pub boundaries: Boundaries<T>,
@@ -54,7 +54,7 @@ pub struct PRMstar<T: Metric2D> {
     pub config: Config,
 }
 
-impl<T: Metric2D> Planner<T> for PRMstar<T> {
+impl<T: SpaceContinuous> Planner<T> for PRMstar<T> {
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }
@@ -101,7 +101,7 @@ impl<T: Metric2D> Planner<T> for PRMstar<T> {
     }
 }
 
-impl<T: Metric2D> PRMstar<T> {
+impl<T: SpaceContinuous> PRMstar<T> {
     /// Standard constructor
     pub fn new(
         start: Point<T>,

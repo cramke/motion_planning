@@ -1,12 +1,12 @@
-use crate::types::Metric2D;
+use crate::types::SpaceContinuous;
 
 #[derive(Debug, Clone, Copy)]
-pub struct Point<T: Metric2D> {
+pub struct Point<T: SpaceContinuous> {
     pub x: T,
     pub y: T,
 }
 
-impl<T: Metric2D> PartialEq for Point<T> {
+impl<T: SpaceContinuous> PartialEq for Point<T> {
     fn eq(&self, other: &Self) -> bool {
         let eq_x: bool = (self.x - other.x).abs() < T::EPSILON;
         let eq_y: bool = (self.y - other.y).abs() < T::EPSILON;
@@ -14,7 +14,7 @@ impl<T: Metric2D> PartialEq for Point<T> {
     }
 }
 
-impl<T: Metric2D> Point<T> {
+impl<T: SpaceContinuous> Point<T> {
     pub fn new(x: T, y: T) -> Self {
         Point { x, y }
     }
@@ -28,11 +28,11 @@ impl<T: Metric2D> Point<T> {
     }
 }
 
-impl<T: Metric2D> Default for Point<T> {
+impl<T: SpaceContinuous> Default for Point<T> {
     fn default() -> Self {
         Point {
-            x: Metric2D::DEFAULT,
-            y: Metric2D::DEFAULT,
+            x: SpaceContinuous::DEFAULT,
+            y: SpaceContinuous::DEFAULT,
         }
     }
 }

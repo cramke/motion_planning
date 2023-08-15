@@ -1,5 +1,5 @@
 use crate::space::Point;
-use crate::types::Metric2D;
+use crate::types::SpaceContinuous;
 use std::fs::File;
 use std::io::Write;
 
@@ -16,7 +16,7 @@ pub fn is_edge_already_in_graph<T: Copy + Clone + Signed + std::fmt::Debug>(
     graph.find_edge(begin, end).is_some()
 }
 
-pub fn write_graph_to_file<T: Metric2D>(graph: &Graph<Point<T>, T, Undirected>, path: &str) {
+pub fn write_graph_to_file<T: SpaceContinuous>(graph: &Graph<Point<T>, T, Undirected>, path: &str) {
     let output = format!("{:?}", Dot::with_config(&graph, &[]));
     let mut file = match File::create(path) {
         Ok(file) => file,
@@ -32,6 +32,6 @@ pub fn write_graph_to_file<T: Metric2D>(graph: &Graph<Point<T>, T, Undirected>, 
     };
 }
 
-pub fn print_graph<T: Metric2D>(graph: &Graph<Point<T>, T, Undirected>) {
+pub fn print_graph<T: SpaceContinuous>(graph: &Graph<Point<T>, T, Undirected>) {
     println!("{:?}", Dot::with_config(graph, &[]));
 }

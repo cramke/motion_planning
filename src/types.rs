@@ -2,7 +2,7 @@ use num::{Bounded, Signed};
 use rand::distributions::uniform::SampleUniform;
 use std::ops::{Add, Mul, Sub};
 
-pub trait Metric2D:
+pub trait SpaceContinuous:
     Default
     + Copy
     + Clone
@@ -24,12 +24,12 @@ pub trait Metric2D:
     const DEFAULT: Self;
 }
 
-impl Metric2D for f64 {
+impl SpaceContinuous for f64 {
     const MAX: Self = f64::MAX;
     const EPSILON: Self = f64::EPSILON;
     const DEFAULT: Self = 0f64;
 }
-impl Metric2D for f32 {
+impl SpaceContinuous for f32 {
     const MAX: Self = f32::MAX;
     const EPSILON: Self = f32::EPSILON;
     const DEFAULT: Self = 0f32;

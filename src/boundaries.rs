@@ -1,11 +1,11 @@
-use crate::{space::Point, types::Metric2D};
+use crate::{space::Point, types::SpaceContinuous};
 use rand::{rngs::ThreadRng, Rng};
 
 /// Boundaries Limit the search space in 2D. Gives an upper and lower limit for the X- and Y-Coordinate.
 /// Is implemented similar to a bounding box. That means as an upper / lower limit for the boundary axis.
 /// Only 2D.
 #[derive(Debug, Clone)]
-pub struct Boundaries<T: Metric2D> {
+pub struct Boundaries<T: SpaceContinuous> {
     pub x_lower: T,
     pub x_upper: T,
     pub y_lower: T,
@@ -13,7 +13,7 @@ pub struct Boundaries<T: Metric2D> {
     rand: ThreadRng,
 }
 
-impl<T: Metric2D> Boundaries<T> {
+impl<T: SpaceContinuous> Boundaries<T> {
     // Constructor for an Boundaries Object.
     pub fn new(x_lower: T, x_upper: T, y_lower: T, y_upper: T) -> Self {
         let rand: ThreadRng = rand::thread_rng();
@@ -60,13 +60,13 @@ impl<T: Metric2D> Boundaries<T> {
     }
 }
 
-impl<T: Metric2D> Default for Boundaries<T> {
+impl<T: SpaceContinuous> Default for Boundaries<T> {
     fn default() -> Self {
         Boundaries::new(
-            Metric2D::DEFAULT,
-            Metric2D::MAX,
-            Metric2D::DEFAULT,
-            Metric2D::MAX,
+            SpaceContinuous::DEFAULT,
+            SpaceContinuous::MAX,
+            SpaceContinuous::DEFAULT,
+            SpaceContinuous::MAX,
         )
     }
 }

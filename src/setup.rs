@@ -1,16 +1,16 @@
 use crate::{
     boundaries::Boundaries, planner::base_planner::Planner, problem::ProblemDefinition,
-    types::Metric2D,
+    types::SpaceContinuous,
 };
 
-pub struct PlanningSetup<T: Metric2D> {
+pub struct PlanningSetup<T: SpaceContinuous> {
     pub planner: Box<dyn Planner<T>>,
     pub problem: ProblemDefinition<T>,
     pub boundaries: Boundaries<T>,
     pub ready: bool,
 }
 
-impl<T: Metric2D> PlanningSetup<T> {
+impl<T: SpaceContinuous> PlanningSetup<T> {
     pub fn setup(&mut self) {
         self.planner.set_start(self.problem.get_start());
         self.planner.set_goal(self.problem.get_goal());

@@ -8,7 +8,7 @@ use rstar::RTree;
 use crate::boundaries::Boundaries;
 use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::space::Point;
-use crate::types::Metric2D;
+use crate::types::SpaceContinuous;
 
 use super::base_planner::Planner;
 
@@ -37,7 +37,7 @@ impl Default for Config {
 /// [Link](https://www.cs.csustan.edu/~xliang/Courses/CS4710-21S/Papers/06%20RRT.pdf)
 ///
 /// # Example
-pub struct RRT<T: Metric2D> {
+pub struct RRT<T: SpaceContinuous> {
     pub solution: Option<(T, Vec<NodeIndex>)>,
     pub is_solved: bool,
     pub start: Point<T>,
@@ -50,7 +50,7 @@ pub struct RRT<T: Metric2D> {
     pub config: Config,
 }
 
-impl<T: Metric2D> Planner<T> for RRT<T> {
+impl<T: SpaceContinuous> Planner<T> for RRT<T> {
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }
@@ -114,7 +114,7 @@ impl<T: Metric2D> Planner<T> for RRT<T> {
     }
 }
 
-impl<T: Metric2D + 'static> Default for RRT<T> {
+impl<T: SpaceContinuous + 'static> Default for RRT<T> {
     fn default() -> Self {
         RRT {
             config: Config::default(),
@@ -131,7 +131,7 @@ impl<T: Metric2D + 'static> Default for RRT<T> {
     }
 }
 
-impl<T: Metric2D> RRT<T> {
+impl<T: SpaceContinuous> RRT<T> {
     /// Constructor
     pub fn new(
         mut boundaries: Boundaries<T>,

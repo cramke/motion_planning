@@ -1,5 +1,5 @@
 use crate::{
-    boundaries::Boundaries, collision_checker::CollisionChecker, space::Point, types::Metric2D,
+    boundaries::Boundaries, collision_checker::CollisionChecker, space::Point, types::SpaceContinuous,
 };
 
 /// Custom planners can use these traits to implement other algorithm for planning.
@@ -7,7 +7,7 @@ use crate::{
 /// # Available Planners:
 /// As of the time of writing the number is still extremely limited. This framework should simplify the implementation of further algorithms.
 /// - PRM: Probabilistic Road Maps
-pub trait Planner<T: Metric2D> {
+pub trait Planner<T: SpaceContinuous> {
     fn set_start(&mut self, start: Point<T>);
     fn set_goal(&mut self, goal: Point<T>);
     fn set_boundaries(&mut self, boundaries: Boundaries<T>);

@@ -1,14 +1,14 @@
 use crate::space::Point;
-use crate::types::Metric2D;
+use crate::types::SpaceContinuous;
 
 /// The Problem Definition serves as a collector for various planners and problems.
-pub struct ProblemDefinition<T: Metric2D> {
+pub struct ProblemDefinition<T: SpaceContinuous> {
     pub start: Point<T>,
     pub goal: Point<T>,
     pub solution: Vec<Point<T>>,
 }
 
-impl<T: Metric2D> ProblemDefinition<T> {
+impl<T: SpaceContinuous> ProblemDefinition<T> {
     pub fn new(start: Point<T>, goal: Point<T>) -> Self {
         ProblemDefinition {
             start,
@@ -34,7 +34,7 @@ impl<T: Metric2D> ProblemDefinition<T> {
     }
 }
 
-impl<T: Metric2D> Default for ProblemDefinition<T> {
+impl<T: SpaceContinuous> Default for ProblemDefinition<T> {
     fn default() -> Self {
         ProblemDefinition::new(Point::default(), Point::default())
     }
