@@ -73,8 +73,8 @@ impl<T: SpaceContinuous> Default for ProblemDefinition<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::space::Point;
     use super::ProblemDefinition;
+    use crate::space::Point;
 
     // Test that a new instance of ProblemDefinition is created with default values with type f64.
     #[test]
@@ -114,7 +114,8 @@ mod tests {
     fn retrieve_start_point() {
         // Create a new ProblemDefinition instance with a start point of (1, 2)
         let start_point: Point<f64> = Point::new(1.0, 2.0);
-        let problem_definition: ProblemDefinition<f64> = ProblemDefinition::new(start_point, Point::default());
+        let problem_definition: ProblemDefinition<f64> =
+            ProblemDefinition::new(start_point, Point::default());
 
         // Retrieve the start point
         let retrieved_start_point: Point<f64> = problem_definition.get_start();
@@ -122,7 +123,6 @@ mod tests {
         // Check if the retrieved start point is equal to the original start point
         assert_eq!(retrieved_start_point, start_point);
     }
-
 
     // Test the functionality of retrieving the goal point from a ProblemDefinition instance.
     #[test]
@@ -139,7 +139,6 @@ mod tests {
         assert_eq!(retrieved_goal, goal);
     }
 
-
     // Test if the start point of a ProblemDefinition instance is updated correctly.
     #[test]
     fn update_start_point() {
@@ -154,12 +153,12 @@ mod tests {
         assert_eq!(problem_def.get_start(), start_point);
     }
 
-
     // Test the functionality of updating the goal point of a ProblemDefinition instance.
     #[test]
     fn update_goal_point() {
         // Create a new ProblemDefinition instance with start and goal points
-        let mut problem_def: ProblemDefinition<f64> = ProblemDefinition::new(Point::new(0.0, 0.0), Point::new(1.0, 1.0));
+        let mut problem_def: ProblemDefinition<f64> =
+            ProblemDefinition::new(Point::new(0.0, 0.0), Point::new(1.0, 1.0));
 
         // Update the goal point
         problem_def.set_goal(Point::new(2.0, 2.0));
