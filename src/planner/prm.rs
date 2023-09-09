@@ -129,6 +129,17 @@ impl<T: SpaceContinuous> PRM<T> {
     /// 2. Inserts a mapping between the WKT representation of the `node` and its index in the lookup table using the `insert` method of the `index_node_lookup` hashmap.
     /// 3. Inserts the coordinates of the `node` into the tree data structure using the `insert` method of the `tree`.
     fn add_node(&mut self, node: Point<T>) {
+        if self.collision_checker.is_node_colliding(&node) {
+            return;
+        }
+
+        if self
+            .index_node_lookup
+            .contains_key(&node.to_wkt().to_string())
+        {
+            return;
+        }
+
         let index = self.graph.add_node(node);
         self.index_node_lookup
             .insert(node.to_wkt().to_string(), index);
@@ -265,14 +276,16 @@ mod test {
     use crate::space::Point;
     use std::marker::PhantomData;
 
+    // Test that the function 'test_default_f64' returns a PRM instance with the 'is_solved' field set to false.
     #[test]
-    fn test_default_f64() {
+    fn test_default_f64_returns_false() {
         let prm: PRM<f64> = PRM::default();
         assert!(!prm.is_solved);
     }
 
+    // Test that the function 'test_default_f32' returns a PRM instance with the 'is_solved' field set to false.
     #[test]
-    fn test_default_f32() {
+    fn test_default_f32_returns_false() {
         let prm: PRM<f32> = PRM::default();
         assert!(!prm.is_solved);
     }
@@ -323,5 +336,70 @@ mod test {
         assert_eq!(prm.boundaries.get_x_upper(), bounds.get_x_upper());
         assert_eq!(prm.boundaries.get_y_lower(), bounds.get_y_lower());
         assert_eq!(prm.boundaries.get_y_upper(), bounds.get_y_upper());
+    }
+
+    // Test if adding a node to the planner increments the node count, tree size, and index node lookup by 1.
+    #[test]
+    fn test_prm_add_node_increment() {
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let mut planner: PRM<f64> = PRM::default();
+        planner.set_start(start);
+        planner.set_goal(goal);
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        planner.set_boundaries(bounds);
+
+        assert_eq!(planner.graph.node_count(), 0);
+        assert_eq!(planner.tree.size(), 0);
+        assert_eq!(planner.index_node_lookup.len(), 0);
+        let p1: Point<f64> = Point { x: 1.8, y: 2.0 };
+        planner.add_node(p1);
+        assert_eq!(planner.graph.node_count(), 1);
+        assert_eq!(planner.tree.size(), 1);
+        assert_eq!(planner.index_node_lookup.len(), 1);
+    }
+
+    // Test if adding a node with the same coordinates as the start point does not change the node count, tree size, and index node lookup.
+    #[test]
+    fn test_prm_add_node_same_coordinates_as_start() {
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let mut planner: PRM<f64> = PRM::default();
+        planner.set_start(start);
+        planner.set_goal(goal);
+        planner.init();
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        planner.set_boundaries(bounds);
+
+        assert_eq!(planner.graph.node_count(), 2);
+        assert_eq!(planner.tree.size(), 2);
+        assert_eq!(planner.index_node_lookup.len(), 2);
+        let p1: Point<f64> = Point { x: 0f64, y: 0f64 };
+        planner.add_node(p1);
+        assert_eq!(planner.graph.node_count(), 2);
+        assert_eq!(planner.tree.size(), 2);
+        assert_eq!(planner.index_node_lookup.len(), 2);
+    }
+
+    // Test if adding a node with the same coordinates as the goal point keeps the node count, tree size, and index node lookup as 0.
+    #[test]
+    fn test_prm_add_node_same_coordinates_as_goal() {
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let mut planner: PRM<f64> = PRM::default();
+        planner.set_start(start);
+        planner.set_goal(goal);
+        planner.init();
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        planner.set_boundaries(bounds);
+
+        assert_eq!(planner.graph.node_count(), 2);
+        assert_eq!(planner.tree.size(), 2);
+        assert_eq!(planner.index_node_lookup.len(), 2);
+        let p1: Point<f64> = Point { x: 3f64, y: 3f64 };
+        planner.add_node(p1);
+        assert_eq!(planner.graph.node_count(), 2);
+        assert_eq!(planner.tree.size(), 2);
+        assert_eq!(planner.index_node_lookup.len(), 2);
     }
 }
