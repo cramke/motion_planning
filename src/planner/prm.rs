@@ -296,14 +296,14 @@ mod test {
         });
         let mut prm = PRM::new(cc);
         let bounds: Boundaries<f64> = Boundaries::new(1f64, 2f64, 3f64, 4f64);
-        assert_ne!(prm.boundaries.x_lower, bounds.x_lower);
-        assert_ne!(prm.boundaries.x_upper, bounds.x_upper);
-        assert_ne!(prm.boundaries.y_lower, bounds.y_lower);
-        assert_ne!(prm.boundaries.y_upper, bounds.y_upper);
+        assert_ne!(prm.boundaries.get_x_lower(), bounds.get_x_lower());
+        assert_ne!(prm.boundaries.get_x_upper(), bounds.get_x_upper());
+        assert_ne!(prm.boundaries.get_y_lower(), bounds.get_y_lower());
+        assert_ne!(prm.boundaries.get_y_upper(), bounds.get_y_upper());
         prm.set_boundaries(bounds.clone());
-        assert_eq!(prm.boundaries.x_lower, bounds.x_lower);
-        assert_eq!(prm.boundaries.x_upper, bounds.x_upper);
-        assert_eq!(prm.boundaries.y_lower, bounds.y_lower);
-        assert_eq!(prm.boundaries.y_upper, bounds.y_upper);
+        assert_eq!(prm.boundaries.get_x_lower(), bounds.get_x_lower());
+        assert_eq!(prm.boundaries.get_x_upper(), bounds.get_x_upper());
+        assert_eq!(prm.boundaries.get_y_lower(), bounds.get_y_lower());
+        assert_eq!(prm.boundaries.get_y_upper(), bounds.get_y_upper());
     }
 }

@@ -6,11 +6,45 @@ use rand::{rngs::ThreadRng, Rng};
 /// Only 2D.
 #[derive(Debug, Clone)]
 pub struct Boundaries<T: SpaceContinuous> {
-    pub x_lower: T,
-    pub x_upper: T,
-    pub y_lower: T,
-    pub y_upper: T,
+    x_lower: T,
+    x_upper: T,
+    y_lower: T,
+    y_upper: T,
     rand: ThreadRng,
+}
+
+impl<T: SpaceContinuous> Boundaries<T> {
+    pub fn get_x_lower(&self) -> T {
+        self.x_lower
+    }
+
+    pub fn set_x_lower(&mut self, value: T) {
+        self.x_lower = value;
+    }
+
+    pub fn get_x_upper(&self) -> T {
+        self.x_upper
+    }
+
+    pub fn set_x_upper(&mut self, value: T) {
+        self.x_upper = value;
+    }
+
+    pub fn get_y_lower(&self) -> T {
+        self.y_lower
+    }
+
+    pub fn set_y_lower(&mut self, value: T) {
+        self.y_lower = value;
+    }
+
+    pub fn get_y_upper(&self) -> T {
+        self.y_upper
+    }
+
+    pub fn set_y_upper(&mut self, value: T) {
+        self.y_upper = value;
+    }
 }
 
 impl<T: SpaceContinuous> Boundaries<T> {
@@ -60,6 +94,9 @@ impl<T: SpaceContinuous> Boundaries<T> {
     }
 }
 
+/// Implements the `Default` trait for the `Boundaries` struct.
+///
+/// This trait provides a default constructor for creating a `Boundaries` object with default values for the lower and upper limits of the X and Y coordinates.
 impl<T: SpaceContinuous> Default for Boundaries<T> {
     fn default() -> Self {
         Boundaries::new(
@@ -129,5 +166,77 @@ mod tests {
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
         let node: Point<f64> = Point { x: 0.5f64, y: 0f64 };
         assert!(!bounds.is_node_inside(&node));
+    }
+
+    // Test that the function 'test_boundaries_dummy_f64' returns a Boundaries object with the correct x and y limits.
+    #[test]
+    fn test_boundaries_dummy_f64_returns_correct_limits() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
+        assert_eq!(0f64, bounds.x_lower);
+        assert_eq!(1f64, bounds.x_upper);
+        assert_eq!(2f64, bounds.y_lower);
+        assert_eq!(3f64, bounds.y_upper);
+    }
+
+    // Test that the function returns a Boundaries object with the minimum possible values for all limits.
+    #[test]
+    fn test_boundaries_minimum_values() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f64> = Boundaries::new(f64::MIN, f64::MIN, f64::MIN, f64::MIN);
+        assert_eq!(f64::MIN, bounds.x_lower);
+        assert_eq!(f64::MIN, bounds.x_upper);
+        assert_eq!(f64::MIN, bounds.y_lower);
+        assert_eq!(f64::MIN, bounds.y_upper);
+    }
+
+    // Test that the function returns a Boundaries object with the maximum possible values for all limits.
+    #[test]
+    fn test_boundaries_maximum_values() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f64> = Boundaries::new(f64::MAX, f64::MAX, f64::MAX, f64::MAX);
+        assert_eq!(f64::MAX, bounds.x_lower);
+        assert_eq!(f64::MAX, bounds.x_upper);
+        assert_eq!(f64::MAX, bounds.y_lower);
+        assert_eq!(f64::MAX, bounds.y_upper);
+    }
+
+    // Test the behavior of the 'test_boundaries_dummy_f64' function when given negative input values
+    #[test]
+    fn test_boundaries_negative_input() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f64> = Boundaries::new(-1f64, -2f64, -3f64, -4f64);
+        assert_eq!(-1f64, bounds.x_lower);
+        assert_eq!(-2f64, bounds.x_upper);
+        assert_eq!(-3f64, bounds.y_lower);
+        assert_eq!(-4f64, bounds.y_upper);
+    }
+
+    // Test the behavior of the 'test_boundaries_dummy_f64' function when given non-integer input values
+    #[test]
+    fn test_boundaries_dummy_f64_non_integer_input() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f64> = Boundaries::new(0.5f64, 1.5f64, 2.5f64, 3.5f64);
+        assert_eq!(0.5f64, bounds.x_lower);
+        assert_eq!(1.5f64, bounds.x_upper);
+        assert_eq!(2.5f64, bounds.y_lower);
+        assert_eq!(3.5f64, bounds.y_upper);
+    }
+
+    // Test that the function returns the expected values when given input values that are not in sequential order.
+    #[test]
+    fn test_boundaries_dummy_f64_input_not_in_sequential_order() {
+        use crate::boundaries::Boundaries;
+
+        let bounds: Boundaries<f64> = Boundaries::new(1f64, 0f64, 3f64, 2f64);
+        assert_eq!(1f64, bounds.x_lower);
+        assert_eq!(0f64, bounds.x_upper);
+        assert_eq!(3f64, bounds.y_lower);
+        assert_eq!(2f64, bounds.y_upper);
     }
 }
