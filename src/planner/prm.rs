@@ -40,8 +40,6 @@ impl Default for Config {
 /// # Source / Credits
 /// Kavraki, L. E.; Svestka, P.; Latombe, J.-C.; Overmars, M. H. (1996), "Probabilistic roadmaps for path planning in high-dimensional configuration spaces", IEEE Transactions on Robotics and Automation, 12 (4): 566–580, doi:10.1109/70.508439
 ///
-/// # Example
-///
 pub struct PRM<T: SpaceContinuous> {
     pub start: Point<T>,
     pub goal: Point<T>,
@@ -81,9 +79,7 @@ impl<T: SpaceContinuous> Planner<T> for PRM<T> {
         loop {
             let added_node: Point<T> = self.add_random_node();
             self.connect_node_to_graph(added_node);
-
             self.check_solution();
-
             if self.is_termination_criteria_met() {
                 println!("Termination Criteria met");
                 break;
@@ -120,6 +116,18 @@ impl<T: SpaceContinuous> PRM<T> {
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
+    ///
+    /// # Arguments
+    ///
+    /// - `&mut self`: a mutable reference to the current instance of the struct or class that contains the method.
+    /// - `node: Point<T>`: a `Point` object representing the node to be added to the graph.
+    ///
+    /// # Code Analysis
+    ///
+    /// This method adds a new node to the graph data structure. It performs three operations:
+    /// 1. Adds the `node` to the graph using the `add_node` method of the `graph` object.
+    /// 2. Inserts a mapping between the WKT representation of the `node` and its index in the lookup table using the `insert` method of the `index_node_lookup` hashmap.
+    /// 3. Inserts the coordinates of the `node` into the tree data structure using the `insert` method of the `tree`.
     fn add_node(&mut self, node: Point<T>) {
         let index = self.graph.add_node(node);
         self.index_node_lookup
@@ -130,65 +138,76 @@ impl<T: SpaceContinuous> PRM<T> {
     /// Generates a random node and adds it to the graph, if:
     /// - It is not in collision
     /// - It is not already in the graph
+    /// Adds a random node to the data structure.
+    ///
+    /// This method generates a candidate node using the `generate_random_configuration` method of the `boundaries` object.
+    /// It then checks if the candidate node collides with any existing nodes using the `is_node_colliding` method of the `collision_checker` object.
+    /// If there is a collision, it continues to the next iteration of the loop.
+    /// If there is no collision, it checks if the candidate node already exists in the `index_node_lookup` map.
+    ///     If it does, it continues to the next iteration.
+    ///     If it doesn't, it adds the candidate node to the data structure and returns it.
+    ///
     fn add_random_node(&mut self) -> Point<T> {
-        let mut candidate: Point<T>;
         loop {
-            candidate = self.boundaries.generate_random_configuration();
+            let candidate: Point<T> = self.boundaries.generate_random_configuration();
 
             if self.collision_checker.is_node_colliding(&candidate) {
                 continue;
             }
 
-            match self.index_node_lookup.get(&candidate.to_wkt().to_string()) {
-                // If candidate node is found in graph, then continue with next random node.
-                None => {}
-                Some(_) => continue,
-            }
-
-            break;
-        }
-        self.add_node(candidate);
-        candidate
-    }
-
-    /// Try to connect a node to its k nearest neigbors.
-    fn connect_node_to_graph(&mut self, node: Point<T>) {
-        let mut iterator = self
-            .tree
-            .nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
-        for _ in 0..self.config.default_nearest_neighbors {
-            let neighbor = iterator.next();
-            let (neighbor_point, distance): (Point<T>, T) = match neighbor {
-                Some((node, distance)) => (
-                    Point {
-                        x: node[0],
-                        y: node[1],
-                    },
-                    distance,
-                ),
-                None => continue,
-            };
-
-            if node == neighbor_point {
-                continue;
-            }
-
             if self
-                .collision_checker
-                .is_edge_colliding(&node, &neighbor_point)
+                .index_node_lookup
+                .contains_key(&candidate.to_wkt().to_string())
             {
                 continue;
             }
 
-            let a: NodeIndex = *self
-                .index_node_lookup
-                .get(&node.to_wkt().to_string())
-                .unwrap();
-            let b: NodeIndex = *self
-                .index_node_lookup
-                .get(&neighbor_point.to_wkt().to_string())
-                .unwrap();
-            self.graph.add_edge(a, b, distance);
+            self.add_node(candidate);
+            return candidate;
+        }
+    }
+
+    /// Try to connect a node to its k nearest neigbors.
+    /// Connects a given node to a graph.
+    ///
+    /// This method connects a given node to a graph by iterating over its nearest neighbors and checking for collisions with existing edges. If there is no collision, it adds an edge between the node and the neighbor to the graph.
+    /// # Arguments
+    ///
+    /// - `&mut self`: A mutable reference to the current instance of the struct that contains the method.
+    /// - `node: Point<T>`: The node to be connected to the graph.
+    /// # Outputs
+    /// None. The method modifies the graph by adding edges between the node and its neighbors.
+    fn connect_node_to_graph(&mut self, node: Point<T>) {
+        let mut iterator = self
+            .tree
+            .nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
+
+        for _ in 0..self.config.default_nearest_neighbors {
+            if let Some((neighbor, distance)) = iterator.next() {
+                let neighbor_point = Point {
+                    x: neighbor[0],
+                    y: neighbor[1],
+                };
+
+                if node == neighbor_point
+                    || self
+                        .collision_checker
+                        .is_edge_colliding(&node, &neighbor_point)
+                {
+                    continue;
+                }
+
+                let a = *self
+                    .index_node_lookup
+                    .get(&node.to_wkt().to_string())
+                    .unwrap();
+                let b = *self
+                    .index_node_lookup
+                    .get(&neighbor_point.to_wkt().to_string())
+                    .unwrap();
+
+                self.graph.add_edge(a, b, distance);
+            }
         }
     }
 
@@ -209,7 +228,6 @@ impl<T: SpaceContinuous> PRM<T> {
             |e| *e.weight(),
             |_| T::default(),
         );
-
         self.is_solved = self.solution.is_some();
     }
 

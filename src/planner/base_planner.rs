@@ -8,6 +8,12 @@ use crate::{
 /// # Available Planners:
 /// As of the time of writing the number is still extremely limited. This framework should simplify the implementation of further algorithms.
 /// - PRM: Probabilistic Road Maps
+///
+/// # Planner
+/// Defines a trait called `Planner` with generic type `T` that represents a continuous space.
+///
+/// The trait provides several methods for setting the start and goal points, boundaries, and collision checker, as well as initializing the planner, solving the planning problem, and getting the solution cost.
+///
 pub trait Planner<T: SpaceContinuous> {
     fn set_start(&mut self, start: Point<T>);
     fn set_goal(&mut self, goal: Point<T>);
