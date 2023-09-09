@@ -136,6 +136,17 @@ impl<T: SpaceContinuous> PRMstar<T> {
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
     fn add_node(&mut self, node: Point<T>) {
+        if self.collision_checker.is_node_colliding(&node) {
+            return;
+        }
+
+        if self
+            .index_node_lookup
+            .contains_key(&node.to_wkt().to_string())
+        {
+            return;
+        }
+
         let index = self.graph.add_node(node);
         self.index_node_lookup
             .insert(node.to_wkt().to_string(), index);
@@ -154,10 +165,11 @@ impl<T: SpaceContinuous> PRMstar<T> {
                 continue;
             }
 
-            match self.index_node_lookup.get(&candidate.to_wkt().to_string()) {
-                // If candidate node is found in graph, then continue with next random node.
-                None => {}
-                Some(_) => continue,
+            if self
+                .index_node_lookup
+                .contains_key(&candidate.to_wkt().to_string())
+            {
+                continue;
             }
 
             break;
@@ -170,36 +182,34 @@ impl<T: SpaceContinuous> PRMstar<T> {
     fn connect_node_to_graph(&mut self, node: Point<T>) {
         let mut iterator = self.tree.nearest_neighbor_iter(&[node.x, node.y]);
         for _ in 0..self.config.default_nearest_neighbors {
-            let neighbor: Option<&[T; 2]> = iterator.next();
-            let neighbor_point: Point<T> = match neighbor {
-                Some(node) => Point {
-                    x: node[0],
-                    y: node[1],
-                },
-                None => continue,
-            };
+            if let Some(neighbor) = iterator.next() {
+                let neighbor_point = Point {
+                    x: neighbor[0],
+                    y: neighbor[1],
+                };
 
-            if node == neighbor_point {
-                continue;
+                if node == neighbor_point {
+                    continue;
+                }
+
+                if self
+                    .collision_checker
+                    .is_edge_colliding(&node, &neighbor_point)
+                {
+                    continue;
+                }
+
+                let weight = self.optimizer.get_edge_weight(node, neighbor_point).2;
+                let a = *self
+                    .index_node_lookup
+                    .get(&node.to_wkt().to_string())
+                    .unwrap();
+                let b = *self
+                    .index_node_lookup
+                    .get(&neighbor_point.to_wkt().to_string())
+                    .unwrap();
+                self.graph.add_edge(a, b, weight);
             }
-
-            if self
-                .collision_checker
-                .is_edge_colliding(&node, &neighbor_point)
-            {
-                continue;
-            }
-
-            let weight: T = self.optimizer.get_edge_weight(node, neighbor_point).2;
-            let a: NodeIndex = *self
-                .index_node_lookup
-                .get(&node.to_wkt().to_string())
-                .unwrap();
-            let b: NodeIndex = *self
-                .index_node_lookup
-                .get(&neighbor_point.to_wkt().to_string())
-                .unwrap();
-            self.graph.add_edge(a, b, weight);
         }
     }
 
@@ -213,6 +223,7 @@ impl<T: SpaceContinuous> PRMstar<T> {
             .index_node_lookup
             .get(&self.goal.to_wkt().to_string())
             .unwrap();
+
         self.solution = astar(
             &self.graph,
             start,
@@ -257,7 +268,7 @@ impl Default for PRMstar<f64> {
 
 #[cfg(test)]
 mod test {
-    use crate::space::Point;
+    use crate::{planner::base_planner::Planner, space::Point};
 
     use super::PRMstar;
     use crate::{
@@ -313,5 +324,104 @@ mod test {
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
         assert_eq!(planner.index_node_lookup.len(), 1);
+    }
+
+    // Test that a new PRMstar planner is created with start and goal points outside of the boundaries
+    #[test]
+    fn test_prm_new_outside_boundaries() {
+        let start: Point<f64> = Point { x: -1f64, y: -1f64 };
+        let goal: Point<f64> = Point { x: 4f64, y: 4f64 };
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+            phantom: PhantomData,
+        });
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
+        let planner = PRMstar::new(start, goal, bounds, optimizer, cc);
+
+        assert!(!planner.is_solved);
+    }
+
+    // Test that a new PRMstar planner is created with the specified custom configuration
+    #[test]
+    fn test_prm_new_custom_configuration() {
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+            phantom: PhantomData,
+        });
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
+        let planner = PRMstar::new(start, goal, bounds, optimizer, cc);
+
+        assert!(!planner.is_solved);
+        // Add assertions for the custom configuration
+        assert_eq!(planner.config.default_nearest_neighbors, 10u8);
+        assert_eq!(planner.config.max_size, 32usize);
+    }
+
+    // Test that adding a node to the planner with a point that is already in the graph does not add a new node
+    #[test]
+    fn test_prm_add_existing_node() {
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+            phantom: PhantomData,
+        });
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
+        let mut planner = PRMstar::new(start, goal, bounds, optimizer, cc);
+
+        assert_eq!(planner.graph.node_count(), 0);
+        assert_eq!(planner.tree.size(), 0);
+        assert_eq!(planner.index_node_lookup.len(), 0);
+
+        let p1: Point<f64> = Point { x: 1.8, y: 2.0 };
+        planner.add_node(p1);
+
+        assert_eq!(planner.graph.node_count(), 1);
+        assert_eq!(planner.tree.size(), 1);
+        assert_eq!(planner.index_node_lookup.len(), 1);
+
+        // Add the same node again
+        planner.add_node(p1);
+
+        // Node count, tree size, and index node lookup should remain the same
+        assert_eq!(planner.graph.node_count(), 1);
+        assert_eq!(planner.tree.size(), 1);
+        assert_eq!(planner.index_node_lookup.len(), 1);
+    }
+
+    // Test that the 'set_start' and 'set_goal' methods properly set the start and goal points of the PRMstar planner
+    #[test]
+    fn test_prm_set_start_and_goal() {
+        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+            phantom: PhantomData,
+        });
+        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+            phantom: PhantomData,
+        });
+        let mut planner: PRMstar<f64> = PRMstar::new(start, goal, bounds, optimizer, cc);
+
+        let new_start: Point<f64> = Point { x: 1f64, y: 1f64 };
+        let new_goal: Point<f64> = Point { x: 2f64, y: 2f64 };
+
+        planner.set_start(new_start);
+        planner.set_goal(new_goal);
+
+        assert_eq!(planner.start, new_start);
+        assert_eq!(planner.goal, new_goal);
+        planner.init();
+        assert_eq!(planner.graph.node_count(), 2);
+        assert_eq!(planner.tree.size(), 2);
+        assert_eq!(planner.index_node_lookup.len(), 2);
     }
 }
