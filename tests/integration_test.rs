@@ -15,8 +15,8 @@ use mpl::{
 fn test_prmstar_scenario() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let planner = Box::<PRMstar<f64>>::default();
-    let start = Point { x: 0f64, y: 0f64 };
-    let goal = Point { x: 3f64, y: 3f64 };
+    let start = Point::new(0f64, 0f64);
+    let goal = Point::new(3f64, 3f64);
     let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
     let mut setup: PlanningSetup<f64> = PlanningSetup {
         planner,
@@ -36,8 +36,8 @@ fn test_prmstar_scenario() {
 fn test_prm_naiv_scenario() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let planner = Box::<PRM<f64>>::default();
-    let start = Point { x: 0f64, y: 0f64 };
-    let goal = Point { x: 3f64, y: 3f64 };
+    let start = Point::new(0f64, 0f64);
+    let goal = Point::new(3f64, 3f64);
     let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
 
     let mut setup: PlanningSetup<f64> = PlanningSetup {
@@ -75,14 +75,14 @@ fn test_geo_collision() {
         }
 
         fn is_edge_colliding(&self, begin: &Point<f64>, end: &Point<f64>) -> bool {
-            let a = gp::new(begin.x, begin.y);
-            let b = gp::new(end.x, end.y);
+            let a = gp::new(begin.get_x(), begin.get_y());
+            let b = gp::new(end.get_x(), end.get_y());
             let line = LineString::from(vec![a, b]);
             self.poly.intersects(&line)
         }
 
         fn is_node_colliding(&self, node: &Point<f64>) -> bool {
-            let geo_node = gp::new(node.x, node.y);
+            let geo_node = gp::new(node.get_x(), node.get_y());
             self.poly.contains(&geo_node)
         }
     }
@@ -97,8 +97,8 @@ fn test_geo_collision() {
         phantom: PhantomData,
     });
     let mut pdef: ProblemDefinition<f64> = ProblemDefinition::default();
-    let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-    let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+    let start: Point<f64> = Point::new(0f64, 0f64);
+    let goal: Point<f64> = Point::new(3f64, 3f64);
     pdef.set_start(start);
     pdef.set_goal(goal);
 

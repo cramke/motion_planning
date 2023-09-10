@@ -63,8 +63,8 @@ mod tests {
         let optimizer: DefaultOptimizer<f64> = DefaultOptimizer {
             phantom: PhantomData,
         };
-        let a: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let b: Point<f64> = Point { x: 1f64, y: 0f64 };
+        let a: Point<f64> = Point::new(0f64, 0f64);
+        let b: Point<f64> = Point::new(1f64, 0f64);
 
         let cost: f64 = optimizer.get_edge_weight(a, b).2;
         assert_eq!(1f64, cost);
@@ -77,8 +77,8 @@ mod tests {
         let optimizer: DefaultOptimizer<f64> = DefaultOptimizer {
             phantom: PhantomData,
         };
-        let a: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let b: Point<f64> = Point { x: 0f64, y: 1f64 };
+        let a: Point<f64> = Point::new(0f64, 0f64);
+        let b: Point<f64> = Point::new(0f64, 1f64);
 
         let cost: f64 = optimizer.get_edge_weight(a, b).2;
         assert_eq!(1f64, cost);

@@ -143,7 +143,7 @@ impl<T: SpaceContinuous> PRM<T> {
         let index = self.graph.add_node(node);
         self.index_node_lookup
             .insert(node.to_wkt().to_string(), index);
-        self.tree.insert([node.x, node.y]);
+        self.tree.insert([node.get_x(), node.get_y()]);
     }
 
     /// Generates a random node and adds it to the graph, if:
@@ -191,14 +191,11 @@ impl<T: SpaceContinuous> PRM<T> {
     fn connect_node_to_graph(&mut self, node: Point<T>) {
         let mut iterator = self
             .tree
-            .nearest_neighbor_iter_with_distance_2(&[node.x, node.y]);
+            .nearest_neighbor_iter_with_distance_2(&[node.get_x(), node.get_y()]);
 
         for _ in 0..self.config.default_nearest_neighbors {
             if let Some((neighbor, distance)) = iterator.next() {
-                let neighbor_point = Point {
-                    x: neighbor[0],
-                    y: neighbor[1],
-                };
+                let neighbor_point = Point::new(neighbor[0], neighbor[1]);
 
                 if node == neighbor_point
                     || self
@@ -292,8 +289,8 @@ mod test {
 
     #[test]
     fn test_prm_add_node() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let start: Point<f64> = Point::new(0f64, 0f64);
+        let goal: Point<f64> = Point::new(3f64, 3f64);
         let mut planner: PRM<f64> = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
@@ -303,7 +300,7 @@ mod test {
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point<f64> = Point { x: 1.8, y: 2.0 };
+        let p1: Point<f64> = Point::new(1.8, 2.0);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -313,11 +310,11 @@ mod test {
     #[test]
     fn test_setup_from_problem() {
         let mut prm: PRM<f64> = PRM::default();
-        prm.set_start(Point { x: 8f64, y: 9f64 });
-        prm.set_goal(Point { x: 10f64, y: 11f64 });
+        prm.set_start(Point::new(8f64, 9f64));
+        prm.set_goal(Point::new(10f64, 11f64));
 
-        assert_eq!(prm.start, Point { x: 8f64, y: 9f64 });
-        assert_eq!(prm.goal, Point { x: 10f64, y: 11f64 });
+        assert_eq!(prm.start, Point::new(8f64, 9f64));
+        assert_eq!(prm.goal, Point::new(10f64, 11f64));
     }
 
     #[test]
@@ -341,8 +338,8 @@ mod test {
     // Test if adding a node to the planner increments the node count, tree size, and index node lookup by 1.
     #[test]
     fn test_prm_add_node_increment() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let start: Point<f64> = Point::new(0f64, 0f64);
+        let goal: Point<f64> = Point::new(3f64, 3f64);
         let mut planner: PRM<f64> = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
@@ -352,7 +349,7 @@ mod test {
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point<f64> = Point { x: 1.8, y: 2.0 };
+        let p1: Point<f64> = Point::new(1.8, 2.0);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -362,8 +359,8 @@ mod test {
     // Test if adding a node with the same coordinates as the start point does not change the node count, tree size, and index node lookup.
     #[test]
     fn test_prm_add_node_same_coordinates_as_start() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let start: Point<f64> = Point::new(0f64, 0f64);
+        let goal: Point<f64> = Point::new(3f64, 3f64);
         let mut planner: PRM<f64> = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
@@ -374,7 +371,7 @@ mod test {
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);
         assert_eq!(planner.index_node_lookup.len(), 2);
-        let p1: Point<f64> = Point { x: 0f64, y: 0f64 };
+        let p1: Point<f64> = Point::new(0f64, 0f64);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);
@@ -384,8 +381,8 @@ mod test {
     // Test if adding a node with the same coordinates as the goal point keeps the node count, tree size, and index node lookup as 0.
     #[test]
     fn test_prm_add_node_same_coordinates_as_goal() {
-        let start: Point<f64> = Point { x: 0f64, y: 0f64 };
-        let goal: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let start: Point<f64> = Point::new(0f64, 0f64);
+        let goal: Point<f64> = Point::new(3f64, 3f64);
         let mut planner: PRM<f64> = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
@@ -396,7 +393,7 @@ mod test {
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);
         assert_eq!(planner.index_node_lookup.len(), 2);
-        let p1: Point<f64> = Point { x: 3f64, y: 3f64 };
+        let p1: Point<f64> = Point::new(3f64, 3f64);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);

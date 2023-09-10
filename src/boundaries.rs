@@ -65,19 +65,19 @@ impl<T: SpaceContinuous> Boundaries<T> {
     ///  - true: Node is inside space
     ///  - false: Node is outside space
     pub fn is_node_inside(&self, node: &Point<T>) -> bool {
-        if node.x < self.x_lower {
+        if node.get_x() < self.x_lower {
             return false;
         }
 
-        if node.x > self.x_upper {
+        if node.get_x() > self.x_upper {
             return false;
         }
 
-        if node.y < self.y_lower {
+        if node.get_y() < self.y_lower {
             return false;
         }
 
-        if node.y > self.y_upper {
+        if node.get_y() > self.y_upper {
             return false;
         }
 
@@ -90,7 +90,7 @@ impl<T: SpaceContinuous> Boundaries<T> {
     pub fn generate_random_configuration(&mut self) -> Point<T> {
         let x: T = self.rand.gen_range(self.x_lower..self.x_upper);
         let y: T = self.rand.gen_range(self.y_lower..self.y_upper);
-        Point { x, y }
+        Point::new(x, y)
     }
 }
 
@@ -138,10 +138,7 @@ mod tests {
         use crate::space::Point;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Point<f64> = Point {
-            x: 0.5f64,
-            y: 2.5f64,
-        };
+        let node: Point<f64> = Point::new(0.5f64, 2.5f64);
         assert!(bounds.is_node_inside(&node));
     }
 
@@ -151,10 +148,7 @@ mod tests {
         use crate::space::Point;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Point<f64> = Point {
-            x: 2.5f64,
-            y: 2.5f64,
-        };
+        let node: Point<f64> = Point::new(2.5f64, 2.5f64);
         assert!(!bounds.is_node_inside(&node));
     }
 
@@ -164,7 +158,7 @@ mod tests {
         use crate::space::Point;
 
         let bounds: Boundaries<f64> = Boundaries::new(0f64, 1f64, 2f64, 3f64);
-        let node: Point<f64> = Point { x: 0.5f64, y: 0f64 };
+        let node: Point<f64> = Point::new(0.5f64, 0f64);
         assert!(!bounds.is_node_inside(&node));
     }
 

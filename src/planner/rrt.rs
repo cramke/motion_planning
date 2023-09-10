@@ -160,7 +160,7 @@ impl<T: SpaceContinuous> RRT<T> {
         let index = self.graph.add_node(node);
         self.index_node_lookup
             .insert(node.to_wkt().to_string(), index);
-        self.tree.insert([node.x, node.y]);
+        self.tree.insert([node.get_x(), node.get_y()]);
     }
 
     /// Adds an edge to the graph and
@@ -179,11 +179,11 @@ impl<T: SpaceContinuous> RRT<T> {
 
     /// Applies A* and checks if a solution exists
     fn check_solution(&mut self) {
-        for coords in self.tree.nearest_neighbor_iter(&[self.goal.x, self.goal.y]) {
-            let neighbor: Point<T> = Point {
-                x: coords[0],
-                y: coords[1],
-            };
+        for coords in self
+            .tree
+            .nearest_neighbor_iter(&[self.goal.get_x(), self.goal.get_y()])
+        {
+            let neighbor: Point<T> = Point::new(coords[0], coords[1]);
             if self
                 .collision_checker
                 .is_edge_colliding(&neighbor, &self.goal)
@@ -197,12 +197,9 @@ impl<T: SpaceContinuous> RRT<T> {
 
         for coords in self
             .tree
-            .nearest_neighbor_iter(&[self.start.x, self.start.y])
+            .nearest_neighbor_iter(&[self.start.get_x(), self.start.get_y()])
         {
-            let neighbor: Point<T> = Point {
-                x: coords[0],
-                y: coords[1],
-            };
+            let neighbor: Point<T> = Point::new(coords[0], coords[1]);
             if self
                 .collision_checker
                 .is_edge_colliding(&neighbor, &self.goal)
@@ -242,11 +239,8 @@ impl<T: SpaceContinuous> RRT<T> {
     /// - None: No neighbor
     /// - Some(Point): Contains nearest neighbor
     fn get_nearest_neighbor(&self, node: Point<T>) -> Option<Point<T>> {
-        let neighbor: Option<&[T; 2]> = self.tree.nearest_neighbor(&[node.x, node.y]);
-        neighbor.map(|coords| Point {
-            x: coords[0],
-            y: coords[1],
-        })
+        let neighbor: Option<&[T; 2]> = self.tree.nearest_neighbor(&[node.get_x(), node.get_y()]);
+        neighbor.map(|coords| Point::new(coords[0], coords[1]))
     }
 }
 

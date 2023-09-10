@@ -10,8 +10,8 @@ use mpl::space::Point;
 fn main() {
     let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
     let mut planner: Box<PRM<f64>> = Box::default();
-    planner.set_start(Point { x: 1f64, y: 1f64 });
-    planner.set_goal(Point { x: 2f64, y: 2f64 });
+    planner.set_start(Point::new(1f64, 1f64));
+    planner.set_goal(Point::new(2f64, 2f64));
 
     let mut setup = PlanningSetup {
         planner,

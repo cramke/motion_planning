@@ -74,8 +74,8 @@ mod tests {
         let cc: NaiveCollisionChecker<f64> = NaiveCollisionChecker {
             phantom: PhantomData,
         };
-        let p1: &Point<f64> = &Point { x: 1.0, y: 2.0 };
-        let p2: &Point<f64> = &Point { x: 1.0, y: 2.0 };
+        let p1: &Point<f64> = &Point::new(1.0, 2.0);
+        let p2: &Point<f64> = &Point::new(1.0, 2.0);
 
         let result = cc.is_edge_colliding(p1, p2);
         assert!(!result);
@@ -86,7 +86,7 @@ mod tests {
         let cc: NaiveCollisionChecker<f64> = NaiveCollisionChecker {
             phantom: PhantomData,
         };
-        let p1: &Point<f64> = &Point { x: 1.0, y: 2.0 };
+        let p1: &Point<f64> = &Point::new(1.0, 2.0);
         let result: bool = cc.is_node_colliding(p1);
         assert!(!result);
     }
