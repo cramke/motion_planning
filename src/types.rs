@@ -1,4 +1,4 @@
-use num::{Bounded, Signed, Float};
+use num::{Bounded, Float, Signed};
 use rand::distributions::uniform::SampleUniform;
 use std::ops::{Add, Mul, Sub};
 

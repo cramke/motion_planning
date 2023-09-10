@@ -31,8 +31,12 @@ impl<T: SpaceContinuous> PlanningSetup<T> {
     ///
     /// A boolean value indicating whether the boundaries are valid or not. `true` if the boundaries are valid, `false` otherwise.
     fn sanity_check(&self) -> bool {
-        if self.boundaries.get_x_lower() > self.boundaries.get_x_upper() {return false}
-        if self.boundaries.get_y_lower() > self.boundaries.get_y_upper() {return false}
+        if self.boundaries.get_x_lower() > self.boundaries.get_x_upper() {
+            return false;
+        }
+        if self.boundaries.get_y_lower() > self.boundaries.get_y_upper() {
+            return false;
+        }
         true
     }
 
@@ -201,7 +205,6 @@ mod test {
 
         assert_eq!(result, false);
     }
-
 
     // Test that the sanity check method returns false when the lower x boundary is greater than the upper x boundary.
     #[test]

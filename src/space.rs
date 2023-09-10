@@ -89,12 +89,9 @@ impl<T: SpaceContinuous> Default for Point<T> {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use crate::space::Point;
-
 
     // Test the calculation of the Euclidean distance between two points with positive coordinates.
     #[test]
@@ -124,7 +121,6 @@ mod tests {
         assert_eq!(distance, 5.0);
     }
 
-
     // Test the calculation of the euclidean distance between two points when one of the coordinates is zero.
     #[test]
     fn test_euclidean_distance_with_zero_coordinate() {
@@ -133,7 +129,6 @@ mod tests {
         let distance: f64 = point1.euclidean_distance(&point2);
         assert_eq!(distance, 5.0);
     }
-
 
     // Test the calculation of the euclidean distance between two points with coordinates that are very far from each other.
     #[test]
@@ -149,7 +144,6 @@ mod tests {
         assert_eq!(distance, 2828427.12474619);
     }
 
-
     // Test the calculation of the euclidean distance between two points with coordinates that are very close to each other.
     #[test]
     fn test_euclidean_distance_close_coordinates() {
@@ -164,7 +158,6 @@ mod tests {
         assert!(distance < 0.00001);
     }
 
-
     // Test the calculation of the euclidean distance between two identical points
     #[test]
     fn test_euclidean_distance_identical_points() {
@@ -174,7 +167,6 @@ mod tests {
         assert_eq!(distance, 0.0);
     }
 
-
     // Test the calculation of the Euclidean distance between two points with different x-coordinates but the same y-coordinate.
     #[test]
     fn test_euclidean_distance_different_x_same_y() {
@@ -183,7 +175,6 @@ mod tests {
         let distance: f64 = point1.euclidean_distance(&point2);
         assert_eq!(distance, 3.0);
     }
-
 
     // Test the calculation of the Euclidean distance between two points with different y-coordinates but the same x-coordinate.
     #[test]
