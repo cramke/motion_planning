@@ -25,7 +25,14 @@ impl<T: SpaceContinuous> PlanningSetup<T> {
         }
     }
 
+    /// Checks if the lower boundaries are less than or equal to the upper boundaries for both the x and y axes.
+    ///
+    /// # Returns
+    ///
+    /// A boolean value indicating whether the boundaries are valid or not. `true` if the boundaries are valid, `false` otherwise.
     fn sanity_check(&self) -> bool {
+        if self.boundaries.get_x_lower() > self.boundaries.get_x_upper() {return false}
+        if self.boundaries.get_y_lower() > self.boundaries.get_y_upper() {return false}
         true
     }
 
@@ -148,9 +155,9 @@ mod test {
         assert_eq!(cost, expected_cost);
     }
 
-    // Test the sanity_check method of the test_setup_with_prm_new function
+    // Test that the sanity check method returns true when the lower boundaries are less than or equal to the upper boundaries for both the x and y axes.
     #[test]
-    fn test_setup_with_prm_new_sanity_check() {
+    fn test_sanity_check_returns_true() {
         let setup: PlanningSetup<f64> = PlanningSetup {
             planner: Box::<PRM<f64>>::default(),
             problem: ProblemDefinition::default(),
@@ -161,5 +168,54 @@ mod test {
         let result = setup.sanity_check();
 
         assert_eq!(result, true);
+    }
+
+    // Test that the sanity check method returns true when the lower boundaries are equal to the upper boundaries for both the x and y axes.
+    #[test]
+    fn test_sanity_check_returns_true_when_boundaries_are_equal() {
+        let boundaries = Boundaries::new(0.0, 0.0, 1.0, 1.0);
+        let setup: PlanningSetup<f64> = PlanningSetup {
+            planner: Box::<PRM<f64>>::default(),
+            problem: ProblemDefinition::default(),
+            boundaries,
+            ready: false,
+        };
+
+        let result = setup.sanity_check();
+
+        assert_eq!(result, true);
+    }
+
+    // Test that the sanity check method returns false when the lower y boundary is greater than the upper y boundary.
+    #[test]
+    fn test_sanity_check_returns_false_when_lower_y_boundary_is_greater_than_upper_y_boundary() {
+        let boundaries = Boundaries::new(0.0, 0.0, 1.0, -1.0);
+        let setup: PlanningSetup<f64> = PlanningSetup {
+            planner: Box::<PRM<f64>>::default(),
+            problem: ProblemDefinition::default(),
+            boundaries,
+            ready: false,
+        };
+
+        let result = setup.sanity_check();
+
+        assert_eq!(result, false);
+    }
+
+
+    // Test that the sanity check method returns false when the lower x boundary is greater than the upper x boundary.
+    #[test]
+    fn test_sanity_check_returns_false_when_lower_x_boundary_is_greater_than_upper_x_boundary() {
+        let boundaries = Boundaries::new(2.0, 0.0, 1.0, 1.0);
+        let setup: PlanningSetup<f64> = PlanningSetup {
+            planner: Box::<PRM<f64>>::default(),
+            problem: ProblemDefinition::default(),
+            boundaries,
+            ready: false,
+        };
+
+        let result = setup.sanity_check();
+
+        assert_eq!(result, false);
     }
 }
