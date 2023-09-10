@@ -1,4 +1,4 @@
-use num::{Bounded, Signed};
+use num::{Bounded, Signed, Float};
 use rand::distributions::uniform::SampleUniform;
 use std::ops::{Add, Mul, Sub};
 
@@ -18,6 +18,7 @@ pub trait SpaceContinuous:
     + Add<Self, Output = Self>
     + SampleUniform
     + Sized
+    + Float
 {
     const MAX: Self;
     const EPSILON: Self;

@@ -108,6 +108,7 @@ impl<T: SpaceContinuous> Default for Boundaries<T> {
     }
 }
 
+#[cfg(test)]
 mod tests {
 
     #[test]
