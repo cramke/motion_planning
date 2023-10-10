@@ -1,11 +1,9 @@
 # Use the official Rust image as the base image
 FROM ubuntu:latest
 
-# Set the working directory to /app
-WORKDIR /app
-
-# Copy the parent directory contents into the container at /app
-COPY . .
+# Set the working directory 
+VOLUME /home/motion_planning
+WORKDIR /home/motion_planning
 
 # Install curl for rustup
 RUN apt-get -y update
