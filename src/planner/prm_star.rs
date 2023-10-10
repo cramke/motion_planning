@@ -90,7 +90,7 @@ impl<T: SpaceContinuous> Planner<T> for PRMstar<T> {
             let added_node: Point<T> = self.add_random_node();
             self.connect_node_to_graph(added_node);
 
-            self.check_solution();
+            self.find_path(self.start, self.goal);
 
             if self.is_termination_criteria_met() {
                 println!("Termination Criteria met");
@@ -212,26 +212,39 @@ impl<T: SpaceContinuous> PRMstar<T> {
         }
     }
 
-    /// Applies the A* algorithm to the graph.
-    fn check_solution(&mut self) {
-        let start = *self
+    /// Finds a path between a start and goal point using the A* algorithm.
+    ///
+    /// # Arguments
+    ///
+    /// * `start` - The starting point of the path.
+    /// * `goal` - The goal point of the path.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing a boolean indicating whether a path was found and a vector of node indices
+    /// representing the path. If no path was found, the vector will be empty.
+    fn find_path(&mut self, start: Point<T>, goal: Point<T>) -> (bool, Vec<NodeIndex>) {
+        let start_index: NodeIndex = *self
             .index_node_lookup
-            .get(&self.start.to_wkt().to_string())
+            .get(&start.to_wkt().to_string())
             .unwrap();
-        let goal = *self
+        let goal_index: NodeIndex = *self
             .index_node_lookup
-            .get(&self.goal.to_wkt().to_string())
+            .get(&goal.to_wkt().to_string())
             .unwrap();
 
         self.solution = astar(
             &self.graph,
-            start,
-            |finish| finish == goal,
+            start_index,
+            |finish| finish == goal_index,
             |e| *e.weight(),
             |_| T::default(),
         );
 
-        self.is_solved = self.solution.is_some();
+        match &self.solution {
+            Some((_cost, path)) => (true, path.to_vec()),
+            None => (false, vec![]),
+        }
     }
 
     /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.     
