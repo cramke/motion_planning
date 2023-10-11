@@ -54,27 +54,49 @@ pub struct RRT<T: SpaceContinuous> {
 }
 
 impl<T: SpaceContinuous> Planner<T> for RRT<T> {
+    /// Sets the start point for the RRT planner.
+    ///
+    /// # Arguments
+    ///
+    /// * `start` - The start point for the planner.
     fn set_start(&mut self, start: Point<T>) {
         self.start = start;
     }
 
+    /// Sets the goal point for the RRT planner.
+    ///
+    /// # Arguments
+    ///
+    /// * `goal` - The goal point for the planner.
     fn set_goal(&mut self, goal: Point<T>) {
         self.goal = goal;
     }
 
+    /// Sets the boundaries for the RRT planner.
+    ///
+    /// # Arguments
+    ///
+    /// * `boundaries` - The boundaries for the planner.
     fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
         self.boundaries = boundaries;
     }
 
+    /// Sets the collision checker for the RRT planner.
+    ///
+    /// # Arguments
+    ///
+    /// * `cc` - The collision checker for the planner.
     fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>) {
         self.collision_checker = cc;
     }
 
+    /// Initializes the RRT planner by adding the start and goal nodes.
     fn init(&mut self) {
         self.add_node(self.start);
         self.add_node(self.goal);
     }
 
+    /// Solves the RRT planner. Runs until the termination criteria is met.
     fn solve(&mut self) {
         loop {
             let random_node: Point<T> = self.boundaries.generate_random_configuration();
@@ -188,47 +210,39 @@ impl<T: SpaceContinuous> RRT<T> {
         }
     }
 
-    fn add_goal_to_graph(&mut self) {
-        for coords in self.tree.nearest_neighbor_iter(&[self.goal.get_x(), self.goal.get_y()])
-        {
-            let neighbor: Point<T> = Point::new(coords[0], coords[1]);
-            if self
-                .collision_checker
-                .is_edge_colliding(&neighbor, &self.goal)
-            {
-                continue;
-            } else {
-                self.add_edge(neighbor, self.goal);
-                break;
-            }
-        }
-    }
-
-    fn add_start_to_graph(&mut self) {
-        for coords in self
+    /// Adds a new point to the RRT graph by connecting it to its nearest neighbor in the graph.
+    ///
+    /// # Arguments
+    ///
+    /// * `point` - The point to be added to the graph.
+    fn add_point_to_graph(&mut self, point: Point<T>) {
+        let nearest_neighbors = self
             .tree
-            .nearest_neighbor_iter(&[self.start.get_x(), self.start.get_y()])
-        {
+            .nearest_neighbor_iter(&[point.get_x(), point.get_y()]);
+        for coords in nearest_neighbors {
             let neighbor: Point<T> = Point::new(coords[0], coords[1]);
-            if self
-                .collision_checker
-                .is_edge_colliding(&neighbor, &self.start)
-            {
+            if self.collision_checker.is_edge_colliding(&neighbor, &point) {
                 continue;
             } else {
-                self.add_edge(neighbor, self.start);
-                break;
+                self.add_edge(neighbor, point);
             }
+            break;
         }
     }
 
     /// Applies A* and checks if a solution exists
     fn check_solution(&mut self) {
-        self.add_goal_to_graph();
-        self.add_start_to_graph();
+        self.add_point_to_graph(self.goal);
+        self.add_point_to_graph(self.start);
 
-        let start: NodeIndex = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
-        let goal: NodeIndex = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
+        let start: NodeIndex = *self
+            .index_node_lookup
+            .get(&self.start.to_wkt().to_string())
+            .unwrap();
+        let goal: NodeIndex = *self
+            .index_node_lookup
+            .get(&self.goal.to_wkt().to_string())
+            .unwrap();
         self.solution = astar(
             &self.graph,
             start,
@@ -246,13 +260,13 @@ impl<T: SpaceContinuous> RRT<T> {
     }
 
     /// Returns an Option to the nearest neighbor from the given point
-    /// 
+    ///
     /// Arguments:
-    /// 
+    ///
     /// - `node` - A Point<T> representing the node to find the nearest neighbor from
-    /// 
+    ///
     /// Returns:
-    /// 
+    ///
     /// - `None`: If there is no neighbor
     /// - `Some(Point)`: If there is a nearest neighbor, contains the nearest neighbor
     fn get_nearest_neighbor(&self, node: Point<T>) -> Option<Point<T>> {
