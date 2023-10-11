@@ -188,11 +188,8 @@ impl<T: SpaceContinuous> RRT<T> {
         }
     }
 
-    /// Applies A* and checks if a solution exists
-    fn check_solution(&mut self) {
-        for coords in self
-            .tree
-            .nearest_neighbor_iter(&[self.goal.get_x(), self.goal.get_y()])
+    fn add_goal_to_graph(&mut self) {
+        for coords in self.tree.nearest_neighbor_iter(&[self.goal.get_x(), self.goal.get_y()])
         {
             let neighbor: Point<T> = Point::new(coords[0], coords[1]);
             if self
@@ -205,7 +202,9 @@ impl<T: SpaceContinuous> RRT<T> {
                 break;
             }
         }
+    }
 
+    fn add_start_to_graph(&mut self) {
         for coords in self
             .tree
             .nearest_neighbor_iter(&[self.start.get_x(), self.start.get_y()])
@@ -213,28 +212,28 @@ impl<T: SpaceContinuous> RRT<T> {
             let neighbor: Point<T> = Point::new(coords[0], coords[1]);
             if self
                 .collision_checker
-                .is_edge_colliding(&neighbor, &self.goal)
+                .is_edge_colliding(&neighbor, &self.start)
             {
                 continue;
             } else {
-                self.add_edge(neighbor, self.goal);
+                self.add_edge(neighbor, self.start);
                 break;
             }
         }
+    }
 
-        let start = *self
-            .index_node_lookup
-            .get(&self.start.to_wkt().to_string())
-            .unwrap();
-        let goal = *self
-            .index_node_lookup
-            .get(&self.goal.to_wkt().to_string())
-            .unwrap();
+    /// Applies A* and checks if a solution exists
+    fn check_solution(&mut self) {
+        self.add_goal_to_graph();
+        self.add_start_to_graph();
+
+        let start: NodeIndex = *self.index_node_lookup.get(&self.start.to_wkt().to_string()).unwrap();
+        let goal: NodeIndex = *self.index_node_lookup.get(&self.goal.to_wkt().to_string()).unwrap();
         self.solution = astar(
             &self.graph,
             start,
-            |finish| finish == goal,
-            |e| *e.weight(),
+            |finish: NodeIndex| finish == goal,
+            |e: petgraph::graph::EdgeReference<'_, T>| *e.weight(),
             |_| T::default(),
         );
 
