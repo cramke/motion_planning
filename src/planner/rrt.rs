@@ -163,18 +163,29 @@ impl<T: SpaceContinuous> RRT<T> {
         self.tree.insert([node.get_x(), node.get_y()]);
     }
 
-    /// Adds an edge to the graph and
+    /// Adds an edge to the graph and updates the lookup and rtree.
     fn add_edge(&mut self, begin: Point<T>, end: Point<T>) {
         let weight: T = begin.euclidean_distance(&end);
-        let a: NodeIndex = *self
-            .index_node_lookup
-            .get(&begin.to_wkt().to_string())
-            .unwrap();
-        let b: NodeIndex = *self
-            .index_node_lookup
-            .get(&end.to_wkt().to_string())
-            .unwrap();
+        let a = self.get_node_index(&begin);
+        let b = self.get_node_index(&end);
         self.graph.add_edge(a, b, weight);
+    }
+
+    /// Returns the index of the node in the graph. If the node is not already in the graph, it is added and its index is returned.
+    ///
+    /// # Arguments
+    ///
+    /// * `node` - A reference to a `Point<T>` representing the node to be added to the graph.
+    ///
+    /// # Returns
+    ///
+    /// The `NodeIndex` of the node in the graph.
+    fn get_node_index(&mut self, node: &Point<T>) -> NodeIndex {
+        if let Some(index) = self.index_node_lookup.get(&node.to_wkt().to_string()) {
+            *index
+        } else {
+            self.graph.add_node(*node)
+        }
     }
 
     /// Applies A* and checks if a solution exists
@@ -235,9 +246,16 @@ impl<T: SpaceContinuous> RRT<T> {
         self.graph.node_count() >= self.config.max_size
     }
 
-    /// Returns Option to the nearest neighbor from the given point
-    /// - None: No neighbor
-    /// - Some(Point): Contains nearest neighbor
+    /// Returns an Option to the nearest neighbor from the given point
+    /// 
+    /// Arguments:
+    /// 
+    /// - `node` - A Point<T> representing the node to find the nearest neighbor from
+    /// 
+    /// Returns:
+    /// 
+    /// - `None`: If there is no neighbor
+    /// - `Some(Point)`: If there is a nearest neighbor, contains the nearest neighbor
     fn get_nearest_neighbor(&self, node: Point<T>) -> Option<Point<T>> {
         let neighbor: Option<&[T; 2]> = self.tree.nearest_neighbor(&[node.get_x(), node.get_y()]);
         neighbor.map(|coords| Point::new(coords[0], coords[1]))
@@ -251,7 +269,9 @@ mod test {
     use crate::{
         boundaries::Boundaries,
         collision_checker::{CollisionChecker, NaiveCollisionChecker},
+        space::Point,
     };
+    use petgraph::graph::NodeIndex;
     use std::marker::PhantomData;
 
     #[test]
@@ -260,8 +280,25 @@ mod test {
         let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let rrt = RRT::new(bounds, cc);
+        let rrt: RRT<f64> = RRT::new(bounds, cc);
         assert_eq!(rrt.config.max_size, Config::default().max_size);
         assert!(!rrt.is_solved)
+    }
+
+    #[test]
+    fn test_get_node_index() {
+        let mut rrt: RRT<f64> = RRT::<f64>::default();
+        let node: Point<f64> = Point::new(1.0, 2.0);
+        let node_index: NodeIndex = rrt.get_node_index(&node);
+        assert_eq!(node_index.index(), 0);
+    }
+
+    #[test]
+    fn test_add_node() {
+        let mut rrt: RRT<f64> = RRT::<f64>::default();
+        let node: Point<f64> = Point::new(1.0, 2.0);
+        rrt.add_node(node);
+        let node_index: NodeIndex = NodeIndex::new(0);
+        assert_eq!(rrt.graph.node_weight(node_index), Some(&node));
     }
 }
