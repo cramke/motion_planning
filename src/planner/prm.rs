@@ -20,6 +20,7 @@ use crate::types::SpaceContinuous;
 pub struct Config {
     pub default_nearest_neighbors: u8,
     pub max_size: usize,
+    pub n_grow_graph_between_checks: usize,
 }
 
 impl Default for Config {
@@ -27,6 +28,7 @@ impl Default for Config {
         Config {
             default_nearest_neighbors: 10u8,
             max_size: 32usize,
+            n_grow_graph_between_checks: 10usize,
         }
     }
 }
@@ -77,8 +79,10 @@ impl<T: SpaceContinuous> Planner<T> for PRM<T> {
 
     fn solve(&mut self) {
         loop {
-            let added_node: Point<T> = self.add_random_node();
-            self.connect_node_to_graph(added_node);
+            for _ in 0..self.config.n_grow_graph_between_checks {
+                let added_node: Point<T> = self.add_random_node();
+                self.connect_node_to_graph(added_node);
+            }
             self.check_solution();
             if self.is_termination_criteria_met() {
                 println!("Termination Criteria met");
