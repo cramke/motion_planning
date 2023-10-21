@@ -154,7 +154,7 @@ mod test {
 
         setup.setup();
         setup.solve();
-        let cost = setup.get_statistics();
+        let cost: f64 = setup.get_statistics();
         let expected_cost: f64 = f64::INFINITY;
         assert_eq!(cost, expected_cost);
     }

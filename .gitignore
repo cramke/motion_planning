@@ -4,3 +4,8 @@
 /examples/example1/*.txt
 Cargo.lock
 /src/main.rs
+
+# Profiling information
+perf.data.old
+perf.data
+hotspot.svg

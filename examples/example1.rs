@@ -22,6 +22,7 @@ fn main() {
 
     println!("#### mpl ####");
     let start = Instant::now();
+    setup.setup();
     setup.solve();
     let duration = start.elapsed();
     println!("Time elapsed in expensive_function() is: {duration:?}");
