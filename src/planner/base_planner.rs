@@ -1,7 +1,4 @@
-use crate::{
-    boundaries::Boundaries, collision_checker::CollisionChecker, space::Point,
-    types::SpaceContinuous,
-};
+use crate::{boundaries::Boundaries, collision_checker::CollisionChecker, space::Point};
 
 /// Custom planners can use these traits to implement other algorithm for planning.
 ///
@@ -14,12 +11,12 @@ use crate::{
 ///
 /// The trait provides several methods for setting the start and goal points, boundaries, and collision checker, as well as initializing the planner, solving the planning problem, and getting the solution cost.
 ///
-pub trait Planner<T: SpaceContinuous> {
-    fn set_start(&mut self, start: Point<T>);
-    fn set_goal(&mut self, goal: Point<T>);
-    fn set_boundaries(&mut self, boundaries: Boundaries<T>);
-    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>);
+pub trait Planner {
+    fn set_start(&mut self, start: Point);
+    fn set_goal(&mut self, goal: Point);
+    fn set_boundaries(&mut self, boundaries: Boundaries);
+    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker>);
     fn init(&mut self);
     fn solve(&mut self);
-    fn get_solution_cost(&self) -> T;
+    fn get_solution_cost(&self) -> f64;
 }

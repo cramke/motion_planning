@@ -1,5 +1,4 @@
 use crate::space::Point;
-use crate::types::SpaceContinuous;
 use std::fs::File;
 use std::io::Write;
 
@@ -20,7 +19,7 @@ use petgraph::Undirected;
 ///
 /// * `T` - The weight type of the graph.
 pub fn is_edge_already_in_graph<T: Copy + Clone + Signed + std::fmt::Debug>(
-    graph: &Graph<NodeIndex, T, Undirected>,
+    graph: &Graph<NodeIndex, f64, Undirected>,
     begin: NodeIndex,
     end: NodeIndex,
 ) -> bool {
@@ -33,7 +32,7 @@ pub fn is_edge_already_in_graph<T: Copy + Clone + Signed + std::fmt::Debug>(
 ///
 /// * `graph` - A reference to the graph to be written to file.
 /// * `path` - The path to the file where the graph will be written.
-pub fn write_graph_to_file<T: SpaceContinuous>(graph: &Graph<Point<T>, T, Undirected>, path: &str) {
+pub fn write_graph_to_file(graph: &Graph<Point, f64, Undirected>, path: &str) {
     let output = format!("{:?}", Dot::with_config(&graph, &[]));
     let mut file = match File::create(path) {
         Ok(file) => file,
@@ -54,6 +53,6 @@ pub fn write_graph_to_file<T: SpaceContinuous>(graph: &Graph<Point<T>, T, Undire
 /// # Arguments
 ///
 /// * `graph` - A reference to the graph to be printed.
-pub fn print_graph<T: SpaceContinuous>(graph: &Graph<Point<T>, T, Undirected>) {
+pub fn print_graph(graph: &Graph<Point, f64, Undirected>) {
     println!("{:?}", Dot::with_config(graph, &[]));
 }

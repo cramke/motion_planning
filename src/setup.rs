@@ -1,17 +1,14 @@
-use crate::{
-    boundaries::Boundaries, planner::base_planner::Planner, problem::ProblemDefinition,
-    types::SpaceContinuous,
-};
+use crate::{boundaries::Boundaries, planner::base_planner::Planner, problem::ProblemDefinition};
 
 /// Defines a struct called `PlanningSetup` with generic type `T` that has four fields: `planner`, `problem`, `boundaries`, and `ready`.
-pub struct PlanningSetup<T: SpaceContinuous> {
-    pub planner: Box<dyn Planner<T>>,
-    pub problem: ProblemDefinition<T>,
-    pub boundaries: Boundaries<T>,
+pub struct PlanningSetup {
+    pub planner: Box<dyn Planner>,
+    pub problem: ProblemDefinition,
+    pub boundaries: Boundaries,
     pub ready: bool,
 }
 
-impl<T: SpaceContinuous> PlanningSetup<T> {
+impl PlanningSetup {
     /// Sets up the planner by configuring the start point, goal point, boundaries, and performing a sanity check.
     pub fn setup(&mut self) {
         self.planner.set_start(self.problem.get_start());
@@ -57,7 +54,7 @@ impl<T: SpaceContinuous> PlanningSetup<T> {
     /// # Returns
     ///
     /// The solution cost.
-    pub fn get_statistics(&self) -> T {
+    pub fn get_statistics(&self) -> f64 {
         let cost = self.planner.get_solution_cost();
         println!("Cost: {}", cost);
         cost
@@ -74,8 +71,8 @@ mod test {
 
     #[test]
     fn test_setup_with_prm_new() {
-        let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -86,8 +83,8 @@ mod test {
 
     #[test]
     fn test_setup_with_prm_setup() {
-        let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let mut setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -101,8 +98,8 @@ mod test {
     #[test]
     #[should_panic]
     fn test_setup_with_prm_solve_wo_setup() {
-        let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let mut setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -112,11 +109,11 @@ mod test {
 
     #[test]
     fn test_setup_with_prm_solve() {
-        let start: Point<f64> = Point::new(1f64, 1f64);
-        let goal: Point<f64> = Point::new(2f64, 2f64);
+        let start: Point = Point::new(1f64, 1f64);
+        let goal: Point = Point::new(2f64, 2f64);
 
-        let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let mut setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::new(start, goal),
             boundaries: Boundaries::default(),
             ready: false,
@@ -130,8 +127,8 @@ mod test {
     #[test]
     #[should_panic]
     fn test_solve_panics_if_not_ready() {
-        let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let mut setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -142,11 +139,11 @@ mod test {
     // Test the 'get_statistics' method of the 'test_setup_with_prm_new' function
     #[test]
     fn test_setup_with_prm_new_get_statistics() {
-        let start: Point<f64> = Point::new(1f64, 1f64);
-        let goal: Point<f64> = Point::new(2f64, 2f64);
+        let start: Point = Point::new(1f64, 1f64);
+        let goal: Point = Point::new(2f64, 2f64);
 
-        let mut setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let mut setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::new(start, goal),
             boundaries: Boundaries::default(),
             ready: false,
@@ -162,8 +159,8 @@ mod test {
     // Test that the sanity check method returns true when the lower boundaries are less than or equal to the upper boundaries for both the x and y axes.
     #[test]
     fn test_sanity_check_returns_true() {
-        let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries: Boundaries::default(),
             ready: false,
@@ -178,8 +175,8 @@ mod test {
     #[test]
     fn test_sanity_check_returns_true_when_boundaries_are_equal() {
         let boundaries = Boundaries::new(0.0, 0.0, 1.0, 1.0);
-        let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries,
             ready: false,
@@ -194,8 +191,8 @@ mod test {
     #[test]
     fn test_sanity_check_returns_false_when_lower_y_boundary_is_greater_than_upper_y_boundary() {
         let boundaries = Boundaries::new(0.0, 0.0, 1.0, -1.0);
-        let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries,
             ready: false,
@@ -210,8 +207,8 @@ mod test {
     #[test]
     fn test_sanity_check_returns_false_when_lower_x_boundary_is_greater_than_upper_x_boundary() {
         let boundaries = Boundaries::new(2.0, 0.0, 1.0, 1.0);
-        let setup: PlanningSetup<f64> = PlanningSetup {
-            planner: Box::<PRM<f64>>::default(),
+        let setup: PlanningSetup = PlanningSetup {
+            planner: Box::<PRM>::default(),
             problem: ProblemDefinition::default(),
             boundaries,
             ready: false,

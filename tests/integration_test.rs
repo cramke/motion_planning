@@ -13,12 +13,12 @@ use mpl::{
 
 #[test]
 fn test_prmstar_scenario() {
-    let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let planner = Box::<PRMstar<f64>>::default();
+    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+    let planner = Box::<PRMstar>::default();
     let start = Point::new(0f64, 0f64);
     let goal = Point::new(3f64, 3f64);
-    let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
-    let mut setup: PlanningSetup<f64> = PlanningSetup {
+    let pdef: ProblemDefinition = ProblemDefinition::new(start, goal);
+    let mut setup: PlanningSetup = PlanningSetup {
         planner,
         problem: pdef,
         boundaries: bounds,
@@ -34,13 +34,13 @@ fn test_prmstar_scenario() {
 
 #[test]
 fn test_prm_naiv_scenario() {
-    let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let planner = Box::<PRM<f64>>::default();
+    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+    let planner = Box::<PRM>::default();
     let start = Point::new(0f64, 0f64);
     let goal = Point::new(3f64, 3f64);
-    let pdef: ProblemDefinition<f64> = ProblemDefinition::new(start, goal);
+    let pdef: ProblemDefinition = ProblemDefinition::new(start, goal);
 
-    let mut setup: PlanningSetup<f64> = PlanningSetup {
+    let mut setup: PlanningSetup = PlanningSetup {
         planner,
         problem: pdef,
         boundaries: bounds,
@@ -69,19 +69,19 @@ fn test_geo_collision() {
         poly: Polygon,
     }
 
-    impl CollisionChecker<f64> for GeoCollisionChecker {
+    impl CollisionChecker for GeoCollisionChecker {
         fn init(&self) -> bool {
             true
         }
 
-        fn is_edge_colliding(&self, begin: &Point<f64>, end: &Point<f64>) -> bool {
+        fn is_edge_colliding(&self, begin: &Point, end: &Point) -> bool {
             let a = gp::new(begin.get_x(), begin.get_y());
             let b = gp::new(end.get_x(), end.get_y());
             let line = LineString::from(vec![a, b]);
             self.poly.intersects(&line)
         }
 
-        fn is_node_colliding(&self, node: &Point<f64>) -> bool {
+        fn is_node_colliding(&self, node: &Point) -> bool {
             let geo_node = gp::new(node.get_x(), node.get_y());
             self.poly.contains(&geo_node)
         }
@@ -92,22 +92,22 @@ fn test_geo_collision() {
         vec![],
     );
 
-    let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-    let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+    let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+    let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
         phantom: PhantomData,
     });
-    let mut pdef: ProblemDefinition<f64> = ProblemDefinition::default();
-    let start: Point<f64> = Point::new(0f64, 0f64);
-    let goal: Point<f64> = Point::new(3f64, 3f64);
+    let mut pdef: ProblemDefinition = ProblemDefinition::default();
+    let start: Point = Point::new(0f64, 0f64);
+    let goal: Point = Point::new(3f64, 3f64);
     pdef.set_start(start);
     pdef.set_goal(goal);
 
-    let mut planner: Box<PRMstar<f64>> = Box::default();
+    let mut planner: Box<PRMstar> = Box::default();
     planner.optimizer = optimizer;
     let cc: Box<GeoCollisionChecker> = Box::new(GeoCollisionChecker { poly });
     planner.set_collision_checker(cc);
 
-    let mut setup: PlanningSetup<f64> = PlanningSetup {
+    let mut setup: PlanningSetup = PlanningSetup {
         planner,
         problem: pdef,
         boundaries: bounds,

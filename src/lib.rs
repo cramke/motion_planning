@@ -16,4 +16,3 @@ pub mod planner;
 pub mod problem;
 pub mod setup;
 pub mod space;
-pub mod types;

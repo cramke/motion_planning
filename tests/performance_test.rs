@@ -6,15 +6,15 @@ use std::time::Instant;
 
 #[test]
 fn test_performance_prm() {
-    let start: Point<f64> = Point::new(1f64, 1f64);
-    let goal: Point<f64> = Point::new(2f64, 2f64);
+    let start: Point = Point::new(1f64, 1f64);
+    let goal: Point = Point::new(2f64, 2f64);
 
-    let mut planner: Box<PRM<f64>> = Box::default();
+    let mut planner: Box<PRM> = Box::default();
     planner.config.max_size = 10usize;
     let problem = ProblemDefinition::new(start, goal);
     let boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
 
-    let mut setup: PlanningSetup<f64> = PlanningSetup {
+    let mut setup: PlanningSetup = PlanningSetup {
         planner,
         problem,
         boundaries,
@@ -29,7 +29,7 @@ fn test_performance_prm() {
     println!("Time elapsed in expensive_function() is: {duration:?}");
     let cost1: f64 = setup.get_statistics();
 
-    let mut planner2: Box<PRM<f64>> = Box::default();
+    let mut planner2: Box<PRM> = Box::default();
     planner2.config.max_size = 1000usize;
     setup.planner = planner2;
     setup.setup();

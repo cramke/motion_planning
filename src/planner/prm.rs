@@ -11,7 +11,6 @@ use crate::collision_checker::{CollisionChecker, NaiveCollisionChecker};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::space::Point;
-use crate::types::SpaceContinuous;
 
 /// # Holds configuration parameters for PRM*
 /// It does configure:
@@ -42,33 +41,33 @@ impl Default for Config {
 /// # Source / Credits
 /// Kavraki, L. E.; Svestka, P.; Latombe, J.-C.; Overmars, M. H. (1996), "Probabilistic roadmaps for path planning in high-dimensional configuration spaces", IEEE Transactions on Robotics and Automation, 12 (4): 566–580, doi:10.1109/70.508439
 ///
-pub struct PRM<T: SpaceContinuous> {
-    pub start: Point<T>,
-    pub goal: Point<T>,
-    pub boundaries: Boundaries<T>,
-    pub graph: Graph<Point<T>, T, Undirected>,
-    pub solution: Option<(T, Vec<NodeIndex>)>,
+pub struct PRM {
+    pub start: Point,
+    pub goal: Point,
+    pub boundaries: Boundaries,
+    pub graph: Graph<Point, f64, Undirected>,
+    pub solution: Option<(f64, Vec<NodeIndex>)>,
     pub is_solved: bool,
-    pub collision_checker: Box<dyn CollisionChecker<T>>,
-    tree: RTree<[T; 2]>,
+    pub collision_checker: Box<dyn CollisionChecker>,
+    tree: RTree<[f64; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
     pub config: Config,
 }
 
-impl<T: SpaceContinuous> Planner<T> for PRM<T> {
-    fn set_start(&mut self, start: Point<T>) {
+impl Planner for PRM {
+    fn set_start(&mut self, start: Point) {
         self.start = start;
     }
 
-    fn set_goal(&mut self, goal: Point<T>) {
+    fn set_goal(&mut self, goal: Point) {
         self.goal = goal;
     }
 
-    fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
+    fn set_boundaries(&mut self, boundaries: Boundaries) {
         self.boundaries = boundaries;
     }
 
-    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>) {
+    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker>) {
         self.collision_checker = cc;
     }
 
@@ -80,7 +79,7 @@ impl<T: SpaceContinuous> Planner<T> for PRM<T> {
     fn solve(&mut self) {
         loop {
             for _ in 0..self.config.n_grow_graph_between_checks {
-                let added_node: Point<T> = self.add_random_node();
+                let added_node: Point = self.add_random_node();
                 self.connect_node_to_graph(added_node);
             }
             self.check_solution();
@@ -93,18 +92,18 @@ impl<T: SpaceContinuous> Planner<T> for PRM<T> {
 
     /// Returns the solution cost.
     /// - f64::MAX: No solution was found
-    /// - cost: The cost of the solution. Implies that a solution was found.
-    fn get_solution_cost(&self) -> T {
+    /// - cost: f64he cost of the solution. Implies that a solution was found.
+    fn get_solution_cost(&self) -> f64 {
         match &self.solution {
-            None => T::MAX,
+            None => f64::MAX,
             Some((cost, _)) => *cost,
         }
     }
 }
 
-impl<T: SpaceContinuous> PRM<T> {
+impl PRM {
     /// Standard constructor
-    pub fn new(collision_checker: Box<dyn CollisionChecker<T>>) -> Self {
+    pub fn new(collision_checker: Box<dyn CollisionChecker>) -> Self {
         PRM {
             start: Point::default(),
             goal: Point::default(),
@@ -124,7 +123,7 @@ impl<T: SpaceContinuous> PRM<T> {
     /// # Arguments
     ///
     /// - `&mut self`: a mutable reference to the current instance of the struct or class that contains the method.
-    /// - `node: Point<T>`: a `Point` object representing the node to be added to the graph.
+    /// - `node: Point`: a `Point` object representing the node to be added to the graph.
     ///
     /// # Code Analysis
     ///
@@ -132,7 +131,7 @@ impl<T: SpaceContinuous> PRM<T> {
     /// 1. Adds the `node` to the graph using the `add_node` method of the `graph` object.
     /// 2. Inserts a mapping between the WKT representation of the `node` and its index in the lookup table using the `insert` method of the `index_node_lookup` hashmap.
     /// 3. Inserts the coordinates of the `node` into the tree data structure using the `insert` method of the `tree`.
-    fn add_node(&mut self, node: Point<T>) {
+    fn add_node(&mut self, node: Point) {
         if self.collision_checker.is_node_colliding(&node) {
             return;
         }
@@ -153,7 +152,6 @@ impl<T: SpaceContinuous> PRM<T> {
     /// Generates a random node and adds it to the graph, if:
     /// - It is not in collision
     /// - It is not already in the graph
-    /// Adds a random node to the data structure.
     ///
     /// This method generates a candidate node using the `generate_random_configuration` method of the `boundaries` object.
     /// It then checks if the candidate node collides with any existing nodes using the `is_node_colliding` method of the `collision_checker` object.
@@ -162,9 +160,9 @@ impl<T: SpaceContinuous> PRM<T> {
     ///     If it does, it continues to the next iteration.
     ///     If it doesn't, it adds the candidate node to the data structure and returns it.
     ///
-    fn add_random_node(&mut self) -> Point<T> {
+    fn add_random_node(&mut self) -> Point {
         loop {
-            let candidate: Point<T> = self.boundaries.generate_random_configuration();
+            let candidate: Point = self.boundaries.generate_random_configuration();
 
             if self.collision_checker.is_node_colliding(&candidate) {
                 continue;
@@ -189,10 +187,10 @@ impl<T: SpaceContinuous> PRM<T> {
     /// # Arguments
     ///
     /// - `&mut self`: A mutable reference to the current instance of the struct that contains the method.
-    /// - `node: Point<T>`: The node to be connected to the graph.
+    /// - `node: Point`: f64he node to be connected to the graph.
     /// # Outputs
     /// None. The method modifies the graph by adding edges between the node and its neighbors.
-    fn connect_node_to_graph(&mut self, node: Point<T>) {
+    fn connect_node_to_graph(&mut self, node: Point) {
         let mut iterator = self
             .tree
             .nearest_neighbor_iter_with_distance_2(&[node.get_x(), node.get_y()]);
@@ -238,7 +236,7 @@ impl<T: SpaceContinuous> PRM<T> {
             start,
             |finish| finish == goal,
             |e| *e.weight(),
-            |_| T::default(),
+            |_| f64::default(),
         );
         self.is_solved = self.solution.is_some();
     }
@@ -249,7 +247,7 @@ impl<T: SpaceContinuous> PRM<T> {
     }
 
     /// Returns the graph object (petgraph)
-    pub fn get_graph(&self) -> &Graph<Point<T>, T, Undirected> {
+    pub fn get_graph(&self) -> &Graph<Point, f64, Undirected> {
         &self.graph
     }
 
@@ -259,9 +257,9 @@ impl<T: SpaceContinuous> PRM<T> {
     }
 }
 
-impl<T: SpaceContinuous + 'static> Default for PRM<T> {
+impl Default for PRM {
     fn default() -> Self {
-        let collision_checker: Box<dyn CollisionChecker<T>> = Box::new(NaiveCollisionChecker {
+        let collision_checker: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         PRM::new(collision_checker)
@@ -280,31 +278,24 @@ mod test {
     // Test that the function 'test_default_f64' returns a PRM instance with the 'is_solved' field set to false.
     #[test]
     fn test_default_f64_returns_false() {
-        let prm: PRM<f64> = PRM::default();
-        assert!(!prm.is_solved);
-    }
-
-    // Test that the function 'test_default_f32' returns a PRM instance with the 'is_solved' field set to false.
-    #[test]
-    fn test_default_f32_returns_false() {
-        let prm: PRM<f32> = PRM::default();
+        let prm: PRM = PRM::default();
         assert!(!prm.is_solved);
     }
 
     #[test]
     fn test_prm_add_node() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let mut planner: PRM<f64> = PRM::default();
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let mut planner: PRM = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         planner.set_boundaries(bounds);
 
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point<f64> = Point::new(1.8, 2.0);
+        let p1: Point = Point::new(1.8, 2.0);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -313,7 +304,7 @@ mod test {
 
     #[test]
     fn test_setup_from_problem() {
-        let mut prm: PRM<f64> = PRM::default();
+        let mut prm: PRM = PRM::default();
         prm.set_start(Point::new(8f64, 9f64));
         prm.set_goal(Point::new(10f64, 11f64));
 
@@ -323,11 +314,11 @@ mod test {
 
     #[test]
     fn test_setup_boundaries() {
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         let mut prm = PRM::new(cc);
-        let bounds: Boundaries<f64> = Boundaries::new(1f64, 2f64, 3f64, 4f64);
+        let bounds: Boundaries = Boundaries::new(1f64, 2f64, 3f64, 4f64);
         assert_ne!(prm.boundaries.get_x_lower(), bounds.get_x_lower());
         assert_ne!(prm.boundaries.get_x_upper(), bounds.get_x_upper());
         assert_ne!(prm.boundaries.get_y_lower(), bounds.get_y_lower());
@@ -342,18 +333,18 @@ mod test {
     // Test if adding a node to the planner increments the node count, tree size, and index node lookup by 1.
     #[test]
     fn test_prm_add_node_increment() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let mut planner: PRM<f64> = PRM::default();
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let mut planner: PRM = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         planner.set_boundaries(bounds);
 
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point<f64> = Point::new(1.8, 2.0);
+        let p1: Point = Point::new(1.8, 2.0);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -363,19 +354,19 @@ mod test {
     // Test if adding a node with the same coordinates as the start point does not change the node count, tree size, and index node lookup.
     #[test]
     fn test_prm_add_node_same_coordinates_as_start() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let mut planner: PRM<f64> = PRM::default();
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let mut planner: PRM = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
         planner.init();
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         planner.set_boundaries(bounds);
 
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);
         assert_eq!(planner.index_node_lookup.len(), 2);
-        let p1: Point<f64> = Point::new(0f64, 0f64);
+        let p1: Point = Point::new(0f64, 0f64);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);
@@ -385,19 +376,19 @@ mod test {
     // Test if adding a node with the same coordinates as the goal point keeps the node count, tree size, and index node lookup as 0.
     #[test]
     fn test_prm_add_node_same_coordinates_as_goal() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let mut planner: PRM<f64> = PRM::default();
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let mut planner: PRM = PRM::default();
         planner.set_start(start);
         planner.set_goal(goal);
         planner.init();
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
         planner.set_boundaries(bounds);
 
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);
         assert_eq!(planner.index_node_lookup.len(), 2);
-        let p1: Point<f64> = Point::new(3f64, 3f64);
+        let p1: Point = Point::new(3f64, 3f64);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 2);
         assert_eq!(planner.tree.size(), 2);

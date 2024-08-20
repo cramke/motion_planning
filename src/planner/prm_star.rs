@@ -12,7 +12,6 @@ use crate::optimizer::{DefaultOptimizer, Optimizer};
 use crate::planner::base_planner::Planner;
 use crate::planner::graph_utils as pg;
 use crate::space::Point;
-use crate::types::SpaceContinuous;
 
 /// # Holds configuration parameters for PRM*
 /// It does configure:
@@ -43,38 +42,38 @@ impl Default for Config {
 ///
 /// # Example
 ///
-pub struct PRMstar<T: SpaceContinuous> {
-    pub start: Point<T>,
-    pub goal: Point<T>,
-    pub boundaries: Boundaries<T>,
-    pub graph: Graph<Point<T>, T, Undirected>,
-    pub solution: Option<(T, Vec<NodeIndex>)>,
-    pub optimizer: Box<dyn Optimizer<T>>,
+pub struct PRMstar {
+    pub start: Point,
+    pub goal: Point,
+    pub boundaries: Boundaries,
+    pub graph: Graph<Point, f64, Undirected>,
+    pub solution: Option<(f64, Vec<NodeIndex>)>,
+    pub optimizer: Box<dyn Optimizer>,
     pub is_solved: bool,
-    pub collision_checker: Box<dyn CollisionChecker<T>>,
-    tree: RTree<[T; 2]>,
+    pub collision_checker: Box<dyn CollisionChecker>,
+    tree: RTree<[f64; 2]>,
     index_node_lookup: HashMap<String, NodeIndex>,
     pub config: Config,
 }
 
-impl<T: SpaceContinuous> Planner<T> for PRMstar<T> {
+impl Planner for PRMstar {
     /// Setter for start
-    fn set_start(&mut self, start: Point<T>) {
+    fn set_start(&mut self, start: Point) {
         self.start = start;
     }
 
     /// Setter for goal
-    fn set_goal(&mut self, goal: Point<T>) {
+    fn set_goal(&mut self, goal: Point) {
         self.goal = goal;
     }
 
     /// Setter for boundaries
-    fn set_boundaries(&mut self, boundaries: Boundaries<T>) {
+    fn set_boundaries(&mut self, boundaries: Boundaries) {
         self.boundaries = boundaries;
     }
 
     /// Setter for Collision Checker
-    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker<T>>) {
+    fn set_collision_checker(&mut self, cc: Box<dyn CollisionChecker>) {
         self.collision_checker = cc;
     }
 
@@ -87,7 +86,7 @@ impl<T: SpaceContinuous> Planner<T> for PRMstar<T> {
     /// Use the current configuration to solve the problem
     fn solve(&mut self) {
         loop {
-            let added_node: Point<T> = self.add_random_node();
+            let added_node: Point = self.add_random_node();
             self.connect_node_to_graph(added_node);
 
             self.find_path(self.start, self.goal);
@@ -101,23 +100,23 @@ impl<T: SpaceContinuous> Planner<T> for PRMstar<T> {
 
     /// Returns the solution cost.
     /// - f64::MAX: No solution was found
-    /// - cost: The cost of the solution. Implies that a solution was found.
-    fn get_solution_cost(&self) -> T {
+    /// - cost: f64he cost of the solution. Implies that a solution was found.
+    fn get_solution_cost(&self) -> f64 {
         match &self.solution {
-            None => T::MAX,
+            None => f64::MAX,
             Some((cost, _)) => *cost,
         }
     }
 }
 
-impl<T: SpaceContinuous> PRMstar<T> {
+impl PRMstar {
     /// Standard constructor
     pub fn new(
-        start: Point<T>,
-        goal: Point<T>,
-        boundaries: Boundaries<T>,
-        optimizer: Box<dyn Optimizer<T>>,
-        collision_checker: Box<dyn CollisionChecker<T>>,
+        start: Point,
+        goal: Point,
+        boundaries: Boundaries,
+        optimizer: Box<dyn Optimizer>,
+        collision_checker: Box<dyn CollisionChecker>,
     ) -> Self {
         PRMstar {
             start,
@@ -135,7 +134,7 @@ impl<T: SpaceContinuous> PRMstar<T> {
     }
 
     /// Adds a node to the graph, lookup for nodeindex to point.wkt, and the rtree.
-    fn add_node(&mut self, node: Point<T>) {
+    fn add_node(&mut self, node: Point) {
         if self.collision_checker.is_node_colliding(&node) {
             return;
         }
@@ -156,8 +155,8 @@ impl<T: SpaceContinuous> PRMstar<T> {
     /// Generates a random node and adds it to the graph, if:
     /// - It is not in collision
     /// - It is not already in the graph
-    fn add_random_node(&mut self) -> Point<T> {
-        let mut candidate: Point<T>;
+    fn add_random_node(&mut self) -> Point {
+        let mut candidate: Point;
         loop {
             candidate = self.boundaries.generate_random_configuration();
 
@@ -179,7 +178,7 @@ impl<T: SpaceContinuous> PRMstar<T> {
     }
 
     /// Try to connect a node to its k nearest neigbors.
-    fn connect_node_to_graph(&mut self, node: Point<T>) {
+    fn connect_node_to_graph(&mut self, node: Point) {
         let mut iterator = self
             .tree
             .nearest_neighbor_iter(&[node.get_x(), node.get_y()]);
@@ -223,7 +222,7 @@ impl<T: SpaceContinuous> PRMstar<T> {
     ///
     /// A tuple containing a boolean indicating whether a path was found and a vector of node indices
     /// representing the path. If no path was found, the vector will be empty.
-    fn find_path(&mut self, start: Point<T>, goal: Point<T>) -> (bool, Vec<NodeIndex>) {
+    fn find_path(&mut self, start: Point, goal: Point) -> (bool, Vec<NodeIndex>) {
         let start_index: NodeIndex = *self
             .index_node_lookup
             .get(&start.to_wkt().to_string())
@@ -238,7 +237,7 @@ impl<T: SpaceContinuous> PRMstar<T> {
             start_index,
             |finish| finish == goal_index,
             |e| *e.weight(),
-            |_| T::default(),
+            |_| f64::default(),
         );
 
         match &self.solution {
@@ -253,7 +252,7 @@ impl<T: SpaceContinuous> PRMstar<T> {
     }
 
     /// Returns the graph object (petgraph)
-    pub fn get_graph(&self) -> &Graph<Point<T>, T, Undirected> {
+    pub fn get_graph(&self) -> &Graph<Point, f64, Undirected> {
         &self.graph
     }
 
@@ -263,15 +262,15 @@ impl<T: SpaceContinuous> PRMstar<T> {
     }
 }
 
-impl Default for PRMstar<f64> {
+impl Default for PRMstar {
     fn default() -> Self {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         PRMstar::new(start, goal, bounds, optimizer, cc)
@@ -293,13 +292,13 @@ mod test {
 
     #[test]
     fn test_prm_new() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         let planner = PRMstar::new(start, goal, bounds, optimizer, cc);
@@ -317,13 +316,13 @@ mod test {
 
     #[test]
     fn test_prm_add_node() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         let mut planner = PRMstar::new(start, goal, bounds, optimizer, cc);
@@ -331,7 +330,7 @@ mod test {
         assert_eq!(planner.graph.node_count(), 0);
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
-        let p1: Point<f64> = Point::new(1.8, 2.0);
+        let p1: Point = Point::new(1.8, 2.0);
         planner.add_node(p1);
         assert_eq!(planner.graph.node_count(), 1);
         assert_eq!(planner.tree.size(), 1);
@@ -341,13 +340,13 @@ mod test {
     // Test that a new PRMstar planner is created with start and goal points outside of the boundaries
     #[test]
     fn test_prm_new_outside_boundaries() {
-        let start: Point<f64> = Point::new(-1f64, -1f64);
-        let goal: Point<f64> = Point::new(4f64, 4f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(-1f64, -1f64);
+        let goal: Point = Point::new(4f64, 4f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         let planner = PRMstar::new(start, goal, bounds, optimizer, cc);
@@ -358,13 +357,13 @@ mod test {
     // Test that a new PRMstar planner is created with the specified custom configuration
     #[test]
     fn test_prm_new_custom_configuration() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         let planner = PRMstar::new(start, goal, bounds, optimizer, cc);
@@ -378,13 +377,13 @@ mod test {
     // Test that adding a node to the planner with a point that is already in the graph does not add a new node
     #[test]
     fn test_prm_add_existing_node() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
         let mut planner = PRMstar::new(start, goal, bounds, optimizer, cc);
@@ -393,7 +392,7 @@ mod test {
         assert_eq!(planner.tree.size(), 0);
         assert_eq!(planner.index_node_lookup.len(), 0);
 
-        let p1: Point<f64> = Point::new(1.8, 2.0);
+        let p1: Point = Point::new(1.8, 2.0);
         planner.add_node(p1);
 
         assert_eq!(planner.graph.node_count(), 1);
@@ -412,19 +411,19 @@ mod test {
     // Test that the 'set_start' and 'set_goal' methods properly set the start and goal points of the PRMstar planner
     #[test]
     fn test_prm_set_start_and_goal() {
-        let start: Point<f64> = Point::new(0f64, 0f64);
-        let goal: Point<f64> = Point::new(3f64, 3f64);
-        let bounds: Boundaries<f64> = Boundaries::new(0f64, 3f64, 0f64, 3f64);
-        let optimizer: Box<dyn Optimizer<f64>> = Box::new(DefaultOptimizer {
+        let start: Point = Point::new(0f64, 0f64);
+        let goal: Point = Point::new(3f64, 3f64);
+        let bounds: Boundaries = Boundaries::new(0f64, 3f64, 0f64, 3f64);
+        let optimizer: Box<dyn Optimizer> = Box::new(DefaultOptimizer {
             phantom: PhantomData,
         });
-        let cc: Box<dyn CollisionChecker<f64>> = Box::new(NaiveCollisionChecker {
+        let cc: Box<dyn CollisionChecker> = Box::new(NaiveCollisionChecker {
             phantom: PhantomData,
         });
-        let mut planner: PRMstar<f64> = PRMstar::new(start, goal, bounds, optimizer, cc);
+        let mut planner: PRMstar = PRMstar::new(start, goal, bounds, optimizer, cc);
 
-        let new_start: Point<f64> = Point::new(1f64, 1f64);
-        let new_goal: Point<f64> = Point::new(2f64, 2f64);
+        let new_start: Point = Point::new(1f64, 1f64);
+        let new_goal: Point = Point::new(2f64, 2f64);
 
         planner.set_start(new_start);
         planner.set_goal(new_goal);
