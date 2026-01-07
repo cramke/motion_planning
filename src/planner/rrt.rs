@@ -212,9 +212,12 @@ impl RRT {
     ///
     /// * `point` - The point to be added to the graph.
     fn add_point_to_graph(&mut self, point: Point) {
-        let nearest_neighbors = self
+        let nearest_neighbors: Vec<[f64; 2]> = self
             .tree
-            .nearest_neighbor_iter(&[point.get_x(), point.get_y()]);
+            .nearest_neighbor_iter(&[point.get_x(), point.get_y()])
+            .copied()
+            .collect();
+
         for coords in nearest_neighbors {
             let neighbor: Point = Point::new(coords[0], coords[1]);
             if self.collision_checker.is_edge_colliding(&neighbor, &point) {
@@ -250,7 +253,7 @@ impl RRT {
         self.is_solved = self.solution.is_some();
     }
 
-    /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.     
+    /// Determines which criteria is used to stop the algorithm. Check the max_size parameter and compares it to the number of nodes in the graph.
     fn is_termination_criteria_met(&self) -> bool {
         self.graph.node_count() >= self.config.max_size
     }
