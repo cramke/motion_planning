@@ -212,20 +212,20 @@ impl RRT {
     ///
     /// * `point` - The point to be added to the graph.
     fn add_point_to_graph(&mut self, point: Point) {
-        let nearest_neighbors: Vec<[f64; 2]> = self
+        // Find the first non-colliding neighbor (lazy evaluation)
+        let neighbor_to_connect: Option<[f64; 2]> = self
             .tree
             .nearest_neighbor_iter(&[point.get_x(), point.get_y()])
-            .copied()
-            .collect();
+            .find(|coords| {
+                let neighbor = Point::new(coords[0], coords[1]);
+                !self.collision_checker.is_edge_colliding(&neighbor, &point)
+            })
+            .copied();
 
-        for coords in nearest_neighbors {
-            let neighbor: Point = Point::new(coords[0], coords[1]);
-            if self.collision_checker.is_edge_colliding(&neighbor, &point) {
-                continue;
-            } else {
-                self.add_edge(neighbor, point);
-            }
-            break;
+        // Now add the edge after the immutable borrow has ended
+        if let Some(coords) = neighbor_to_connect {
+            let neighbor = Point::new(coords[0], coords[1]);
+            self.add_edge(neighbor, point);
         }
     }
 
