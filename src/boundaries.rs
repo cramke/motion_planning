@@ -50,7 +50,7 @@ impl Boundaries {
 impl Boundaries {
     // Constructor for an Boundaries Object.
     pub fn new(x_lower: f64, x_upper: f64, y_lower: f64, y_upper: f64) -> Self {
-        let rand = rand::thread_rng();
+        let rand = rand::rng();
         Boundaries {
             x_lower,
             x_upper,
@@ -88,8 +88,8 @@ impl Boundaries {
     /// Return
     ///  - Point: Has random coordinates.
     pub fn generate_random_configuration(&mut self) -> Point {
-        let x: f64 = self.rand.gen_range(self.x_lower..self.x_upper);
-        let y: f64 = self.rand.gen_range(self.y_lower..self.y_upper);
+        let x: f64 = self.rand.random_range(self.x_lower..self.x_upper);
+        let y: f64 = self.rand.random_range(self.y_lower..self.y_upper);
         Point::new(x, y)
     }
 }
